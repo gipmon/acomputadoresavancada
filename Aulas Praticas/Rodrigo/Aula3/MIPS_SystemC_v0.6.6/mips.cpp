@@ -118,7 +118,7 @@ void mips::buildEXE(void)
 
       alu1->din1(rega_exe);
       alu1->din2(ALUIn2);
-      alu1->op(ALUOp);
+      alu1->op(ALUOp_exe);
       alu1->dout(ALUOut);
       alu1->zero(Zero);
 
