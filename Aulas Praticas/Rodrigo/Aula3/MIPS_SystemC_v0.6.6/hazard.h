@@ -19,6 +19,8 @@
  *   	- \c sc_uint<5> \c WriteReg_mem	   - register to be written (MEM)
  *   	- \c bool \c RegWrite_exe	   - control signal of writing registers (EXE)
  *   	- \c bool \c RegWrite_mem	   - control signal of writing registers (MEM)
+  *     - \c bool \c MemRead           - control signal of read memory (MEM)
+
  *   - output ports
  *   	- \c bool \c enable_pc      - enables PC update
  *   	- \c bool \c enable_ifid    - enables IF/ID update
@@ -31,7 +33,7 @@ SC_MODULE( hazard )
     sc_in< sc_uint<5> >  rs;
     sc_in< sc_uint<5> >  rt;        
     sc_in< sc_uint<5> >  WriteReg_exe, WriteReg_mem;        
-    sc_in< bool >  RegWrite_exe, RegWrite_mem;        
+    sc_in< bool >  RegWrite_exe, RegWrite_mem, MemRead;        
 
     sc_out< bool >  enable_pc, enable_ifid, reset_idexe;        
 
@@ -40,7 +42,8 @@ SC_MODULE( hazard )
         SC_METHOD(detect_hazard);
         sensitive << rs << rt 
 		  << WriteReg_exe << RegWrite_exe
-		  << WriteReg_mem << RegWrite_mem;
+		  << WriteReg_mem << RegWrite_mem
+          << MemRead;
    }
   
     void detect_hazard();

@@ -301,6 +301,7 @@ void mips::buildArchitecture(void){
       hazard_unit = new hazard("hazard_unit");
       hazard_unit->rs( rs );
       hazard_unit->rt( rt );
+      hazard_unit->MemRead(MemRead);
       hazard_unit->WriteReg_exe(WriteReg_exe);
       hazard_unit->RegWrite_exe(RegWrite_exe);
       hazard_unit->WriteReg_mem(WriteReg_mem);
