@@ -8,7 +8,7 @@
 #include "mips.h"
 
 /**
- * buils IF stage components 
+ * buils IF stage components
  */
 void mips::buildIF(void)
 {
@@ -26,7 +26,7 @@ void mips::buildIF(void)
       instmem->inst(inst);
 
       // Adds 4 to Program Counter
-      add4 = new add ("add4"); 
+      add4 = new add ("add4");
 
       add4->op1(PC);
       add4->op2(const4);
@@ -34,7 +34,7 @@ void mips::buildIF(void)
 
       // Selects Next Program Counter Value
       mPC = new mux< sc_uint<32> > ("mPC");
-   
+
       mPC->sel(BranchTaken);
       mPC->din0(PC4);
       mPC->din1(BranchTarget_mem);
@@ -42,7 +42,7 @@ void mips::buildIF(void)
 }
 
 /**
- * buils ID stage components 
+ * buils ID stage components
  */
 void mips::buildID(void)
 {
@@ -59,12 +59,12 @@ void mips::buildID(void)
 
       // Selects Register to Write
       mr = new mux< sc_uint<5> > ("muxRDst");
-   
+
       mr->sel(RegDst);
       mr->din0(rt);
       mr->din1(rd);
       mr->dout(WriteReg);
-   
+
       // Register File
       rfile = new regfile ("regfile");
 
@@ -88,9 +88,9 @@ void mips::buildID(void)
       // Control
       ctrl = new control ("control");
 
-      ctrl->opcode(opcode); 
-      ctrl->funct(funct);   
-      ctrl->RegDst(RegDst); 
+      ctrl->opcode(opcode);
+      ctrl->funct(funct);
+      ctrl->RegDst(RegDst);
       ctrl->Branch(Branch);
       ctrl->MemRead(MemRead);
       ctrl->MemWrite(MemWrite);
@@ -101,49 +101,49 @@ void mips::buildID(void)
 }
 
 /**
- * buils EXE stage components 
+ * buils EXE stage components
  */
 void mips::buildEXE(void)
 {
       // Selects second operand of ALU
       m1 = new mux< sc_uint<32> > ("muxOp");
 
-      m1->sel(ALUSrc_exe);
-      m1->din0(regb_exe);
-      m1->din1(imm_exe);
-      m1->dout(ALUIn2);
+      m1->sel(ALUSrc_exe); // sinal de selecao
+      m1->din0(regb_exe); // registo, seleciona entre um imediato e um registo
+      m1->din1(imm_exe); // imediato
+      m1->dout(ALUIn2); // e um sinal
 
       // ALU
       alu1 = new alu("alu");
 
       alu1->din1(rega_exe);
       alu1->din2(ALUIn2);
-      alu1->op(ALUOp);
+      alu1->op(ALUOp_exe);
       alu1->dout(ALUOut);
       alu1->zero(Zero);
 
-      // shift left 2 imm_ext 
+      // shift left 2 imm_ext
       sl2 = new shiftl2("sl2");
       sl2->din(imm_exe);
       sl2->dout(addr_ext);
 
       // Adds Branch Immediate to Program Counter + 4
       addbr = new add ("addbr");
-   
+
       addbr->op1(PC4_exe);
-      addbr->op2(addr_ext);  
+      addbr->op2(addr_ext);
       addbr->res(BranchTarget);
 
 }
 
 /**
- * buils MEM stage components 
+ * buils MEM stage components
  */
 void mips::buildMEM(void)
 {
       // Data Memory
       datamem = new dmem ("datamem");
-   
+
       datamem->addr(ALUOut_mem);
       datamem->din(regb_mem);
       datamem->dout(MemOut);
@@ -160,13 +160,13 @@ void mips::buildMEM(void)
 }
 
 /**
- * buils WB stage components 
+ * buils WB stage components
  */
 void mips::buildWB(void)
 {
       // Selects Result
       m2 = new mux< sc_uint<32> > ("muxRes");
-   
+
       m2->sel(MemtoReg_wb);
       m2->din0(ALUOut_wb);
       m2->din1(MemOut_wb);
@@ -176,7 +176,7 @@ void mips::buildWB(void)
 
 /**
  * Instantiates the pipeline registers and calls other functions to
- * buils stage specific components 
+ * buils stage specific components
  */
 void mips::buildArchitecture(void){
 
@@ -275,7 +275,7 @@ void mips::buildArchitecture(void){
       reg_exe_mem->enable(const1);
 
       buildMEM();
-      
+
       //reg_mem_wb
       reg_mem_wb = new reg_mem_wb_t("reg_mem_wb");
       reg_mem_wb->aluOut_mem(ALUOut_mem);
@@ -305,6 +305,7 @@ void mips::buildArchitecture(void){
       hazard_unit->RegWrite_exe(RegWrite_exe);
       hazard_unit->WriteReg_mem(WriteReg_mem);
       hazard_unit->RegWrite_mem(RegWrite_mem);
+      hazard_unit->MemRead(MemRead);
       hazard_unit->enable_pc(enable_pc);
       hazard_unit->enable_ifid(enable_ifid);
       hazard_unit->reset_idexe(reset_haz_idexe);
