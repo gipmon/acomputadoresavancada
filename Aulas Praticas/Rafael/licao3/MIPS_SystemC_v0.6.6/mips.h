@@ -51,11 +51,12 @@ SC_MODULE(mips) {
    sc_in < bool > reset;
 
    // Modules
-   // IF 
+   // IF
    registo           *PCreg;     // PC register
    imem              *instmem;   // instruction memory
    add *add4;                    // adds 4 to PC
    mux< sc_uint<32> > *mPC;      // selects Next PC from PCbrach and PC + 4
+   orgate *or_reset_ifid;
 
    //ID
    decode            *dec1;      // decodes instruction
@@ -71,6 +72,7 @@ SC_MODULE(mips) {
    mux< sc_uint<32> > *m1;       // selects 2nd ALU operand
    shiftl2 *sl2;                 // shift left 2 imm_ext
    add *addbr;                   // adds imm to PC + 4
+   orgate *or_reset_exmem;
 
    //MEM
    dmem              *datamem;   // data memory
@@ -86,13 +88,14 @@ SC_MODULE(mips) {
    reg_mem_wb_t      *reg_mem_wb;
 
    // Signals
-   
+
    // IF
    sc_signal < sc_uint<32> > PC,       // Program Counter
                              NPC,      // Next Program Counter
 			     PC4;      // PC + 4
    sc_signal < sc_uint<32> > inst;     // current instruction
    sc_signal <bool> enable_pc;
+   sc_signal <bool> reset_haz_ifid, reset_ifid;
 
    sc_signal <bool> enable_ifid;
 
@@ -136,6 +139,7 @@ SC_MODULE(mips) {
    sc_signal < sc_uint<32> > imm_exe, PC4_exe;
    sc_signal < sc_uint<32> > addr_ext; // imm_ext shift left 2
    sc_signal < sc_uint<5> > WriteReg_exe;
+   sc_signal <bool> reset_haz_exmem, reset_exmem;
    // ALU signals
    sc_signal < sc_uint<32> > ALUIn2,   // ALU second operand
                              ALUOut;   // ALU Output
@@ -144,7 +148,7 @@ SC_MODULE(mips) {
    sc_signal <bool> ALUSrc_exe;
    sc_signal < sc_uint<3> > ALUOp_exe;
    sc_signal <bool> Branch_exe;
-   
+
    // the following two signals are not used by the architecture
    // they are used only for visualization purposes
    sc_signal < sc_uint<32> > PC_exe;     // PC of instruction in ID
@@ -152,26 +156,26 @@ SC_MODULE(mips) {
 
    //MEM
    sc_signal < sc_uint<32> > MemOut;   // data memory output
-   sc_signal < sc_uint<32> > ALUOut_mem, BranchTarget_mem;   
-   sc_signal < sc_uint<5> > WriteReg_mem;   
+   sc_signal < sc_uint<32> > ALUOut_mem, BranchTarget_mem;
+   sc_signal < sc_uint<5> > WriteReg_mem;
    sc_signal <bool> MemRead_mem, MemWrite_mem, MemtoReg_mem;
    sc_signal <bool> RegWrite_mem;
    sc_signal <bool> Branch_mem, Zero_mem;
 
    // the following two signals are not used by the architecture
    // they are used only for visualization purposes
-   sc_signal < sc_uint<32> > PC_mem;   
+   sc_signal < sc_uint<32> > PC_mem;
    sc_signal < bool > valid_mem;
 
    //WB
-   sc_signal < sc_uint<32> > MemOut_wb, ALUOut_wb;   
-   sc_signal < sc_uint<5> > WriteReg_wb;   
+   sc_signal < sc_uint<32> > MemOut_wb, ALUOut_wb;
+   sc_signal < sc_uint<5> > WriteReg_wb;
    sc_signal <bool> MemtoReg_wb;
    sc_signal <bool> RegWrite_wb;
 
    // the following two signals are not used by the architecture
    // they are used only for visualization purposes
-   sc_signal < sc_uint<32> > PC_wb;   
+   sc_signal < sc_uint<32> > PC_wb;
    sc_signal < bool > valid_wb;
 
    //nonpipelined signals
