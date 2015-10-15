@@ -19,12 +19,14 @@ void hazard::detect_hazard()
 	  enable_pc.write(true);
 		enable_ifid.write(true);
 		reset_idexe.write(false);
+		reset_exmem.write(false);
+		reset_ifid.write(false);
 	}
 
 	// control hazard
 	if(BranchTaken.read()==true){
-		enable_pc.write(false);
-		enable_ifid.write(false);
+		enable_pc.write(true);
+		enable_ifid.write(true);
 		reset_idexe.write(true);
 		reset_exmem.write(true);
 		reset_ifid.write(true);
