@@ -196,8 +196,13 @@ void mips::buildArchitecture(void){
       reg_if_id->valid_if(const1);
       reg_if_id->valid_id(valid_id);
       reg_if_id->clk(clk);
-      reg_if_id->reset(reset);
+      reg_if_id->reset(reset_ifid);
       reg_if_id->enable(enable_ifid);
+
+      or_reset_ifid = new orgate("or_reset_ifid");
+      or_reset_ifid->din1(reset);
+      or_reset_ifid->din2(reset_haz_ifid);
+      or_reset_ifid->dout(reset_ifid);
 
 
       buildID();
@@ -271,8 +276,13 @@ void mips::buildArchitecture(void){
       reg_exe_mem->valid_exe(valid_exe);
       reg_exe_mem->valid_mem(valid_mem);
       reg_exe_mem->clk(clk);
-      reg_exe_mem->reset(reset);
+      reg_exe_mem->reset(reset_exmem);
       reg_exe_mem->enable(const1);
+
+      or_reset_exmem = new orgate("or_reset_exmem");
+      or_reset_exmem->din1(reset);
+      or_reset_exmem->din2(reset_haz_exmem);
+      or_reset_exmem->dout(reset_exmem);
 
       buildMEM();
       
@@ -302,13 +312,18 @@ void mips::buildArchitecture(void){
       hazard_unit->rs( rs );
       hazard_unit->rt( rt );
       hazard_unit->MemRead(MemRead);
+      hazard_unit->BranchTaken(BranchTaken);
       hazard_unit->WriteReg_exe(WriteReg_exe);
       hazard_unit->RegWrite_exe(RegWrite_exe);
       hazard_unit->WriteReg_mem(WriteReg_mem);
       hazard_unit->RegWrite_mem(RegWrite_mem);
       hazard_unit->enable_pc(enable_pc);
       hazard_unit->enable_ifid(enable_ifid);
+      hazard_unit->reset_ifid(reset_haz_ifid);
       hazard_unit->reset_idexe(reset_haz_idexe);
+      hazard_unit->reset_exmem(reset_haz_exmem);
+
+
    }
 
 mips::~mips(void)
@@ -331,7 +346,9 @@ mips::~mips(void)
       delete ctrl;
 
       delete hazard_unit;
+      delete or_reset_ifid;
       delete or_reset_idexe;
+      delete or_reset_exmem;
       delete reg_if_id;
       delete reg_id_exe;
       delete reg_exe_mem;

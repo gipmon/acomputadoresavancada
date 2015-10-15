@@ -56,6 +56,8 @@ SC_MODULE(mips) {
    imem              *instmem;   // instruction memory
    add *add4;                    // adds 4 to PC
    mux< sc_uint<32> > *mPC;      // selects Next PC from PCbrach and PC + 4
+   orgate *or_reset_ifid;
+
 
    //ID
    decode            *dec1;      // decodes instruction
@@ -70,7 +72,9 @@ SC_MODULE(mips) {
    alu               *alu1;      // ALU
    mux< sc_uint<32> > *m1;       // selects 2nd ALU operand
    shiftl2 *sl2;                 // shift left 2 imm_ext
-   add *addbr;                   // adds imm to PC + 4
+   add *addbr;     // adds imm to PC + 4
+   orgate *or_reset_exmem;
+              
 
    //MEM
    dmem              *datamem;   // data memory
@@ -93,6 +97,7 @@ SC_MODULE(mips) {
 			     PC4;      // PC + 4
    sc_signal < sc_uint<32> > inst;     // current instruction
    sc_signal <bool> enable_pc;
+   sc_signal <bool> reset_haz_ifid, reset_ifid;
 
    sc_signal <bool> enable_ifid;
 
@@ -144,6 +149,8 @@ SC_MODULE(mips) {
    sc_signal <bool> ALUSrc_exe;
    sc_signal < sc_uint<3> > ALUOp_exe;
    sc_signal <bool> Branch_exe;
+   sc_signal <bool> reset_haz_exmem, reset_exmem;
+
    
    // the following two signals are not used by the architecture
    // they are used only for visualization purposes
