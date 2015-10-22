@@ -349,6 +349,7 @@ void mips::buildArchitecture(void){
       hazard_unit->enable_pc(enable_pc);
       hazard_unit->enable_ifid(enable_ifid);
       hazard_unit->reset_ifid(reset_haz_ifid);
+      hazard_unit->reset_id1id2(reset_haz_id1id2);
       hazard_unit->reset_id2exe(reset_haz_id2exe);
       hazard_unit->reset_exmem(reset_haz_exmem);
    }
