@@ -27,6 +27,7 @@
 
 #include "regT.h"
 #include "reg_if_id.h"
+#include "reg_id1_id2.h"
 #include "reg_id2_exe.h"
 #include "reg_exe_mem.h"
 #include "reg_mem_wb.h"
@@ -58,13 +59,17 @@ SC_MODULE(mips) {
    mux< sc_uint<32> > *mPC;      // selects Next PC from PCbrach and PC + 4
    orgate *or_reset_ifid;
 
-   //ID
+   //ID1
    decode            *dec1;      // decodes instruction
    regfile           *rfile;     // register file
+   orgate *or_reset_id1id2;
+   hazard *hazard_unit;
+
+   //ID2
    control           *ctrl;      // control
    mux< sc_uint<5> >  *mr;       // selects destination register
    ext *e1;                      // sign extends imm to 32 bits
-   orgate *or_reset_idexe;
+   orgate *or_reset_id2exe;
    hazard *hazard_unit;
 
    //EXE
@@ -83,6 +88,7 @@ SC_MODULE(mips) {
 
    //pipeline registers
    reg_if_id_t       *reg_if_id;
+   reg_id1_id2_t      *reg_id1_id2;
    reg_id2_exe_t      *reg_id2_exe;
    reg_exe_mem_t     *reg_exe_mem;
    reg_mem_wb_t      *reg_mem_wb;
@@ -99,21 +105,39 @@ SC_MODULE(mips) {
 
    sc_signal <bool> enable_ifid;
 
-   //ID
-   sc_signal < sc_uint<32> > inst_id,  // current instruction ID phase
-                             PC4_id;
+   //ID1
+   sc_signal < sc_uint<32> > inst_id1,  // current instruction ID phase
+                             PC4_id1;
    // instruction fields
-   sc_signal < sc_uint<5> > rs, rt, rd;
-   sc_signal < sc_uint<16> > imm;
-   sc_signal < sc_uint<6> > opcode;
-   sc_signal < sc_uint<5> > shamt;
-   sc_signal < sc_uint<6> > funct;
+   sc_signal < sc_uint<5> > rs_id1, rt_id1, rd_id1;
+   sc_signal < sc_uint<16> > imm_id1;
+   sc_signal < sc_uint<6> > opcode_id1;
+   sc_signal < sc_uint<5> > shamt_id1;
+   sc_signal < sc_uint<6> > funct_id1;
    // register file signals
-   sc_signal < sc_uint<5> > WriteReg;  // register to write
 
-   sc_signal < sc_uint<32> > regdata1, // value of register rs
-                             regdata2, // value of regiter rt
-			     WriteVal; // value to write in register WriteReg
+   sc_signal <bool> reset_haz_id1id2, reset_id1id2;
+
+   // the following two signals are not used by the architecture
+   // they are used only for visualization purposes
+   //sc_signal < sc_uint<32> > PC_id;      // PC of instruction in ID
+   //sc_signal < bool >        valid_id;   // true if there is an instruction in ID
+
+
+   //ID2
+   sc_signal < sc_uint<32> > PC4_id2;
+   // instruction fields
+   sc_signal < sc_uint<5> > rt_id2, rd_id2;
+   sc_signal < sc_uint<16> > imm_id2;
+   sc_signal < sc_uint<6> > opcode_id2;
+   sc_signal < sc_uint<5> > shamt_id2;
+   sc_signal < sc_uint<6> > funct_id2;
+   // register file signals
+   sc_signal < sc_uint<5> > WriteReg_id2;  // register to write
+
+   sc_signal < sc_uint<32> > regdata1_id2, // value of register rs
+                             regdata2_id2, // value of regiter rt
+			     WriteVal_id2; // value to write in register WriteReg
 
    sc_signal < sc_uint<32> > imm_ext;  // imm sign extended
 
@@ -121,7 +145,7 @@ SC_MODULE(mips) {
                              regb_exe, // value of regiter rt EXE phase
                              regb_mem; // value of regiter rt MEM phase
 
-   sc_signal <bool> reset_haz_idexe, reset_idexe;
+   sc_signal <bool> reset_haz_id2exe, reset_id2exe;
    // control signals
    sc_signal <bool> MemRead, MemWrite, MemtoReg;
    sc_signal <bool> RegWrite, RegDst;
@@ -193,7 +217,8 @@ SC_MODULE(mips) {
    void buildArchitecture();
 
    void buildIF();
-   void buildID();
+   void buildID1();
+   void buildID2();
    void buildEXE();
    void buildMEM();
    void buildWB();

@@ -14,11 +14,11 @@ void hazard::detect_hazard()
 
 		enable_pc.write(false);
 		enable_ifid.write(false);
-		reset_idexe.write(true);
+		reset_id2exe.write(true);
 	}else {
 	  enable_pc.write(true);
 		enable_ifid.write(true);
-		reset_idexe.write(false);
+		reset_id2exe.write(false);
 		reset_exmem.write(false);
 		reset_ifid.write(false);
 	}
@@ -27,7 +27,7 @@ void hazard::detect_hazard()
 	if(BranchTaken.read()==true){
 		enable_pc.write(true);
 		enable_ifid.write(true);
-		reset_idexe.write(true);
+		reset_id2exe.write(true);
 		reset_exmem.write(true);
 		reset_ifid.write(true);
 	}
