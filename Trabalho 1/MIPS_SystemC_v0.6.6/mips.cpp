@@ -82,8 +82,8 @@ void mips::buildID2(void)
      mr = new mux< sc_uint<5> > ("muxRDst");
 
      mr->sel(RegDst);
-     mr->din0(rt_id1);
-     mr->din1(rd_id1);
+     mr->din0(rt_id2);
+     mr->din1(rd_id2);
      mr->dout(WriteReg_id2);
 
      // 16 to 32 bit signed Immediate extension
@@ -344,6 +344,8 @@ void mips::buildArchitecture(void){
       hazard_unit->RegWrite_exe(RegWrite_exe);
       hazard_unit->WriteReg_mem(WriteReg_mem);
       hazard_unit->RegWrite_mem(RegWrite_mem);
+      hazard_unit->WriteReg_id2(WriteReg_id2);
+      hazard_unit->RegWrite(RegWrite);
       hazard_unit->MemRead(MemRead);
       hazard_unit->BranchTaken(BranchTaken);
       hazard_unit->enable_pc(enable_pc);
@@ -376,9 +378,11 @@ mips::~mips(void)
       delete hazard_unit;
       delete or_reset_ifid;
       delete or_reset_id2exe;
+      delete or_reset_id1id2;
       delete or_reset_exmem;
       delete reg_if_id;
       delete reg_id2_exe;
+      delete reg_id1_id2;
       delete reg_exe_mem;
       delete reg_mem_wb;
 }

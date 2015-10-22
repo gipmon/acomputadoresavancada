@@ -31,8 +31,8 @@ SC_MODULE( hazard )
   public:
     sc_in< sc_uint<5> >  rs;
     sc_in< sc_uint<5> >  rt;
-    sc_in< sc_uint<5> >  WriteReg_exe, WriteReg_mem;
-    sc_in< bool >  RegWrite_exe, RegWrite_mem, MemRead, BranchTaken;
+    sc_in< sc_uint<5> >  WriteReg_exe, WriteReg_mem, WriteReg_id2;
+    sc_in< bool >  RegWrite_exe, RegWrite_mem, RegWrite, MemRead, BranchTaken;
 
     sc_out< bool >  enable_pc, enable_ifid, reset_id1id2, reset_id2exe, reset_exmem, reset_ifid;
 
@@ -42,6 +42,7 @@ SC_MODULE( hazard )
         sensitive << rs << rt
 		  << WriteReg_exe << RegWrite_exe
 		  << WriteReg_mem << RegWrite_mem
+      << WriteReg_id2 << RegWrite
       << MemRead << BranchTaken;
    }
 
