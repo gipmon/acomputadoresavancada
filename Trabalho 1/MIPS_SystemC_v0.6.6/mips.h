@@ -17,6 +17,7 @@
 #include "dmem.h"
 #include "control.h"
 #include "hazard.h"
+#include "branchunit.h"
 
 #include "mux.h"
 #include "reg.h"
@@ -67,6 +68,7 @@ SC_MODULE(mips) {
 
    //ID2
    control           *ctrl;      // control
+   branchunit        *br;
    mux< sc_uint<5> >  *mr;       // selects destination register
    ext *e1;                      // sign extends imm to 32 bits
    orgate *or_reset_id2exe;
@@ -107,6 +109,8 @@ SC_MODULE(mips) {
    //ID1
    sc_signal < sc_uint<32> > inst_id1,  // current instruction ID phase
                              PC4_id1;
+
+   sc_signal < sc_uint<26> > target_id1;
    // instruction fields
    sc_signal < sc_uint<5> > rs_id1, rt_id1, rd_id1;
    sc_signal < sc_uint<16> > imm_id1;
@@ -126,7 +130,7 @@ SC_MODULE(mips) {
    //ID2
    sc_signal < sc_uint<32> > PC4_id2;
    // instruction fields
-   sc_signal < sc_uint<5> > rt_id2, rd_id2;
+   sc_signal < sc_uint<5> > rt_id2, rd_id2, rs_id2;
    sc_signal < sc_uint<16> > imm_id2;
    sc_signal < sc_uint<6> > opcode_id2;
    sc_signal < sc_uint<5> > shamt_id2;
@@ -139,6 +143,8 @@ SC_MODULE(mips) {
 			     WriteVal_id2; // value to write in register WriteReg
 
    sc_signal < sc_uint<32> > imm_ext;  // imm sign extended
+
+   sc_signal < sc_uint<26> > target_id2;
 
    sc_signal < sc_uint<32> > rega_exe, // value of register rs EXE phase
                              regb_exe, // value of regiter rt EXE phase
@@ -158,9 +164,9 @@ SC_MODULE(mips) {
    sc_signal < bool >        valid_id;   // true if there is an instruction in ID
 
    //EXE
-   sc_signal < bool > Zero;            // ALU output is zero
-   sc_signal < sc_uint<32> > imm_exe, PC4_exe;
-   sc_signal < sc_uint<32> > addr_ext; // imm_ext shift left 2
+   /*sc_signal < bool > Zero;            // ALU output is zero*/
+   sc_signal < sc_uint<32> > imm_exe;
+   /*sc_signal < sc_uint<32> > addr_ext; // imm_ext shift left 2*/
    sc_signal < sc_uint<5> > WriteReg_exe;
    sc_signal <bool> reset_haz_exmem, reset_exmem;
    // ALU signals
@@ -170,7 +176,7 @@ SC_MODULE(mips) {
    sc_signal <bool> RegWrite_exe;
    sc_signal <bool> ALUSrc_exe;
    sc_signal < sc_uint<3> > ALUOp_exe;
-   sc_signal <bool> Branch_exe;
+   /*sc_signal <bool> Branch_exe;*/
 
    // the following two signals are not used by the architecture
    // they are used only for visualization purposes

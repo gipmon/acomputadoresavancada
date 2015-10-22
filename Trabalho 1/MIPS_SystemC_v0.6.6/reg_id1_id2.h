@@ -26,11 +26,14 @@ SC_MODULE(reg_id1_id2_t) {
 	sc_in  < sc_uint<32> > PC4_id1;
 	sc_out < sc_uint<32> > PC4_id2;
 
+	sc_in < sc_uint<26> > target_id1;
+	sc_out < sc_uint<26> > target_id2;
+
 	sc_in  < sc_uint<16> > imm_id1;
 	sc_out < sc_uint<16> > imm_id2;
 
-	sc_in  < sc_uint<5> > rt_id1, rd_id1;
-	sc_out < sc_uint<5> > rt_id2, rd_id2;
+	sc_in  < sc_uint<5> > rt_id1, rd_id1, rs_id1;
+	sc_out < sc_uint<5> > rt_id2, rd_id2, rs_id2;
 
 	sc_in  < sc_uint<6> > opcode_id1, funct_id1;
 	sc_out < sc_uint<6> > opcode_id2, funct_id2;
@@ -44,8 +47,9 @@ SC_MODULE(reg_id1_id2_t) {
 
 	regT < sc_uint<32> > *PC4;
 	regT < sc_uint<16> > *imm;
+	regT < sc_uint<26> > *target;
 	// regT < bool > *MemRead, *MemWrite, *MemtoReg, *Branch, *RegWrite, *ALUSrc;
-	regT < sc_uint<5> > *rt, *rd;
+	regT < sc_uint<5> > *rt, *rd, *rs;
 	regT < sc_uint<6> > *opcode, *funct;
 
 	// regT < sc_uint<32> > *PC;      // only for visualization purposes
@@ -67,6 +71,13 @@ SC_MODULE(reg_id1_id2_t) {
 		rt->enable(enable);
 		rt->reset(reset);
 
+		rs = new regT < sc_uint<5> >("rs");
+		rs->din(rs_id1);
+		rs->dout(rs_id2);
+		rs->clk(clk);
+		rs->enable(enable);
+		rs->reset(reset);
+
 		opcode = new regT < sc_uint<6> >("opcode");
 		opcode->din(opcode_id1);
 		opcode->dout(opcode_id2);
@@ -87,6 +98,13 @@ SC_MODULE(reg_id1_id2_t) {
 		PC4->clk(clk);
 		PC4->enable(enable);
 		PC4->reset(reset);
+
+		target = new regT < sc_uint<26> >("target");
+		target->din(target_id1);
+		target->dout(target_id2);
+		target->clk(clk);
+		target->enable(enable);
+		target->reset(reset);
 
 		imm = new regT < sc_uint<16> >("imm");
 		imm->din(imm_id1);

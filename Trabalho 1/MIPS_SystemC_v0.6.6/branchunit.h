@@ -34,7 +34,7 @@ SC_MODULE(branchunit) {
   SC_CTOR(branchunit)
      {
       SC_METHOD(branch_detect);
-      imm_ext << PC4 << target << rs
+      sensitive << imm_ext << PC4 << target << rs
       << rt << opcode << branch;
     }
 

@@ -34,16 +34,16 @@ void branchunit::branch_detect()
        case 6:
               if(rs.read() <= 0 && branch.read() == true){
                 branchTaken_res = true;
-                branchTarget_res = PC4.read() + (imm_ext.read()<<2);
+                branchTarget_res = PC4.read() + (imm_ext.read() << 2);
               }
               break;
        case 7:
               if(rs.read() > 0 && branch.read() == true){
                 branchTaken_res = true;
-                branchTarget_res = PC4.read() + (imm_ext.read()<<2);
+                branchTarget_res = PC4.read() + (imm_ext.read() << 2);
               }
               break;
-       case 8
+       case 8:
               branchTaken_res = true;
               branchTarget_res = rs.read();
               break;

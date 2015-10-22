@@ -37,7 +37,7 @@ void mips::buildIF(void)
 
       mPC->sel(BranchTaken);
       mPC->din0(PC4);
-      mPC->din1(BranchTarget_mem);
+      mPC->din1(BranchTarget);
       mPC->dout(NPC);
 }
 
@@ -86,6 +86,17 @@ void mips::buildID2(void)
      mr->din1(rd_id2);
      mr->dout(WriteReg_id2);
 
+     br = new branchunit ("branchunit");
+     br->rs(rs_id2);
+     br->rt(rt_id2);
+     br->branch(Branch);
+     br->opcode(opcode_id2);
+     br->target(target_id2);
+     br->imm_ext(imm_ext);
+     br->PC4(PC4_id2);
+     br->branchTaken(BranchTaken);
+     br->branchTarget(BranchTarget);
+
      // 16 to 32 bit signed Immediate extension
      e1 = new ext("ext");
      e1->din(imm_id2);
@@ -127,17 +138,17 @@ void mips::buildEXE(void)
       alu1->dout(ALUOut);
       alu1->zero(Zero);
 
-      // shift left 2 imm_ext
+      /*// shift left 2 imm_ext
       sl2 = new shiftl2("sl2");
       sl2->din(imm_exe);
-      sl2->dout(addr_ext);
+      sl2->dout(addr_ext);*/
 
       // Adds Branch Immediate to Program Counter + 4
-      addbr = new add ("addbr");
+      /*addbr = new add ("addbr");
 
       addbr->op1(PC4_exe);
       addbr->op2(addr_ext);
-      addbr->res(BranchTarget);
+      addbr->res(BranchTarget);*/
 
 }
 
@@ -157,11 +168,11 @@ void mips::buildMEM(void)
       datamem->clk(clk);
 
       // Enables Branch
-      a1 = new andgate ("a1");
+      /*a1 = new andgate ("a1");
 
       a1->din1(Branch_mem);
       a1->din2(Zero_mem);
-      a1->dout(BranchTaken);
+      a1->dout(BranchTaken);*/
 }
 
 /**
@@ -217,6 +228,10 @@ void mips::buildArchitecture(void){
       reg_id1_id2->rt_id2(rt_id2);
       reg_id1_id2->rd_id1(rd_id1);
       reg_id1_id2->rd_id2(rd_id2);
+      reg_id1_id2->rs_id1(rs_id1);
+      reg_id1_id2->rs_id2(rs_id2);
+      reg_id1_id2->target_id1(target_id1);
+      reg_id1_id2->target_id2(target_id2);
       reg_id1_id2->imm_id1(imm_id1);
       reg_id1_id2->imm_id2(imm_id2);
       reg_id1_id2->PC4_id1(PC4_id1);
@@ -245,8 +260,8 @@ void mips::buildArchitecture(void){
       reg_id2_exe->regb_exe(regb_exe);
       reg_id2_exe->imm_id(imm_ext);
       reg_id2_exe->imm_exe(imm_exe);
-      reg_id2_exe->PC4_id(PC4_id2);
-      reg_id2_exe->PC4_exe(PC4_exe);
+      /*reg_id2_exe->PC4_id(PC4_id2);
+      reg_id2_exe->PC4_exe(PC4_exe);*/
       reg_id2_exe->WriteReg_id(WriteReg_id2);
       reg_id2_exe->WriteReg_exe(WriteReg_exe);
       reg_id2_exe->MemRead_id(MemRead);
@@ -255,8 +270,8 @@ void mips::buildArchitecture(void){
       reg_id2_exe->MemWrite_exe(MemWrite_exe);
       reg_id2_exe->MemtoReg_id(MemtoReg);
       reg_id2_exe->MemtoReg_exe(MemtoReg_exe);
-      reg_id2_exe->Branch_id(Branch);
-      reg_id2_exe->Branch_exe(Branch_exe);
+      /*reg_id2_exe->Branch_id(Branch);
+      reg_id2_exe->Branch_exe(Branch_exe);*/
       reg_id2_exe->RegWrite_id(RegWrite);
       reg_id2_exe->RegWrite_exe(RegWrite_exe);
       reg_id2_exe->ALUSrc_id(ALUSrc);
@@ -288,14 +303,14 @@ void mips::buildArchitecture(void){
       reg_exe_mem->MemWrite_mem(MemWrite_mem);
       reg_exe_mem->MemtoReg_exe(MemtoReg_exe);
       reg_exe_mem->MemtoReg_mem(MemtoReg_mem);
-      reg_exe_mem->Branch_exe(Branch_exe);
-      reg_exe_mem->Branch_mem(Branch_mem);
+      /*reg_exe_mem->Branch_exe(Branch_exe);
+      reg_exe_mem->Branch_mem(Branch_mem);*/
       reg_exe_mem->RegWrite_exe(RegWrite_exe);
       reg_exe_mem->RegWrite_mem(RegWrite_mem);
-      reg_exe_mem->Zero_exe(Zero);
+      /*reg_exe_mem->Zero_exe(Zero);
       reg_exe_mem->Zero_mem(Zero_mem);
-      reg_exe_mem->BranchTarget_exe(BranchTarget);
-      reg_exe_mem->BranchTarget_mem(BranchTarget_mem);
+      /*reg_exe_mem->BranchTarget_exe(BranchTarget);
+      reg_exe_mem->BranchTarget_mem(BranchTarget_mem);*/
       reg_exe_mem->regb_exe(regb_exe);
       reg_exe_mem->regb_mem(regb_mem);
       reg_exe_mem->WriteReg_exe(WriteReg_exe);
@@ -374,6 +389,7 @@ mips::~mips(void)
       delete datamem;
       delete m2;
       delete ctrl;
+      delete br;
 
       delete hazard_unit;
       delete or_reset_ifid;
