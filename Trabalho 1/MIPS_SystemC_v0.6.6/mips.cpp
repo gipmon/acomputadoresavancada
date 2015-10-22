@@ -44,63 +44,67 @@ void mips::buildIF(void)
 /**
  * buils ID stage components
  */
-void mips::buildID(void)
+void mips::buildID1(void)
 {
       // Decodes Instruction
       dec1 = new decode ("decode");
-      dec1->inst(inst_id);
-      dec1->rs(rs);
-      dec1->rt(rt);
-      dec1->rd(rd);
-      dec1->imm(imm);
-      dec1->opcode(opcode);
-      dec1->shamt(shamt);
-      dec1->funct(funct);
-
-      // Selects Register to Write
-      mr = new mux< sc_uint<5> > ("muxRDst");
-
-      mr->sel(RegDst);
-      mr->din0(rt);
-      mr->din1(rd);
-      mr->dout(WriteReg);
+      dec1->inst(inst_id1);
+      dec1->rs(rs_id1);
+      dec1->rt(rt_id1);
+      dec1->rd(rd_id1);
+      dec1->imm(imm_id1);
+      dec1->opcode(opcode_id1);
+      dec1->shamt(shamt_id1);
+      dec1->funct(funct_id1);
 
       // Register File
       rfile = new regfile ("regfile");
 
-      rfile->reg1( rs );
-      rfile->reg2( rt );
+      rfile->reg1( rs_id1 );
+      rfile->reg2( rt_id1 );
       rfile->regwrite(WriteReg_wb);
-      rfile->data1( regdata1 );
-      rfile->data2( regdata2 );
+      rfile->data1( regdata1_id2 );
+      rfile->data2( regdata2_id2 );
       rfile->enable( const1 );
 
       rfile->wr(RegWrite_wb);
-      rfile->datawr(WriteVal);
+      rfile->datawr(WriteVal_id2);
 
       rfile->clk(clk);
       rfile->reset(reset);
 
-      // 16 to 32 bit signed Immediate extension
-      e1 = new ext("ext");
-      e1->din(imm);
-      e1->dout(imm_ext);
-
-      // Control
-      ctrl = new control ("control");
-
-      ctrl->opcode(opcode);
-      ctrl->funct(funct);
-      ctrl->RegDst(RegDst);
-      ctrl->Branch(Branch);
-      ctrl->MemRead(MemRead);
-      ctrl->MemWrite(MemWrite);
-      ctrl->MemtoReg(MemtoReg);
-      ctrl->ALUOp(ALUOp);
-      ctrl->ALUSrc(ALUSrc);
-      ctrl->RegWrite(RegWrite);
 }
 
+
+void mips::buildID2(void)
+{
+     // Selects Register to Write
+     mr = new mux< sc_uint<5> > ("muxRDst");
+
+     mr->sel(RegDst);
+     mr->din0(rt_id1);
+     mr->din1(rd_id1);
+     mr->dout(WriteReg_id2);
+
+     // 16 to 32 bit signed Immediate extension
+     e1 = new ext("ext");
+     e1->din(imm_id2);
+     e1->dout(imm_ext);
+
+     // Control
+     ctrl = new control ("control");
+
+     ctrl->opcode(opcode_id2);
+     ctrl->funct(funct_id2);
+     ctrl->RegDst(RegDst);
+     ctrl->Branch(Branch);
+     ctrl->MemRead(MemRead);
+     ctrl->MemWrite(MemWrite);
+     ctrl->MemtoReg(MemtoReg);
+     ctrl->ALUOp(ALUOp);
+     ctrl->ALUSrc(ALUSrc);
+     ctrl->RegWrite(RegWrite);
+}
 /**
  * buils EXE stage components
  */
@@ -171,7 +175,7 @@ void mips::buildWB(void)
       m2->sel(MemtoReg_wb);
       m2->din0(ALUOut_wb);
       m2->din1(MemOut_wb);
-      m2->dout(WriteVal);
+      m2->dout(WriteVal_id2);
 
 }
 
@@ -189,9 +193,9 @@ void mips::buildArchitecture(void){
       //reg_if_id
       reg_if_id = new reg_if_id_t("reg_if_id");
       reg_if_id->inst_if(inst);
-      reg_if_id->inst_id(inst_id);
+      reg_if_id->inst_id(inst_id1);
       reg_if_id->PC4_if(PC4);
-      reg_if_id->PC4_id(PC4_id);
+      reg_if_id->PC4_id(PC4_id1);
       reg_if_id->PC_if(PC);
       reg_if_id->PC_id(PC_id);
       reg_if_id->valid_if(const1);
@@ -208,7 +212,7 @@ void mips::buildArchitecture(void){
       buildID1();
 
       //reg_id1_id2
-      reg_id1_id2 = new reg_id2_exe_t("reg_id1_id2");
+      reg_id1_id2 = new reg_id1_id2_t("reg_id1_id2");
       reg_id1_id2->rt_id1(rt_id1);
       reg_id1_id2->rt_id2(rt_id2);
       reg_id1_id2->rd_id1(rd_id1);
@@ -266,10 +270,6 @@ void mips::buildArchitecture(void){
       reg_id2_exe->clk(clk);
       reg_id2_exe->reset(reset_id2exe);
       reg_id2_exe->enable(const1);
-      reg_id2_exe->opcode_id1(opcode_id1);
-      reg_id2_exe->opcode_id2(opcode_id2);
-      reg_id2_exe->funct_id1(funct_id1);
-      reg_id2_exe->funct_id2(funct_id2);
 
       or_reset_id2exe = new orgate("or_reset_id2exe");
       or_reset_id2exe->din1(reset);
@@ -338,8 +338,8 @@ void mips::buildArchitecture(void){
       buildWB();
 
       hazard_unit = new hazard("hazard_unit");
-      hazard_unit->rs( rs );
-      hazard_unit->rt( rt );
+      hazard_unit->rs( rs_id1 );
+      hazard_unit->rt( rt_id1 );
       hazard_unit->WriteReg_exe(WriteReg_exe);
       hazard_unit->RegWrite_exe(RegWrite_exe);
       hazard_unit->WriteReg_mem(WriteReg_mem);

@@ -70,7 +70,6 @@ SC_MODULE(mips) {
    mux< sc_uint<5> >  *mr;       // selects destination register
    ext *e1;                      // sign extends imm to 32 bits
    orgate *or_reset_id2exe;
-   hazard *hazard_unit;
 
    //EXE
    alu               *alu1;      // ALU
