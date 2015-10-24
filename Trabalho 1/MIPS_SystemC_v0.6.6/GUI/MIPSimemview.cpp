@@ -7,23 +7,25 @@
 
 #include "MIPSimemview.h"
 
-MIPSimemview::MIPSimemview( imem &m, 
-		            sc_port_base &pc, 
-		            sc_port_base &pc_id, 
-		            sc_port_base &valid_id, 
-		            sc_port_base &pc_exe, 
-		            sc_port_base &valid_exe, 
-		            sc_port_base &pc_mem, 
-		            sc_port_base &valid_mem, 
-		            sc_port_base &pc_wb, 
-		            sc_port_base &valid_wb, 
+MIPSimemview::MIPSimemview( imem &m,
+		            sc_port_base &pc,
+		            sc_port_base &pc_id,
+		            sc_port_base &valid_id,
+		            sc_port_base &pc_exe,
+		            sc_port_base &valid_exe,
+		            sc_port_base &pc_mem,
+		            sc_port_base &valid_mem,
+		            sc_port_base &pc_wb,
+		            sc_port_base &valid_wb,
 		            QWidget* parent,  const char* name, Qt::WFlags fl )
     : MIPSmemview( m, parent, name, fl )
-{   
+{
     // access to PC value
     PC     = new PortValRead(pc,"PC");
     PC_id  = new PortValRead(pc_id,"PC_id");
     Valid_id  = new PortValRead(valid_id,"valid_id");
+    //PC_id2  = new PortValRead(pc_id2,"PC_id");
+    //Valid_id2  = new PortValRead(valid_id2,"valid_id");
     PC_exe = new PortValRead(pc_exe,"PC_exe");
     Valid_exe = new PortValRead(valid_exe,"valid_exe");
     PC_mem = new PortValRead(pc_mem,"PC_mem");
@@ -43,11 +45,12 @@ QString MIPSimemview::MemItem(unsigned int i)
     //PCs
     if(PC->read() == i) ListStr = "F";
     else if(PC_id->read()  == i && Valid_id->read()  == 1) ListStr="D";
+    //else if(PC_id2->read()  == i && Valid_id2->read()  == 1) ListStr="D2";
     else if(PC_exe->read() == i && Valid_exe->read() == 1) ListStr="E";
     else if(PC_mem->read() == i && Valid_mem->read() == 1) ListStr="M";
     else if(PC_wb->read()  == i && Valid_wb->read()  == 1) ListStr="W";
     else ListStr=" ";
-	
+
     //address
     HexVal.setNum(i,16);
     ListStr+=HexVal.rightJustify(4)+":";
@@ -69,7 +72,7 @@ unsigned int MIPSimemview::current()
     return PC->read()/4;
 }
 
-/**  
+/**
  *  Inserts one MemItem in ListBox for each word in memory.
  *  Determines maximum sizes of widget.
  */
@@ -85,17 +88,17 @@ void MIPSimemview::initList()
               maxWidth=item(i)->width(this);
 
        height=item(0)->height(this);  // is fixed for all items
-        
+
        // set Maximum size
        setMaximumSize(maxWidth+20,height*mem.size()/4+4);
 
-       if(mem.size()>0 && mem.size()<80) 
+       if(mem.size()>0 && mem.size()<80)
           resize(maxWidth+4,height*mem.size()/4+4);
        else resize(maxWidth+20,100);
     }
 }
 
-/**  
+/**
  *  Destroys the object and frees any allocated resources
  */
 MIPSimemview::~MIPSimemview()

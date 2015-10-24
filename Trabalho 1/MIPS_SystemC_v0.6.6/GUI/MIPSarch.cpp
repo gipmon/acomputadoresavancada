@@ -57,8 +57,8 @@ MIPSarchCanvas::MIPSarchCanvas(mips &m, QObject *parent) : Q3Canvas(parent), mip
     qText->move(484,6);
     qText->setColor(QColor("purple"));
     instStage.push_back(qText);
-    pcStage.push_back(new PortValRead(mips1.reg_id2_exe->PC_exe,"PC_exe"));
-    validpcStage.push_back(new PortValRead(mips1.reg_id2_exe->valid_exe,"valid_PC_exe"));
+    pcStage.push_back(new PortValRead(mips1.reg_id1_id2->PC_id2,"PC_id2"));
+    validpcStage.push_back(new PortValRead(mips1.reg_id1_id2->valid_id2,"valid_PC_id2"));
 
     qText=new Q3CanvasText("nop",this);
     qText->setTextFlags(Qt::AlignLeft | Qt::AlignTop);
@@ -66,8 +66,8 @@ MIPSarchCanvas::MIPSarchCanvas(mips &m, QObject *parent) : Q3Canvas(parent), mip
     qText->move(661,6);
     qText->setColor(QColor("purple"));
     instStage.push_back(qText);
-    pcStage.push_back(new PortValRead(mips1.reg_exe_mem->PC_mem,"PC_mem"));
-    validpcStage.push_back(new PortValRead(mips1.reg_exe_mem->valid_mem,"valid_PC_mem"));
+    pcStage.push_back(new PortValRead(mips1.reg_id2_exe->PC_exe,"PC_exe"));
+    validpcStage.push_back(new PortValRead(mips1.reg_id2_exe->valid_exe,"valid_PC_exe"));
 
     qText=new Q3CanvasText("nop",this);
     qText->setTextFlags(Qt::AlignLeft | Qt::AlignTop);
@@ -75,8 +75,8 @@ MIPSarchCanvas::MIPSarchCanvas(mips &m, QObject *parent) : Q3Canvas(parent), mip
     qText->move(800,6);
     qText->setColor(QColor("purple"));
     instStage.push_back(qText);
-    pcStage.push_back(new PortValRead(mips1.reg_mem_wb->PC_wb,"PC_wb"));
-    validpcStage.push_back(new PortValRead(mips1.reg_mem_wb->valid_wb,"valid_PC_wb"));
+    pcStage.push_back(new PortValRead(mips1.reg_exe_mem->PC_mem,"PC_mem"));
+    validpcStage.push_back(new PortValRead(mips1.reg_exe_mem->valid_mem,"valid_PC_wb"));
 
     // value of port signals
     // IF

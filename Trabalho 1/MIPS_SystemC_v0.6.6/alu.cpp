@@ -13,6 +13,10 @@ void alu::calc()
     sc_int<32> asign;
     sc_int<32> bsign;
 
+    fprintf(stderr, "ALU");
+    fprintf(stderr, "# a: %#08x\n", (int)din1.read());
+    fprintf(stderr, "# b: %#08x\n", (int)din2.read());
+
     asign=a;
     bsign=b;
 
@@ -33,5 +37,6 @@ void alu::calc()
     }
 
     zero.write(res == 0);
+    fprintf(stderr, "# res: %#08x\n", (int)res);
     dout.write(res);
 }

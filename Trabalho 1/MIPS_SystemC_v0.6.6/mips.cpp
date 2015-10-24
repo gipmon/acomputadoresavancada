@@ -64,8 +64,6 @@ void mips::buildID1(void)
       rfile->reg1( rs_id1 );
       rfile->reg2( rt_id1 );
       rfile->regwrite(WriteReg_wb);
-      rfile->data1( regdata1_id2 );
-      rfile->data2( regdata2_id2 );
       rfile->enable( const1 );
 
       rfile->wr(RegWrite_wb);
@@ -116,6 +114,12 @@ void mips::buildID2(void)
      ctrl->ALUOp(ALUOp);
      ctrl->ALUSrc(ALUSrc);
      ctrl->RegWrite(RegWrite);
+
+     // Register File
+
+     rfile->data1( regdata1_id2 );
+     rfile->data2( regdata2_id2 );
+
 }
 /**
  * buils EXE stage components
@@ -241,6 +245,10 @@ void mips::buildArchitecture(void){
       reg_id1_id2->opcode_id2(opcode_id2);
       reg_id1_id2->funct_id1(funct_id1);
       reg_id1_id2->funct_id2(funct_id2);
+      reg_id1_id2->PC_id(PC_id);
+      reg_id1_id2->PC_id2(PC_id2);
+      reg_id1_id2->valid_id(valid_id);
+      reg_id1_id2->valid_id2(valid_id2);
 
       reg_id1_id2->clk(clk);
       reg_id1_id2->reset(reset_id1id2);
@@ -284,9 +292,9 @@ void mips::buildArchitecture(void){
       reg_id2_exe->ALUSrc_exe(ALUSrc_exe);
       reg_id2_exe->ALUOp_id(ALUOp);
       reg_id2_exe->ALUOp_exe(ALUOp_exe);
-      reg_id2_exe->PC_id(PC_id);
+      reg_id2_exe->PC_id(PC_id2);
       reg_id2_exe->PC_exe(PC_exe);
-      reg_id2_exe->valid_id(valid_id);
+      reg_id2_exe->valid_id(valid_id2);
       reg_id2_exe->valid_exe(valid_exe);
       reg_id2_exe->clk(clk);
       reg_id2_exe->reset(reset_id2exe);
@@ -359,8 +367,8 @@ void mips::buildArchitecture(void){
       buildWB();
 
       hazard_unit = new hazard("hazard_unit");
-      hazard_unit->rs( rs_id2 );
-      hazard_unit->rt( rt_id2 );
+      hazard_unit->rs( rs_id1 );
+      hazard_unit->rt( rt_id1 );
       hazard_unit->WriteReg_exe(WriteReg_exe);
       hazard_unit->RegWrite_exe(RegWrite_exe);
       hazard_unit->WriteReg_mem(WriteReg_mem);

@@ -120,7 +120,7 @@ SC_MODULE(mips) {
    sc_signal < sc_uint<6> > funct_id1;
    // register file signals
 
-   sc_signal <bool> reset_haz_id1id2, reset_id1id2, enable_id1id2, reset_haz_regs, reset_regs;
+   sc_signal <bool> reset_haz_id1id2, reset_id1id2, enable_id1id2, reset_haz_regs, reset_regs, enable_regs;
 
    // the following two signals are not used by the architecture
    // they are used only for visualization purposes
@@ -161,8 +161,8 @@ SC_MODULE(mips) {
 
    // the following two signals are not used by the architecture
    // they are used only for visualization purposes
-   sc_signal < sc_uint<32> > PC_id;      // PC of instruction in ID
-   sc_signal < bool >        valid_id;   // true if there is an instruction in ID
+   sc_signal < sc_uint<32> > PC_id, PC_id2;      // PC of instruction in ID
+   sc_signal < bool >        valid_id, valid_id2;   // true if there is an instruction in ID
 
    //EXE
    sc_signal < bool > Zero;            // ALU output is zero*/

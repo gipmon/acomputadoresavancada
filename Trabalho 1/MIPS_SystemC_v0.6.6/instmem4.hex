@@ -8,6 +8,7 @@
 0x00611820 #       add r3,r3,r1
 0x0065302a #       slt r6,r3,r5
 0x10c7fffb #       beq r6,r7,lab1        
+0x00004820 #       nop
 0xac640000 #       sw  r4,0(r3)       
 0x00002020 #       add r4,r0,r0    
 0x00001820 #       add r3,r0,r0    

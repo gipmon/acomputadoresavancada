@@ -49,6 +49,11 @@ void regfile::regfile_access()
          if(reg2.read() < 32)
             s_reg2 = reg2.read();
       }
+      // 
+      // fprintf(stderr, "# REGFILE\n");
+      // fprintf(stderr, "# memory[%#08x]: %#08x\n", (int)s_reg1.read(), (int)memory[s_reg1.read()]);
+      // fprintf(stderr, "# memory[%#08x]: %#08x\n", (int)s_reg2.read(), (int)memory[s_reg2.read()]);
+
       data1.write(memory[s_reg1.read()]);
       data2.write(memory[s_reg2.read()]);
    }
