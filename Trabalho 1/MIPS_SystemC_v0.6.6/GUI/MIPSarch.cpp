@@ -202,31 +202,6 @@ MIPSarchCanvas::MIPSarchCanvas(mips &m, QObject *parent) : Q3Canvas(parent), mip
     portVal->setColor(QColor("blue"));
     portValVec.push_back(portVal);
 
-    portVal=new PortValItem(this,mips1.br->rs, "rs");
-    portVal->move(10,10);
-    portVal->setColor(QColor("green"));
-    portValVec.push_back(portVal);
-
-    portVal=new PortValItem(this,mips1.br->rt, "rt");
-    portVal->move(10,25);
-    portVal->setColor(QColor("green"));
-    portValVec.push_back(portVal);
-
-    portVal=new PortValItem(this,mips1.br->branch, "branch");
-    portVal->move(10,40);
-    portVal->setColor(QColor("green"));
-    portValVec.push_back(portVal);
-
-    portVal=new PortValItem(this,mips1.hazard_unit->WriteReg_id2, "WriteReg_id2");
-    portVal->move(10,55);
-    portVal->setColor(QColor("green"));
-    portValVec.push_back(portVal);
-
-    portVal=new PortValItem(this,mips1.hazard_unit->RegWrite, "RegWrite");
-    portVal->move(10,70);
-    portVal->setColor(QColor("green"));
-    portValVec.push_back(portVal);
-
     //EXE
     portVal=new PortValItem(this,mips1.reg_id2_exe->RegWrite_exe, "RegWrite_exe");
     portVal->move(475,54);

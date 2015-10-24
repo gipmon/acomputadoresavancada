@@ -64,6 +64,7 @@ SC_MODULE(mips) {
    decode            *dec1;      // decodes instruction
    regfile           *rfile;     // register file
    orgate *or_reset_id1id2;
+   orgate *or_reset_regs;
    hazard *hazard_unit;
 
    //ID2
@@ -119,7 +120,7 @@ SC_MODULE(mips) {
    sc_signal < sc_uint<6> > funct_id1;
    // register file signals
 
-   sc_signal <bool> reset_haz_id1id2, reset_id1id2, enable_id1id2;
+   sc_signal <bool> reset_haz_id1id2, reset_id1id2, enable_id1id2, reset_haz_regs, reset_regs;
 
    // the following two signals are not used by the architecture
    // they are used only for visualization purposes

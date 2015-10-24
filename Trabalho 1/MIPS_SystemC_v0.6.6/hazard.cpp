@@ -7,10 +7,49 @@ static int i_hazard = 0;
  */
 void hazard::detect_hazard()
 {
-	
-	fprintf(stderr, "--- detect_hazard  %d  ----\n", i_hazard++);
-	//fprintf(stderr, "\n");
 
+	fprintf(stderr, "--- detect_hazard  %d  ----\n", i_hazard++);
+
+	//data hazards
+	if( rs.read()!=0 && rs.read()==WriteReg_exe.read() && RegWrite_exe.read()==true
+	    || rs.read()!=0 && rs.read()==WriteReg_mem.read() && RegWrite_mem.read()==true
+		//|| rs.read()!=0 && rs.read()==WriteReg_id2.read() && RegWrite.read()==true
+		//|| rt.read()!=0 && rt.read()==WriteReg_id2.read() && RegWrite.read()==true
+	    || rt.read()!=0 && rt.read()==WriteReg_exe.read() && RegWrite_exe.read()==true && MemRead.read()==false
+	    || rt.read()!=0 && rt.read()==WriteReg_mem.read() && RegWrite_mem.read()==true && MemRead.read()==false) {
+		fprintf(stderr, "if!\n");
+
+		enable_pc.write(false);
+		enable_ifid.write(false);
+		enable_id1id2.write(false);
+		enable_regs.write(false);
+		reset_id2exe.write(true);
+	}else {
+		fprintf(stderr, "else!\n");
+	  enable_pc.write(true);
+		enable_ifid.write(true);
+		enable_id1id2.write(true);
+		enable_id2exe.write(true);
+		reset_id1id2.write(false);
+		reset_id2exe.write(false);
+		reset_exmem.write(false);
+		reset_ifid.write(false);
+		enable_regs.write(true);
+		reset_regs.write(false);
+	}
+
+	// control hazard
+	if(BranchTaken.read()==true){
+		fprintf(stderr, "BranchTaken entrou!\n");
+		enable_pc.write(true);
+		enable_ifid.write(true);
+		reset_ifid.write(true);
+	}else{
+		reset_ifid.write(false);
+	}
+
+	fprintf(stderr, "* BranchTaken: %d\n", (int)BranchTaken.read());
+	fprintf(stderr, "\n");
 	fprintf(stderr, "# rs: %d\n", (int)rs.read());
 	fprintf(stderr, "# rt: %d\n", (int)rt.read());
 	fprintf(stderr, "# WriteReg_mem: %d\n", (int)WriteReg_mem.read());
@@ -27,36 +66,4 @@ void hazard::detect_hazard()
 	fprintf(stderr, "@ reset_ifid: %d\n", (int)reset_id2exe.read());
 	fprintf(stderr, "@ enable_regs: %d\n", (int)enable_regs.read());
 	fprintf(stderr, "--- fim hazard ----\n");
-
-	//data hazards
-	if( rs.read()!=0 && rs.read()==WriteReg_exe.read() && RegWrite_exe.read()==true
-	    || rs.read()!=0 && rs.read()==WriteReg_mem.read() && RegWrite_mem.read()==true
-	    || rt.read()!=0 && rt.read()==WriteReg_exe.read() && RegWrite_exe.read()==true && MemRead.read() ==false
-	    || rt.read()!=0 && rt.read()==WriteReg_mem.read() && RegWrite_mem.read()==true && MemRead.read() ==false
-			/*|| rs.read()!=0 && rs.read()==WriteReg_id2.read() &&
-			RegWrite.read()==true
-			|| rt.read()!=0 && rt.read()==WriteReg_id2.read() && RegWrite.read()==true && MemRead.read() == false*/) {
-
-		enable_pc.write(false);
-		enable_ifid.write(false);
-		enable_id1id2.write(false);
-		enable_regs.write(false);
-		reset_id2exe.write(true);
-	}else {
-	  enable_pc.write(true);
-		enable_ifid.write(true);
-		enable_id1id2.write(true);
-		enable_id2exe.write(true);
-		reset_id2exe.write(false);
-		reset_exmem.write(false);
-		reset_ifid.write(false);
-		enable_regs.write(true);
-	}
-
-	// control hazard
-	if(BranchTaken.read()==true){
-		enable_pc.write(true);
-		enable_ifid.write(true);
-		reset_ifid.write(true);
-	}
 }
