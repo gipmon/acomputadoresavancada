@@ -56,6 +56,7 @@ void mips::buildID1(void)
       dec1->opcode(opcode_id1);
       dec1->shamt(shamt_id1);
       dec1->funct(funct_id1);
+      dec1->target(target_id1);
 
       // Register File
       rfile = new regfile ("regfile");
@@ -87,8 +88,8 @@ void mips::buildID2(void)
      mr->dout(WriteReg_id2);
 
      br = new branchunit ("branchunit");
-     br->rs(rs_id2);
-     br->rt(rt_id2);
+     br->rs(regdata1_id2);
+     br->rt(regdata2_id2);
      br->branch(Branch);
      br->opcode(opcode_id2);
      br->target(target_id2);
@@ -243,7 +244,7 @@ void mips::buildArchitecture(void){
 
       reg_id1_id2->clk(clk);
       reg_id1_id2->reset(reset_id1id2);
-      reg_id1_id2->enable(const1);
+      reg_id1_id2->enable(enable_id1id2);
 
       or_reset_id1id2 = new orgate("or_reset_id1id2");
       or_reset_id1id2->din1(reset);
@@ -353,8 +354,8 @@ void mips::buildArchitecture(void){
       buildWB();
 
       hazard_unit = new hazard("hazard_unit");
-      hazard_unit->rs( rs_id1 );
-      hazard_unit->rt( rt_id1 );
+      hazard_unit->rs( rs_id2 );
+      hazard_unit->rt( rt_id2 );
       hazard_unit->WriteReg_exe(WriteReg_exe);
       hazard_unit->RegWrite_exe(RegWrite_exe);
       hazard_unit->WriteReg_mem(WriteReg_mem);
@@ -367,6 +368,8 @@ void mips::buildArchitecture(void){
       hazard_unit->enable_ifid(enable_ifid);
       hazard_unit->reset_ifid(reset_haz_ifid);
       hazard_unit->reset_id1id2(reset_haz_id1id2);
+      hazard_unit->enable_id1id2(enable_id1id2);
+      hazard_unit->enable_id2exe(enable_id2exe);
       hazard_unit->reset_id2exe(reset_haz_id2exe);
       hazard_unit->reset_exmem(reset_haz_exmem);
    }

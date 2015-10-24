@@ -47,6 +47,9 @@ void branchunit::branch_detect()
               branchTaken_res = true;
               branchTarget_res = rs.read();
               break;
+       default:
+              branchTaken_res = false;
+              break;
     }
 
     branchTaken.write(branchTaken_res);
