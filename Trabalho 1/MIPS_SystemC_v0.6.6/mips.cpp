@@ -378,7 +378,7 @@ void mips::buildArchitecture(void){
       hazard_unit->reset_id2exe(reset_haz_id2exe);
       hazard_unit->reset_exmem(reset_haz_exmem);
       hazard_unit->reset_regs(reset_haz_regs);
-      hazard_unit->enable_regs(const1);
+      hazard_unit->enable_regs(enable_regs);
    }
 
 mips::~mips(void)
