@@ -63,8 +63,6 @@ void mips::buildID1(void)
       rfile->reg1( rs_id1 );
       rfile->reg2( rt_id1 );
       rfile->regwrite(WriteReg_wb);
-      rfile->data1( regdata1_id2 );
-      rfile->data2( regdata2_id2 );
       rfile->enable( const1 );
 
       rfile->wr(RegWrite_wb);
@@ -81,6 +79,9 @@ void mips::buildID2(void)
      // Selects Register to Write
      mr = new mux< sc_uint<5> > ("muxRDst");
 
+     rfile->data1( regdata1_id2 );
+     rfile->data2( regdata2_id2 );
+     
      mr->sel(RegDst);
      mr->din0(rt_id2);
      mr->din1(rd_id2);
@@ -225,6 +226,10 @@ void mips::buildArchitecture(void){
       reg_id1_id2->opcode_id2(opcode_id2);
       reg_id1_id2->funct_id1(funct_id1);
       reg_id1_id2->funct_id2(funct_id2);
+      reg_id1_id2->PC_id(PC_id);
+      reg_id1_id2->PC_id2(PC_id2);
+      reg_id1_id2->valid_id(valid_id);
+      reg_id1_id2->valid_id2(valid_id2);
 
       reg_id1_id2->clk(clk);
       reg_id1_id2->reset(reset_id1id2);
@@ -234,6 +239,11 @@ void mips::buildArchitecture(void){
       or_reset_id1id2->din1(reset);
       or_reset_id1id2->din2(reset_haz_id1id2);
       or_reset_id1id2->dout(reset_id1id2);
+
+      or_reset_id1id2 = new orgate("or_reset_regs");
+      or_reset_id1id2->din1(reset);
+      or_reset_id1id2->din2(reset_haz_regs);
+      or_reset_id1id2->dout(reset_regs);
 
       buildID2();
 
@@ -263,9 +273,9 @@ void mips::buildArchitecture(void){
       reg_id2_exe->ALUSrc_exe(ALUSrc_exe);
       reg_id2_exe->ALUOp_id(ALUOp);
       reg_id2_exe->ALUOp_exe(ALUOp_exe);
-      reg_id2_exe->PC_id(PC_id);
+      reg_id2_exe->PC_id(PC_id2);
       reg_id2_exe->PC_exe(PC_exe);
-      reg_id2_exe->valid_id(valid_id);
+      reg_id2_exe->valid_id(valid_id2);
       reg_id2_exe->valid_exe(valid_exe);
       reg_id2_exe->clk(clk);
       reg_id2_exe->reset(reset_id2exe);
@@ -354,6 +364,8 @@ void mips::buildArchitecture(void){
       hazard_unit->reset_id1id2(reset_haz_id1id2);
       hazard_unit->reset_id2exe(reset_haz_id2exe);
       hazard_unit->reset_exmem(reset_haz_exmem);
+      hazard_unit->reset_regs(reset_haz_regs);
+      hazard_unit->enable_regs(enable_regs);
    }
 
 mips::~mips(void)
@@ -380,6 +392,7 @@ mips::~mips(void)
       delete or_reset_id2exe;
       delete or_reset_id1id2;
       delete or_reset_exmem;
+      delete or_reset_regs;
       delete reg_if_id;
       delete reg_id2_exe;
       delete reg_id1_id2;

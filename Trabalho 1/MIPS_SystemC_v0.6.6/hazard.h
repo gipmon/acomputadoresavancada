@@ -34,7 +34,7 @@ SC_MODULE( hazard )
     sc_in< sc_uint<5> >  WriteReg_exe, WriteReg_mem, WriteReg_id2;
     sc_in< bool >  RegWrite_exe, RegWrite_mem, RegWrite, MemRead, BranchTaken;
 
-    sc_out< bool >  enable_pc, enable_ifid, reset_id1id2, reset_id2exe, reset_exmem, reset_ifid;
+    sc_out< bool >  enable_pc, enable_ifid, reset_id1id2, reset_id2exe, reset_exmem, reset_ifid, reset_regs, enable_regs;
 
     SC_CTOR(hazard)
     {

@@ -18,6 +18,7 @@ void hazard::detect_hazard()
 		enable_pc.write(false);
 		enable_ifid.write(false);
 		reset_id1id2.write(true);
+		enable_regs.write(false);
 	}else {
 	  enable_pc.write(true);
 		enable_ifid.write(true);
@@ -25,6 +26,8 @@ void hazard::detect_hazard()
 		reset_id2exe.write(false);
 		reset_exmem.write(false);
 		reset_ifid.write(false);
+		enable_regs.write(true);
+
 	}
 
 	// control hazard
