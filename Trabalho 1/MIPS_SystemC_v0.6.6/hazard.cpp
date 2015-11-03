@@ -12,7 +12,7 @@ void hazard::detect_hazard()
 	    || rt.read()!=0 && rt.read()==WriteReg_exe.read() && RegWrite_exe.read()==true && MemRead.read() ==false
 	    || rt.read()!=0 && rt.read()==WriteReg_mem.read() && RegWrite_mem.read()==true && MemRead.read() ==false
 			|| rs.read()!=0 && rs.read()==WriteReg_id2.read() && RegWrite.read()==true
-			|| rt.read()!=0 && rt.read()==WriteReg_id2.read() && RegWrite.read()==true && MmRead.read() ==false) {
+			|| rt.read()!=0 && rt.read()==WriteReg_id2.read() && RegWrite.read()==true && MemRead.read() ==false) {
 
 		enable_pc.write(false);
 		enable_ifid.write(false);
