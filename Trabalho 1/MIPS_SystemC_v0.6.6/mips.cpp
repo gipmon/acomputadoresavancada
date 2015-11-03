@@ -81,7 +81,7 @@ void mips::buildID2(void)
 
      rfile->data1( regdata1_id2 );
      rfile->data2( regdata2_id2 );
-     
+
      mr->sel(RegDst);
      mr->din0(rt_id2);
      mr->din1(rd_id2);
@@ -356,6 +356,8 @@ void mips::buildArchitecture(void){
       hazard_unit->RegWrite_mem(RegWrite_mem);
       hazard_unit->WriteReg_id2(WriteReg_id2);
       hazard_unit->RegWrite(RegWrite);
+      hazard_unit->MemRead_exe(MemRead_exe);
+      hazard_unit->MemRead_mem(MemRead_mem);
       hazard_unit->MemRead(MemRead);
       hazard_unit->BranchTaken(BranchTaken);
       hazard_unit->enable_pc(enable_pc);
