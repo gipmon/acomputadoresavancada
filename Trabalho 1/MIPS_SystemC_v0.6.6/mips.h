@@ -116,7 +116,7 @@ SC_MODULE(mips) {
    sc_signal < sc_uint<6> > funct_id1;
    // register file signals
 
-   sc_signal <bool> reset_haz_id1id2, reset_id1id2, reset_haz_regs, reset_regs, enable_regs;
+   sc_signal <bool> reset_haz_id1id2, reset_id1id2, reset_haz_regs, reset_regs, enable_regs, enable_id1id2;
 
    // the following two signals are not used by the architecture
    // they are used only for visualization purposes
@@ -127,7 +127,7 @@ SC_MODULE(mips) {
    //ID2
    sc_signal < sc_uint<32> > PC4_id2;
    // instruction fields
-   sc_signal < sc_uint<5> > rt_id2, rd_id2;
+   sc_signal < sc_uint<5> > rt_id2, rd_id2, rs_id2;
    sc_signal < sc_uint<16> > imm_id2;
    sc_signal < sc_uint<6> > opcode_id2;
    sc_signal < sc_uint<5> > shamt_id2;
@@ -145,7 +145,7 @@ SC_MODULE(mips) {
                              regb_exe, // value of regiter rt EXE phase
                              regb_mem; // value of regiter rt MEM phase
 
-   sc_signal <bool> reset_haz_id2exe, reset_id2exe;
+   sc_signal <bool> reset_haz_id2exe, reset_id2exe, enable_id2exe;
    // control signals
    sc_signal <bool> MemRead, MemWrite, MemtoReg;
    sc_signal <bool> RegWrite, RegDst;

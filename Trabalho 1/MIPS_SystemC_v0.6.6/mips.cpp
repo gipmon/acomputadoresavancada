@@ -63,13 +63,14 @@ void mips::buildID1(void)
       rfile->reg1( rs_id1 );
       rfile->reg2( rt_id1 );
       rfile->regwrite(WriteReg_wb);
-      rfile->enable( const1 );
-
+      rfile->enable( enable_regs );
+      rfile->data1( regdata1_id2 );
+      rfile->data2( regdata2_id2 );
       rfile->wr(RegWrite_wb);
       rfile->datawr(WriteVal_id2);
 
       rfile->clk(clk);
-      rfile->reset(reset);
+      rfile->reset(reset_regs);
 
 }
 
@@ -79,8 +80,7 @@ void mips::buildID2(void)
      // Selects Register to Write
      mr = new mux< sc_uint<5> > ("muxRDst");
 
-     rfile->data1( regdata1_id2 );
-     rfile->data2( regdata2_id2 );
+
 
      mr->sel(RegDst);
      mr->din0(rt_id2);
@@ -218,6 +218,8 @@ void mips::buildArchitecture(void){
       reg_id1_id2->rt_id2(rt_id2);
       reg_id1_id2->rd_id1(rd_id1);
       reg_id1_id2->rd_id2(rd_id2);
+      reg_id1_id2->rs_id1(rs_id1);
+      reg_id1_id2->rs_id2(rs_id2);
       reg_id1_id2->imm_id1(imm_id1);
       reg_id1_id2->imm_id2(imm_id2);
       reg_id1_id2->PC4_id1(PC4_id1);
@@ -233,7 +235,7 @@ void mips::buildArchitecture(void){
 
       reg_id1_id2->clk(clk);
       reg_id1_id2->reset(reset_id1id2);
-      reg_id1_id2->enable(const1);
+      reg_id1_id2->enable(enable_id1id2);
 
       or_reset_id1id2 = new orgate("or_reset_id1id2");
       or_reset_id1id2->din1(reset);
@@ -279,7 +281,7 @@ void mips::buildArchitecture(void){
       reg_id2_exe->valid_exe(valid_exe);
       reg_id2_exe->clk(clk);
       reg_id2_exe->reset(reset_id2exe);
-      reg_id2_exe->enable(const1);
+      reg_id2_exe->enable(enable_id2exe);
 
       or_reset_id2exe = new orgate("or_reset_id2exe");
       or_reset_id2exe->din1(reset);
@@ -348,27 +350,31 @@ void mips::buildArchitecture(void){
       buildWB();
 
       hazard_unit = new hazard("hazard_unit");
-      hazard_unit->rs( rs_id1 );
-      hazard_unit->rt( rt_id1 );
+      hazard_unit->rs_id2(rs_id2);
+      hazard_unit->rt_id2(rt_id2);
       hazard_unit->WriteReg_exe(WriteReg_exe);
       hazard_unit->RegWrite_exe(RegWrite_exe);
       hazard_unit->WriteReg_mem(WriteReg_mem);
       hazard_unit->RegWrite_mem(RegWrite_mem);
-      hazard_unit->WriteReg_id2(WriteReg_id2);
-      hazard_unit->RegWrite(RegWrite);
-      hazard_unit->MemRead_exe(MemRead_exe);
-      hazard_unit->MemRead_mem(MemRead_mem);
+      hazard_unit->WriteReg_wb(WriteReg_wb);
+      hazard_unit->RegWrite_wb(RegWrite_wb);
       hazard_unit->MemRead(MemRead);
       hazard_unit->BranchTaken(BranchTaken);
       hazard_unit->enable_pc(enable_pc);
       hazard_unit->enable_ifid(enable_ifid);
+      hazard_unit->enable_id1id2(enable_id1id2);
+      hazard_unit->enable_id2exe(enable_id2exe);
       hazard_unit->reset_ifid(reset_haz_ifid);
       hazard_unit->reset_id1id2(reset_haz_id1id2);
       hazard_unit->reset_id2exe(reset_haz_id2exe);
       hazard_unit->reset_exmem(reset_haz_exmem);
       hazard_unit->reset_regs(reset_haz_regs);
       hazard_unit->enable_regs(enable_regs);
-   }
+
+
+
+
+}
 
 mips::~mips(void)
 {
