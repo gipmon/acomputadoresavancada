@@ -13,6 +13,9 @@ void branchunit::branch_detect()
     bool branchTaken_res;
     sc_uint<32> target32 = target.read();
 
+     fprintf(stderr, "# branch rt: %#08x\n", (int)rs.read());
+     fprintf(stderr, "# branch rs: %#08x\n", (int)rs.read());
+
     switch (opcode.read())
     {
        case 2:

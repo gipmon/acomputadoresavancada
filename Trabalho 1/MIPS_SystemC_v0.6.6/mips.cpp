@@ -64,13 +64,15 @@ void mips::buildID1(void)
       rfile->reg1( rs_id1 );
       rfile->reg2( rt_id1 );
       rfile->regwrite(WriteReg_wb);
-      rfile->enable( const1 );
+      rfile->enable( enable_regs );
 
       rfile->wr(RegWrite_wb);
       rfile->datawr(WriteVal_id2);
 
       rfile->clk(clk);
       rfile->reset(reset);
+      rfile->data1( regdata1_id2 );
+      rfile->data2( regdata2_id2 );
 
 }
 
@@ -117,8 +119,7 @@ void mips::buildID2(void)
 
      // Register File
 
-     rfile->data1( regdata1_id2 );
-     rfile->data2( regdata2_id2 );
+
 
 }
 /**
@@ -368,15 +369,15 @@ void mips::buildArchitecture(void){
 
       hazard_unit = new hazard("hazard_unit");
       hazard_unit->rs( rs_id1 );
+      hazard_unit->rs_id2 (rs_id2);
+      hazard_unit->rt_id2 (rt_id2);
       hazard_unit->rt( rt_id1 );
       hazard_unit->WriteReg_exe(WriteReg_exe);
       hazard_unit->RegWrite_exe(RegWrite_exe);
       hazard_unit->WriteReg_mem(WriteReg_mem);
       hazard_unit->RegWrite_mem(RegWrite_mem);
-      hazard_unit->WriteReg_id2(WriteReg_id2);
-      hazard_unit->RegWrite(RegWrite);
-      hazard_unit->MemRead_exe(MemRead_exe);
-      hazard_unit->MemRead_mem(MemRead_mem);
+      hazard_unit->WriteReg_wb(WriteReg_wb);
+      hazard_unit->RegWrite_wb(RegWrite_wb);
       hazard_unit->MemRead(MemRead);
       hazard_unit->BranchTaken(BranchTaken);
       hazard_unit->enable_pc(enable_pc);
