@@ -11,21 +11,12 @@ void hazard::detect_hazard()
 	fprintf(stderr, "--- detect_hazard  %d  ----\n", i_hazard++);
 
 	//data hazards
-	if( rs.read()!=0 && rs.read()==WriteReg_exe.read() && RegWrite_exe.read()==true
+	if(rs.read()!=0 && rs.read()==WriteReg_exe.read() && RegWrite_exe.read()==true
 	    || rs.read()!=0 && rs.read()==WriteReg_mem.read() && RegWrite_mem.read()==true
-		|| rs.read()!=0 && rs.read()==WriteReg_id2.read() && RegWrite.read()==true
-		|| rt.read()!=0 && rt.read()==WriteReg_id2.read() && RegWrite.read()==true && MemRead.read()==false
-	    || rt.read()!=0 && rt.read()==WriteReg_exe.read() && RegWrite_exe.read()==true && MemRead.read()==false
-	    || rt.read()!=0 && rt.read()==WriteReg_mem.read() && RegWrite_mem.read()==true && MemRead.read()==false) {
-/*
-				if( 	 rs.read()!=0 && rs.read()==WriteReg_exe.read() && RegWrite_exe.read()==true
-					    || rs.read()!=0 && rs.read()==WriteReg_mem.read() && RegWrite_mem.read()==true
-
-					    || rt.read()!=0 && rt.read()==WriteReg_exe.read() && RegWrite_exe.read()==true && MemRead_exe.read() == true
-					    || rt.read()!=0 && rt.read()==WriteReg_mem.read() && RegWrite_mem.read()==true && MemRead_mem.read() == true
-							|| rs.read()!=0 && rs.read()==WriteReg_id2.read() && RegWrite.read()==true
-							|| rt.read()!=0 && rt.read()==WriteReg_id2.read() && RegWrite.read()==true && MemRead.read() == true)	 {
-*/
+		  || rs.read()!=0 && rs.read()==WriteReg_id2.read() && RegWrite.read()==true
+		  || rt.read()!=0 && rt.read()==WriteReg_id2.read() && RegWrite.read()==true
+	    || rt.read()!=0 && rt.read()==WriteReg_exe.read() && RegWrite_exe.read()==true
+	    || rt.read()!=0 && rt.read()==WriteReg_mem.read() && RegWrite_mem.read()==true) {
 		fprintf(stderr, "if!\n");
 
 		enable_pc.write(false);
