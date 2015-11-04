@@ -10,11 +10,11 @@ void control::entry()
     case 0: // R-format
             RegDst.write(1);
             ALUSrc.write(0);
-	    MemtoReg.write(0);
-	    RegWrite.write(1);
-	    MemRead.write(0);
-	    MemWrite.write(0);
-	    Branch.write(0);
+      	    MemtoReg.write(0);
+      	    RegWrite.write(1);
+      	    MemRead.write(0);
+      	    MemWrite.write(0);
+      	    Branch.write(0);
 	    switch(funct.read()) {
 	       case 32: ALUOp.write(2);
 	                break;
@@ -26,10 +26,22 @@ void control::entry()
 	                break;
 	       case 42: ALUOp.write(7);
 	                break;
+         case 8: Branch.write(6);
+                  break;
+
 		}
 	    break;
+
+    case  2: //jump
+      ALUSrc.write(0);
+      RegWrite.write(0);
+      MemRead.write(0);
+      MemWrite.write(0);
+      Branch.write(5);
+      ALUOp.write(6);
+   break;
     case  4: // beq
-            ALUSrc.write(0);
+      ALUSrc.write(0);
 	    RegWrite.write(0);
 	    MemRead.write(0);
 	    MemWrite.write(0);
@@ -41,7 +53,21 @@ void control::entry()
       RegWrite.write(0);
       MemRead.write(0);
       MemWrite.write(0);
-      Branch.write(1);
+      Branch.write(2);
+      break;
+    case 6://blez
+      ALUSrc.write(0);
+      RegWrite.write(0);
+      MemRead.write(0);
+      MemWrite.write(0);
+      Branch.write(4);
+      break;
+    case 7://bgtz
+      ALUSrc.write(0);
+      RegWrite.write(0);
+      MemRead.write(0);
+      MemWrite.write(0);
+      Branch.write(3);
       break;
     case 35: // lw
             RegDst.write(0);

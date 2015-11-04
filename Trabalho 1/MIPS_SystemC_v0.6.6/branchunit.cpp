@@ -13,42 +13,43 @@ void branchunit::branch_detect()
     bool branchTaken_res;
     sc_uint<32> target32 = target.read();
 
-     fprintf(stderr, "# branch rt: %#08x\n", (int)rs.read());
-     fprintf(stderr, "# branch rs: %#08x\n", (int)rs.read());
+    //  fprintf(stderr, "# branch rt: %#08x\n", (int)rs.read());
+    //  fprintf(stderr, "# branch rs: %#08x\n", (int)rs.read());
 
-    switch (opcode.read())
+    switch (branch.read())
     {
-       case 2:
-              fprintf(stderr, "# target: %#08x\n", (int)target32);
-              fprintf(stderr, "# pc4: %#08x\n", (int)PC4.read());
-              branchTaken_res = true;
-              branchTarget_res = target32 | (PC4.read() & 0xF000);
-              break;
-       case 4:
-              if(rs.read() == rt.read() && branch.read() == true){
+
+       case 1:
+              if(rs.read() == rt.read()){
                  branchTaken_res = true;
                  branchTarget_res = PC4.read() + (imm_ext.read()<<2);
               }
               break;
-       case 5:
-              if(rs.read() != rt.read() && branch.read() == true){
+       case 2:
+              if(rs.read() != rt.read()){
                 branchTaken_res = true;
                 branchTarget_res = PC4.read() + (imm_ext.read()<<2);
               }
               break;
+      case 3:
+           if((int)rs.read() > 0){
+             branchTaken_res = true;
+             branchTarget_res = PC4.read() + (imm_ext.read() << 2);
+           }
+           break;
+       case 4:
+            if((int)rs.read() <= 0){
+              branchTaken_res = true;
+              branchTarget_res = PC4.read() + (imm_ext.read() << 2);
+            }
+            break;
+      case 5:
+            //  fprintf(stderr, "# target: %#08x\n", (int)target32);
+            //  fprintf(stderr, "# pc4: %#08x\n", (int)PC4.read());
+             branchTaken_res = true;
+             branchTarget_res = target32 | (PC4.read() & 0xF000);
+             break;
        case 6:
-              if(rs.read() <= 0 && branch.read() == true){
-                branchTaken_res = true;
-                branchTarget_res = PC4.read() + (imm_ext.read() << 2);
-              }
-              break;
-       case 7:
-              if(rs.read() > 0 && branch.read() == true){
-                branchTaken_res = true;
-                branchTarget_res = PC4.read() + (imm_ext.read() << 2);
-              }
-              break;
-       case 8:
               branchTaken_res = true;
               branchTarget_res = rs.read();
               break;

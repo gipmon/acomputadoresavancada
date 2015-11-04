@@ -70,7 +70,7 @@ void mips::buildID1(void)
       rfile->datawr(WriteVal_id2);
 
       rfile->clk(clk);
-      rfile->reset(reset);
+      rfile->reset(reset_regs);
       rfile->data1( regdata1_id2 );
       rfile->data2( regdata2_id2 );
 

@@ -11,10 +11,10 @@ void dmem::read_mem()
 {
     if(rd.read()) {
 
-      fprintf(stderr, "# address: %#08x\n", (int)addr.read());
+      // fprintf(stderr, "# address: %#08x\n", (int)addr.read());
         //assert(addr.read()<size() && addr.read() % 4 == 0);
         if((addr.read()<size() && addr.read() % 4 == 0)){
-          fprintf(stderr, "# memory data: %#08x\n", (int)memory[addr.read()/4]);
+          // fprintf(stderr, "# memory data: %#08x\n", (int)memory[addr.read()/4]);
            dout.write(memory[addr.read()/4]);
         }
 	else dout.write(0);

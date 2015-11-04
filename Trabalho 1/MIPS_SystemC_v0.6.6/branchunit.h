@@ -27,7 +27,7 @@ SC_MODULE(branchunit) {
   sc_in< sc_uint<26> >  target;
   sc_in< sc_uint<32> >  rs, rt;
   sc_in< sc_uint<6> > opcode;
-  sc_in< bool > branch;
+  sc_in< sc_uint<3> > branch;
   sc_out< bool > branchTaken;
   sc_out< sc_uint<32> > branchTarget;
 
