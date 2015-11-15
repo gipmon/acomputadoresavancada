@@ -47,7 +47,7 @@ void branchunit::branch_detect()
             //  fprintf(stderr, "# target: %#08x\n", (int)target32);
             //  fprintf(stderr, "# pc4: %#08x\n", (int)PC4.read());
              branchTaken_res = true;
-             branchTarget_res = target32 << 2 | (PC4.read() & 0xF000);
+			 branchTarget_res = target32 << 2 | (PC4.read() & 0xF000);
              break;
        case 6:
               branchTaken_res = true;
