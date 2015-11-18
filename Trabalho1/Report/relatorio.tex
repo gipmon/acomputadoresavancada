@@ -2,6 +2,7 @@
 
 \usepackage[portuguese,english]{babel}
 \usepackage[T1]{fontenc} 
+\usepackage[table]{xcolor}
 \usepackage[utf8]{inputenc}
 \usepackage[pdftex]{graphicx}
 \usepackage{minitoc}
@@ -19,7 +20,6 @@
 \usepackage{color}
 \usepackage{sverb}
 \usepackage[section]{placeins}
-
 %Highlight
 \newcommand{\shellcmd}[1]{\\\indent\indent\texttt{\footnotesize\# #1}\\}
 
@@ -49,7 +49,6 @@
 %Headers
 \renewcommand{\headrulewidth}{0.15pt}
 \renewcommand{\thechapter}{}
-
 
 \clearpage
 
@@ -115,10 +114,172 @@ Sendo os saltos resolvidos em ID2, foram removidos de fases mais avançadas unid
 
 Para que instruções que entrem de forma errada na pipeline quando um branch ocorre sejam descartadas excepto a seguinte (delayed branch slot), foi necessário alterar na unidade de Hazard as fases às quais é necessário fazer reset. Desta feita quando a nossa unidade de Hazard trata de descartar instruções que entrem de forma errada na pipeline e de colocar stalls aquando da ocorrência destes.
 
-\section{Problemas identificados na primeira entrega}
+\section{Forwarding}
+
+Na tarefa 3 foi-nos pedido para identificar quais são os tipos de forwarding que podem ocorrer na nossa arquitectura onde a origem dos valores são os valores dos registos da pipeline e o seu destino é a "stage".
+
+Os tipos de forwarding são:
+\begin{itemize}
+\item EXE/MEM->EXE
+\item EXE/MEM->ID2
+\item MEM/WB->EXE
+\item MEM/WB->ID2
+\end{itemize} 
+
+\newpage
+
+\begin{figure}[!htb]
+\center
+ \includegraphics[width=150mm,scale=1]{path.pdf}
+ \caption{\\ Forwarding path}
+ \label{fig:path}
+\end{figure}
+
+\subsection{EXE/MEM->EXE}
+
+\begin{table}[!htb]
+\centering
+\label{for_ex_mem_exe}
+\begin{tabular}{ll|c|c|l|
+>{\columncolor[HTML]{FFCC67}}c |c|l}
+\cline{2-7}
+\multicolumn{1}{l|}{add \$1, \$2, \$3} & \multicolumn{1}{c|}{IF} & ID1 & ID2 & \multicolumn{1}{c|}{\cellcolor[HTML]{F8A102}EXE} & MEM                                                & WB  &                         \\ \cline{2-8} 
+sub \$2, \$1, \$3                      &                         & IF  & ID1 & ID2                                              & \cellcolor[HTML]{F8A102}{\color[HTML]{333333} EXE} & MEM & \multicolumn{1}{c|}{WB} \\ \cline{3-8} 
+\end{tabular}
+\end{table}
+
+Este tipo de forwarding é causado por uma instrução que escreva num registo e de seguida uma outra instrução precise desse registo para realizar uma operação, ou seja, precisa de ler esse registo. Por exemplo, podemos ter um add \$1, \$2, \$3 e depois um sub \$2, \$1, \$3, a primeira instrução escreve em \$1 e a segunda instrução precisa do \$1  para realizar a operação de sub com \$3.
+\linebreak
+
+Tanto para RS e RT em ID2 comparamos com o WriteReg, se o registo RS/RT em ID2 é diferente de 0 e se vai escrever no registo ambos em EXE. 
+Caso esta condição seja verdadeira, vamos então mudar o sinal de seleção do multiplexer para 1, sendo este sinal o que vai selecionar no mux o valor da entrada da ALU como "rs/rt".
+
+Teve-se em atenção que o rt quando MemRead é verdadeiro é porque se vai escrever em rt, e o que nós queremos é ler em rt e não escrever em rt por isso adicionou-se a condição para que MemRead seja igual a false.
+\linebreak
+
+\begin{lstlisting}[language=c]
+if(rs_id2.read()!=0 && rs_id2.read()==WriteReg_exe.read() 
+	&& RegWrite_exe.read()==true){
+    rsmux_exe.write(1); 
+}
+if(rt_id2.read()!=0 && rt_id2.read()==WriteReg_exe.read() 
+	&& RegWrite_exe.read()==true 
+	&& MemRead.read()==false){
+   rtmux_exe.write(1);
+}
+\end{lstlisting} 
+
+\subsection{EXE/MEM->ID2}
+
+\begin{table}[!htb]
+\centering
+\label{table_exe_mem_id2}
+\begin{tabular}{ccc|c|c|c|c|cc}
+\cline{2-7}
+\multicolumn{1}{c|}{add \$1, \$2, \$3} & \multicolumn{1}{c|}{IF} & ID1 & ID2 & \cellcolor[HTML]{F8A102}EXE                        & \cellcolor[HTML]{FFCC67}MEM                        & WB  &                          &                         \\ \cline{2-8}
+nop                                  & \multicolumn{1}{c|}{}   & IF  & ID1 & \cellcolor[HTML]{FFFFFF}{\color[HTML]{000000} ID2} & \cellcolor[HTML]{FFFFFF}{\color[HTML]{333333} EXE} & MEM & \multicolumn{1}{c|}{WB}  &                         \\ \cline{3-9} 
+beq \$1, \$0, label                      &                         &     & IF  & ID1                                                & \cellcolor[HTML]{F8A102}{\color[HTML]{333333} ID2} & EXE & \multicolumn{1}{c|}{MEM} & \multicolumn{1}{c|}{WB} \\ \cline{4-9} 
+\end{tabular}
+\end{table}
+
+Este tipo de forwarding é causado por uma instrução que escreva num registo para o qual um branch condicional necessite de ler esse registo para tomar uma decisão. Por exemplo, neste caso, tem-se uma instrução add \$1, \$2, \$3 que vai escrever em \$1 e o beq vai necessitar de \$1 para calcular a decisão, neste caso é o \$rs mas também podia ser o \$rt o registo necessário para calcular a decisão que estivesse a ser escrito por uma outra instrução. É feito então o forwarding da fase EXE/MEM para ID2.
+
+Nas condições que usamos para detetar estes casos de forwarding comparamos o rs/rt em id2 com o WriteReg em EXE, se vai escrever no registo em EXE e se é uma branch, ou seja, branch tem de ser diferente de 0, isto deve-se porque no exercício anterior colocou-se o sinal de branch a ter valores de 0 a 6. O multiplexer vai selecionar o forward de EXE/MEM para esta fase, fazendo com que os valores sejam selecionados os que está a ser feito o forward e não os que saiem dos registos.
+\newpage
+
+\begin{lstlisting}[language=c]
+if(rs_id2.read()!=0 && rs_id2.read()==WriteReg_exe.read() 
+	&& RegWrite_exe.read()==true && branch.read()!=0){
+    rsmux_id2.write(1);
+}
+if(rt_id2.read()!=0 && rt_id2.read()==WriteReg_exe.read() 
+	&& RegWrite_exe.read()==true 
+	&& branch.read()!=0 
+	&& MemRead.read()==false){
+   rtmux_id2.write(1);
+}
+\end{lstlisting} 
 
 
-\subsection{Soluções}
+\subsection{MEM/WB->EXE}
+
+\begin{table}[!htb]
+\centering
+\label{my-label}
+\begin{tabular}{ccc|c|c|c|c|cc}
+\cline{2-7}
+\multicolumn{1}{c|}{lw \$1, 0(\$0)} & \multicolumn{1}{c|}{IF} & ID1 & ID2 & EXE                                                & \cellcolor[HTML]{F8A102}MEM                        & \cellcolor[HTML]{FFCC67}WB  &                          &                         \\ \cline{2-8}
+nop                               & \multicolumn{1}{c|}{}   & IF  & ID1 & \cellcolor[HTML]{FFFFFF}{\color[HTML]{000000} ID2} & \cellcolor[HTML]{FFFFFF}{\color[HTML]{333333} EXE} & MEM                         & \multicolumn{1}{c|}{WB}  &                         \\ \cline{3-9} 
+add \$2, \$1, \$1                   &                         &     & IF  & ID1                                                & ID2                                                & \cellcolor[HTML]{F8A102}EXE & \multicolumn{1}{c|}{MEM} & \multicolumn{1}{c|}{WB} \\ \cline{4-9} 
+\end{tabular}
+\end{table}
+
+\begin{table}[!htb]
+\centering
+\label{my-label}
+\begin{tabular}{ccc|c|c|c|c|cc}
+\cline{2-7}
+\multicolumn{1}{c|}{add \$1, \$0, \$0} & \multicolumn{1}{c|}{IF} & ID1 & ID2 & EXE                                                & \cellcolor[HTML]{F8A102}MEM                        & \cellcolor[HTML]{FFCC67}WB  &                          &                         \\ \cline{2-8}
+nop                                  & \multicolumn{1}{c|}{}   & IF  & ID1 & \cellcolor[HTML]{FFFFFF}{\color[HTML]{000000} ID2} & \cellcolor[HTML]{FFFFFF}{\color[HTML]{333333} EXE} & MEM                         & \multicolumn{1}{c|}{WB}  &                         \\ \cline{3-9} 
+add \$2, \$1, \$1                      &                         &     & IF  & ID1                                                & ID2                                                & \cellcolor[HTML]{F8A102}EXE & \multicolumn{1}{c|}{MEM} & \multicolumn{1}{c|}{WB} \\ \cline{4-9} 
+\end{tabular}
+\end{table}
+
+\begin{table}[!htb]
+\centering
+\begin{tabular}{ccc|c|c|c|c|cc}
+\cline{2-7}
+\multicolumn{1}{c|}{lw \$1, 0(\$0)} & \multicolumn{1}{c|}{IF} & ID1 & ID2 & EXE                                                & \cellcolor[HTML]{F8A102}MEM                        & \cellcolor[HTML]{FFCC67}WB  &                          &                         \\ \cline{2-8}
+nop                               & \multicolumn{1}{c|}{}   & IF  & ID1 & \cellcolor[HTML]{FFFFFF}{\color[HTML]{000000} ID2} & \cellcolor[HTML]{FFFFFF}{\color[HTML]{333333} EXE} & MEM                         & \multicolumn{1}{c|}{WB}  &                         \\ \cline{3-9} 
+lw \$1, 0(\$1)                      &                         &     & IF  & ID1                                                & ID2                                                & \cellcolor[HTML]{F8A102}EXE & \multicolumn{1}{c|}{MEM} & \multicolumn{1}{c|}{WB} \\ \cline{4-9} 
+\end{tabular}
+\end{table}
+
+Este tipo de forwarding é provocado por uma instrução do que escreva para um registo que uma terceira instrução na pipeline necessite de ler para efetuar a sua operação em EXE. 
+
+Por exemplo, no nosso caso temos uma operação do tipo LW que lê na memória para o registo \$1, e depois, duas em EXE existe uma instrução que vai ler do registo que foi escrito pela instrução LW. Assim como podemos ter uma instrução do tipo R na fase MEM e uma instrução do tipo R que também necessite desse registo escrito pela primeira instrução na fase EXE. 
+
+\begin{lstlisting}[language=c]
+if(rs_id2.read()!=0 && rs_id2.read()==WriteReg_mem.read()
+  && RegWrite_mem.read()==true){
+    rsmux_exe.write(2);
+}
+if(rt_id2.read()!=0 && rt_id2.read()==WriteReg_mem.read() 
+  && RegWrite_mem.read()==true 
+  && MemRead.read()==false){
+    rtmux_exe.write(2);
+}
+\end{lstlisting} 
+
+\subsection{MEM/WB->ID2}
+
+\begin{table}[!htb]
+\centering
+\label{my-label}
+\begin{tabular}{cccc|c|c|c|ccl}
+\cline{2-7}
+\multicolumn{1}{c|}{lw \$1, 0(\$0)}     & \multicolumn{1}{c|}{IF} & \multicolumn{1}{c|}{ID1} & ID2                   & EXE                                                & \cellcolor[HTML]{F8A102}MEM                        & \cellcolor[HTML]{FFCC67}WB  &                          &                          &                         \\ \cline{2-8}
+nop                                   & \multicolumn{1}{c|}{}   & \multicolumn{1}{c|}{IF}  & ID1                   & \cellcolor[HTML]{FFFFFF}{\color[HTML]{000000} ID2} & \cellcolor[HTML]{FFFFFF}{\color[HTML]{333333} EXE} & MEM                         & \multicolumn{1}{c|}{WB}  &                          &                         \\ \cline{3-9}
+nop                                   &                         & \multicolumn{1}{c|}{}    & IF                    & ID1                                                & ID2                                                & EXE                         & \multicolumn{1}{c|}{MEM} & \multicolumn{1}{c|}{WB}  &                         \\ \cline{4-10} 
+\multicolumn{1}{l}{beq \$1, \$1, label} & \multicolumn{1}{l}{}    & \multicolumn{1}{l}{}     & \multicolumn{1}{l|}{} & IF                                                 & ID1                                                & \cellcolor[HTML]{F8A102}ID2 & \multicolumn{1}{c|}{EXE} & \multicolumn{1}{c|}{MEM} & \multicolumn{1}{c|}{WB} \\ \cline{5-10} 
+\end{tabular}
+\end{table}
+
+\subsection{MEM/WB->MEM}
+\begin{table}[!htb]
+\centering
+\label{my-label}
+\begin{tabular}{cc|c|c|c|
+>{\columncolor[HTML]{F8A102}}c |
+>{\columncolor[HTML]{FFCC67}}c |ccl}
+\cline{2-7}
+\multicolumn{1}{c|}{lw \$1, 0(\$0)} & IF & ID1 & ID2 & EXE                                                & MEM                                                & WB                          &                         &  &  \\ \cline{2-8}
+sw \$1, 0(\$0)                      &    & IF  & ID1 & \cellcolor[HTML]{FFFFFF}{\color[HTML]{000000} ID2} & \cellcolor[HTML]{FFFFFF}{\color[HTML]{333333} EXE} & \cellcolor[HTML]{F8A102}MEM & \multicolumn{1}{c|}{WB} &  &  \\ \cline{3-8}
+\end{tabular}
+\end{table}
+
+
+
 
 \newpage
 \section{Conclusão}
