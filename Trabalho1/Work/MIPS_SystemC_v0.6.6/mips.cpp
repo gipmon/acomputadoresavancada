@@ -88,8 +88,8 @@ void mips::buildID2(void)
      mr->dout(WriteReg_id2);
 
      br = new branchunit ("branchunit");
-     br->rs(regdata1_id2);
-     br->rt(regdata2_id2);
+     br->rs(rs_mux_id2_out);
+     br->rt(rt_mux_id2_out);
      br->branch(Branch);
      br->opcode(opcode_id2);
      br->target(target_id2);
@@ -191,11 +191,19 @@ void mips::buildEXE(void)
  */
 void mips::buildMEM(void)
 {
+      // Selects second operand of ALU
+      mr_mem = new mux< sc_uint<32> > ("mr_mem");
+
+      mr_mem->sel(mux_mem); // sinal de selecao
+      mr_mem->din0(regb_mem);
+      mr_mem->din1(WriteVal_id2);
+      mr_mem->dout(mux_mem_out);
+
       // Data Memory
       datamem = new dmem ("datamem");
 
       datamem->addr(ALUOut_mem);
-      datamem->din(regb_mem);
+      datamem->din(mux_mem_out);
       datamem->dout(MemOut);
       datamem->wr(MemWrite_mem);
       datamem->rd(MemRead_mem);
@@ -393,6 +401,8 @@ void mips::buildArchitecture(void){
       reg_mem_wb->RegWrite_wb(RegWrite_wb);
       reg_mem_wb->WriteReg_mem(WriteReg_mem);
       reg_mem_wb->WriteReg_wb(WriteReg_wb);
+      reg_mem_wb->MemRead_mem(MemRead_mem);
+      reg_mem_wb->MemRead_wb(MemRead_wb);
       reg_mem_wb->PC_mem(PC_mem);
       reg_mem_wb->PC_wb(PC_wb);
       reg_mem_wb->valid_mem(valid_mem);
@@ -445,6 +455,8 @@ void mips::buildArchitecture(void){
       forward_unit->MemRead(MemRead);
       forward_unit->MemRead_exe(MemRead_exe);
       forward_unit->MemRead_mem(MemRead_mem);
+      forward_unit->MemRead_wb(MemRead_wb);
+      forward_unit->MemWrite_mem(MemWrite_mem);
 
       forward_unit->branch(Branch);
 
@@ -452,6 +464,7 @@ void mips::buildArchitecture(void){
       forward_unit->rt_mux_id2(rt_mux_id2);
       forward_unit->rs_mux_exe(rs_mux_exe);
       forward_unit->rt_mux_exe(rt_mux_exe);
+      forward_unit->mux_mem(mux_mem);
 
    }
 

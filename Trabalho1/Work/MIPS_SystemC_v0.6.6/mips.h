@@ -94,7 +94,7 @@ SC_MODULE(mips) {
    //MEM
    dmem              *datamem;   // data memory
    andgate *a1;                  // beq instruction and equal values
-
+   mux< sc_uint<32> > *mr_mem;
    //WB
    mux< sc_uint<32> > *m2;       // selects value to write in register (ALUout or MemOut)
 
@@ -214,7 +214,7 @@ SC_MODULE(mips) {
    //WB
    sc_signal < sc_uint<32> > MemOut_wb, ALUOut_wb;
    sc_signal < sc_uint<5> > WriteReg_wb;
-   sc_signal <bool> MemtoReg_wb;
+   sc_signal <bool> MemtoReg_wb, MemRead_wb;
    sc_signal <bool> RegWrite_wb;
 
    // the following two signals are not used by the architecture
@@ -233,11 +233,13 @@ SC_MODULE(mips) {
    sc_signal < sc_uint<2> > rt_mux_id2;
    sc_signal < sc_uint<2> > rs_mux_exe;
    sc_signal < sc_uint<2> > rt_mux_exe;
+   sc_signal < bool > mux_mem;
 
    sc_signal < sc_uint<32> > rs_mux_id2_out;
    sc_signal < sc_uint<32> > rt_mux_id2_out;
    sc_signal < sc_uint<32> > rs_mux_exe_out;
    sc_signal < sc_uint<32> > rt_mux_exe_out;
+   sc_signal < sc_uint<32> > mux_mem_out;
 
    SC_CTOR(mips) {
        buildArchitecture();

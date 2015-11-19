@@ -12,13 +12,13 @@
 
 /**
  * reg_mem_wb_t module.
- * reg_mem_wb_t module is the MEM/WB pipeline register. 
+ * reg_mem_wb_t module is the MEM/WB pipeline register.
  */
 
 SC_MODULE(reg_mem_wb_t) {
 
 	// Ports
-	
+
 	sc_in  < bool > clk;
 	sc_in  < bool > reset;
 	sc_in  < bool > enable;
@@ -29,8 +29,8 @@ SC_MODULE(reg_mem_wb_t) {
 	sc_in  < sc_uint<5> > WriteReg_mem;
 	sc_out < sc_uint<5> > WriteReg_wb;
 
-	sc_in  < bool > MemtoReg_mem, RegWrite_mem;
-	sc_out < bool > MemtoReg_wb, RegWrite_wb;
+	sc_in  < bool > MemtoReg_mem, RegWrite_mem, MemRead_mem;
+	sc_out < bool > MemtoReg_wb, RegWrite_wb, MemRead_wb;
 
 	sc_in  < sc_uint<32> > PC_mem;   // only for visualization purposes
 	sc_out < sc_uint<32> > PC_wb;    // only for visualization purposes
@@ -41,33 +41,40 @@ SC_MODULE(reg_mem_wb_t) {
 
 	regT < sc_uint<32> > *aluOut, *memOut;
 	regT < sc_uint<5> > *WriteReg;
-	regT < bool > *MemtoReg, *RegWrite;
+	regT < bool > *MemtoReg, *RegWrite, *MemRead;
 
 	regT < sc_uint<32> > *PC;        // only for visualization purposes
 	regT < bool > *valid;            // only for visualization purposes
 
 	SC_CTOR(reg_mem_wb_t) {
 
-		aluOut = new regT < sc_uint<32> > ("aluOut");;
+		aluOut = new regT < sc_uint<32> > ("aluOut");
 		aluOut->din(aluOut_mem);
 		aluOut->dout(aluOut_wb);
 		aluOut->clk(clk);
 		aluOut->enable(enable);
 		aluOut->reset(reset);
 
-		memOut = new regT < sc_uint<32> > ("memOut");;
+		memOut = new regT < sc_uint<32> > ("memOut");
 		memOut->din(memOut_mem);
 		memOut->dout(memOut_wb);
 		memOut->clk(clk);
 		memOut->enable(enable);
 		memOut->reset(reset);
 
-		WriteReg = new regT < sc_uint<5> > ("WriteReg");;
+		WriteReg = new regT < sc_uint<5> > ("WriteReg");
 		WriteReg->din(WriteReg_mem);
 		WriteReg->dout(WriteReg_wb);
 		WriteReg->clk(clk);
 		WriteReg->enable(enable);
 		WriteReg->reset(reset);
+
+		MemRead = new regT < bool > ("MemRead");
+		MemRead->din(MemRead_mem);
+		MemRead->dout(MemRead_wb);
+		MemRead->clk(clk);
+		MemRead->enable(enable);
+		MemRead->reset(reset);
 
 		MemtoReg = new regT < bool >("MemtoReg");
 		MemtoReg->din(MemtoReg_mem);
