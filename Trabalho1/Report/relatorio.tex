@@ -124,6 +124,7 @@ Os tipos de forwarding são:
 \item EXE/MEM->ID2
 \item MEM/WB->EXE
 \item MEM/WB->ID2
+\item MEM/WB->MEM
 \end{itemize} 
 
 \newpage
@@ -197,7 +198,6 @@ beq \$1, \$0, label                      &                         &     & IF  &
 Este tipo de forwarding é causado por uma instrução que escreva num registo para o qual um branch condicional necessite de ler esse registo para tomar uma decisão. Por exemplo, neste caso, tem-se uma instrução add \$1, \$2, \$3 que vai escrever em \$1 e o beq vai necessitar de \$1 para calcular a decisão, neste caso é o \$rs mas também podia ser o \$rt o registo necessário para calcular a decisão que estivesse a ser escrito por uma outra instrução. É feito então o forwarding da fase EXE/MEM para ID2.
 
 Nas condições que usamos para detetar estes casos de forwarding comparamos o rs/rt em id2 com o WriteReg em EXE, se vai escrever no registo em EXE e se é uma branch, ou seja, branch tem de ser diferente de 0, isto deve-se porque no exercício anterior colocou-se o sinal de branch a ter valores de 0 a 6. O multiplexer vai selecionar o forward de EXE/MEM para esta fase, fazendo com que os valores sejam selecionados os que está a ser feito o forward e não os que saiem dos registos.
-\newpage
 
 \begin{lstlisting}[language=c]
 if(rs_id2.read()!=0 && rs_id2.read()==WriteReg_exe.read() 
@@ -277,6 +277,8 @@ nop                                   &                         & \multicolumn{1
 \end{tabular}
 \end{table}
 
+O caso de MEM/WB para ID2 apenas acontece quando existe uma instrução de leitura na memória e em que esse valor lido da memória apenas está disponível em WB e em ID2 está uma operação de beq ou outro tipo que leia um registo que está a para ser escrito pela instrução de lw. Será feito um forward desse valor de MEM/WB para ID2.
+
 \subsection{MEM/WB->MEM}
 \begin{table}[!htb]
 \centering
@@ -289,6 +291,9 @@ nop                                   &                         & \multicolumn{1
 sw \$1, 0(\$0)                      &    & IF  & ID1 & \cellcolor[HTML]{FFFFFF}{\color[HTML]{000000} ID2} & \cellcolor[HTML]{FFFFFF}{\color[HTML]{333333} EXE} & \cellcolor[HTML]{F8A102}MEM & \multicolumn{1}{c|}{WB} &  &  \\ \cline{3-8}
 \end{tabular}
 \end{table}
+
+As condições para este caso acontecer são muito específicas, apenas dizem respeito a um lw seguido sw, não diz respeito a uma instrução do tipo R seguida de um sw porque nesse caso é feito o forward de EXE/MEM para EXE para resolver esse caso. Isto só acontece porque o lw só está disponível em MEM, ou seja, para a instrução de sw precisa na fase de MEM desse valor terá de ser feito o forward de MEM/WB para MEM. 
+As condições são: em MemRead{\_}Wb==true, MemWrite{\_}Mem==true e WriteReg{\_}wb==rt{\_}mem!=0.
 
 \subsection{Forwarding para EXE}
 
@@ -304,6 +309,8 @@ add \$2, \$1, \$1                                            & \multicolumn{1}{c
 \end{tabular}
 \end{table}
 
+Neste caso o forwarding é feito desde MEM/WB para EXE e de EXE/MEM para EXE. A instrução que está em EXE necessita dos valores que estão disponíveis na fase de MEM e WB que foram calculados em fases anteriores, sendo assim, é feito o forward para EXE desde MEM/WB e EXE/MEM. Também poderia ocorrer o caso de estar a ser calculado um endereço em EXE de uma instrução do tipo lw ou sw e então ser feito forward para esta fase de um valor que esteja a ser calculado numa das outras fases.
+
 \subsection{Forwarding para ID2}
 
 \begin{table}[!htb]
@@ -317,10 +324,6 @@ nop                               &                         & \multicolumn{1}{c|
 beq \$1, \$2, label                 &                         &                          &     & IF  & ID1                         & \cellcolor[HTML]{F8A102}ID2 & \multicolumn{1}{c|}{EXE} & \multicolumn{1}{c|}{MEM} & \multicolumn{1}{c|}{WB} \\ \cline{5-10} 
 \end{tabular}
 \end{table}
-
-Neste caso assumimos que só está disponível o valor de \$1 quando o lw está na fase de MEM, e este é necessário por uma instrução que vai ler este registo. O valor só vai ser escrito no final de WB, e se o valor for necessário na fase ID2 então teremos de fazer forward. No caso do add, o resultado de um add, este só vai ser gravado quando terminar a fase de WB, no entanto pode ser feito o forward de MEM/WB para EXE. Ou seja, para ID2 vamos ter apenas forward de EXE/MEM para ID2  só caso seja saltos e MEM/WB para ID2 nos outros casos todos.
-
-\newpage
 
 \begin{table}[!htb]
 \centering
@@ -337,30 +340,6 @@ add \$2, \$1, \$2                   &                         &                 
 \begin{table}[!htb]
 \centering
 \label{my-label}
-\begin{tabular}{lcc|c|c|c|c|ccc}
-\cline{2-7}
-\multicolumn{1}{l|}{add \$1, \$3, \$3} & \multicolumn{1}{c|}{IF} & ID1 & ID2 & \cellcolor[HTML]{F8A102}EXE & \cellcolor[HTML]{FFCC67}MEM & WB  &                          &                         &  \\ \cline{2-8}
-nop                                  & \multicolumn{1}{c|}{}   & IF  & ID1 & ID2                         & EXE                         & MEM & \multicolumn{1}{c|}{WB}  &                         &  \\ \cline{3-9}
-lw \$2, 0(\$1)                         &                         &     & IF  & ID1                         & \cellcolor[HTML]{F8A102}ID2 & EXE & \multicolumn{1}{c|}{MEM} & \multicolumn{1}{c|}{WB} &  \\ \cline{4-9}
-\end{tabular}
-\end{table}
-
-\begin{table}[!htb]
-\centering
-\label{my-label}
-\begin{tabular}{lccc|c|c|c|ccc}
-\cline{2-7}
-\multicolumn{1}{l|}{lw $1, 0($0)} & \multicolumn{1}{c|}{IF} & \multicolumn{1}{c|}{ID1} & ID2 & EXE & \cellcolor[HTML]{F8A102}MEM & \cellcolor[HTML]{FFCC67}WB  &                          &                          &                         \\ \cline{2-8}
-nop                               & \multicolumn{1}{c|}{}   & \multicolumn{1}{c|}{IF}  & ID1 & ID2 & EXE                         & MEM                         & \multicolumn{1}{c|}{WB}  &                          &                         \\ \cline{3-9}
-nop                               &                         & \multicolumn{1}{c|}{}    & IF  & ID1 & ID2                         & EXE                         & \multicolumn{1}{c|}{MEM} & \multicolumn{1}{c|}{WB}  &                         \\ \cline{4-10} 
-lw $2, 0($1)                      &                         &                          &     & IF  & ID1                         & \cellcolor[HTML]{F8A102}ID2 & \multicolumn{1}{c|}{EXE} & \multicolumn{1}{c|}{MEM} & \multicolumn{1}{c|}{WB} \\ \cline{5-10} 
-\end{tabular}
-\end{table}
-
-
-\begin{table}[!htb]
-\centering
-\label{my-label}
 \begin{tabular}{lccc|c|c|c|ccc}
 \cline{2-7}
 \multicolumn{1}{l|}{lw \$1, 0(\$0)} & \multicolumn{1}{c|}{IF} & \multicolumn{1}{c|}{ID1} & ID2 & EXE & \cellcolor[HTML]{F8A102}MEM & \cellcolor[HTML]{FFCC67}WB  &                          &                          &                         \\ \cline{2-8}
@@ -369,6 +348,8 @@ nop                               &                         & \multicolumn{1}{c|
 lw \$2, 0(\$1)                      &                         &                          &     & IF  & ID1                         & \cellcolor[HTML]{F8A102}ID2 & \multicolumn{1}{c|}{EXE} & \multicolumn{1}{c|}{MEM} & \multicolumn{1}{c|}{WB} \\ \cline{5-10} 
 \end{tabular}
 \end{table}
+
+Neste caso assumimos que só está disponível o valor de \$1 quando o lw está na fase de MEM, e este é necessário por uma instrução que vai ler este registo. O valor só vai ser escrito no final de WB, e se o valor for necessário na fase ID2 então teremos de fazer forward. No caso do add, o resultado de um add, este só vai ser gravado quando terminar a fase de WB, no entanto pode ser feito o forward de EXE/MEM para ID2, pois este valor é necessário na fase ID2 (devido ao salto condicional). No caso do lw é necessário fazer o forward de MEM/WB para ID2, porque o valor também ainda não está disponível no banco de registo.
 
 \subsection{Forwarding desde MEM/WB}
 
@@ -384,6 +365,27 @@ add \$2, \$1, \$1                   &                         & \multicolumn{1}{
 lw \$2, 0(\$1)                      &                         &                          &     & IF  & ID1                         & ID2                        & \multicolumn{1}{c|}{EXE} & \multicolumn{1}{c|}{MEM} & \multicolumn{1}{c|}{WB} \\ \cline{5-10} 
 \end{tabular}
 \end{table}
+
+Este caso é quando existe um valor que tem de ser lido da memória, ou alguma operação do tipo R que foi calculado na fase de EXE  e é necessário para escrever na memória esse valor, entre a primeira e a segunda instrução existe uma dependência que tem de ser satisfeita através de um forward de MEM/WB para MEM. Outro caso é esse valor ser necessário para a operação que vai decorrer em EXE, fazendo assim um forward de MEM/WB para EXE. Outro caso é existir a necessidade de ler um registo que ainda não foi escrito e que a instrução que escreve nesse ainda não terminou, fazendo assim um forward de MEM/WB para ID2.
+
+
+\subsection{Testes}
+\subsubsection{Teste 1}
+Este teste pretende testar o forward de EXE/MEM para EXE e de MEM/WB para EXE.
+
+\begin{table}[!htb]
+\centering
+\label{my-label}
+\begin{tabular}{lcc|c|c|c|c|cc}
+\cline{2-7}
+\multicolumn{1}{l|}{add \$3, \$1, \$2} & \multicolumn{1}{c|}{IF} & ID1 & ID2 & \cellcolor[HTML]{F8A102}EXE & \cellcolor[HTML]{FFCC67}MEM & \cellcolor[HTML]{FFCC67}WB  &                          &                         \\ \cline{2-8}
+add \$4, \$3, \$1                      & \multicolumn{1}{c|}{}   & IF  & ID1 & ID2                         & \cellcolor[HTML]{F8A102}EXE & MEM                         & \multicolumn{1}{c|}{WB}  &                         \\ \cline{3-9} 
+add \$5, \$2, \$3                      &                         &     & IF  & ID1                         & ID2                         & \cellcolor[HTML]{F8A102}EXE & \multicolumn{1}{c|}{MEM} & \multicolumn{1}{c|}{WB} \\ \cline{4-9} 
+\end{tabular}
+\end{table}
+
+O segundo add vai necessitar de ler o \$3 que está a ser calculado  pelo primeiro add e está disponível nas fases MEM e WB. Sendo assim será feito forward de EXE/MEM para EXE para o segundo add e de MEM/WB para EXE por causa do terceiro add.
+
 
 \newpage
 \section{Conclusão}
