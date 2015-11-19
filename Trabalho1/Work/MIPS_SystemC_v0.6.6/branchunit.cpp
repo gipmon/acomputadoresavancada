@@ -23,31 +23,39 @@ void branchunit::branch_detect()
               if(rs.read() == rt.read()){
                  branchTaken_res = true;
                  branchTarget_res = PC4.read() + (imm_ext.read()<<2);
+              }else{
+                branchTaken_res = false;
               }
               break;
        case 2:
               if(rs.read() != rt.read()){
                 branchTaken_res = true;
                 branchTarget_res = PC4.read() + (imm_ext.read()<<2);
+              }else{
+                branchTaken_res = false;
               }
               break;
       case 3:
            if((int)rs.read() > 0){
              branchTaken_res = true;
              branchTarget_res = PC4.read() + (imm_ext.read() << 2);
+           }else{
+             branchTaken_res = false;
            }
            break;
        case 4:
             if((int)rs.read() <= 0){
               branchTaken_res = true;
               branchTarget_res = PC4.read() + (imm_ext.read() << 2);
+            }else{
+              branchTaken_res = false;
             }
             break;
       case 5:
             //  fprintf(stderr, "# target: %#08x\n", (int)target32);
             //  fprintf(stderr, "# pc4: %#08x\n", (int)PC4.read());
              branchTaken_res = true;
-			 branchTarget_res = target32 << 2 | (PC4.read() & 0xF000);
+			       branchTarget_res = target32 << 2 | (PC4.read() & 0xF000);
              break;
        case 6:
               branchTaken_res = true;
