@@ -139,6 +139,18 @@ Os tipos de forwarding são:
 
 \begin{table}[!htb]
 \centering
+\label{my-label}
+\begin{tabular}{cc|c|c|
+>{\columncolor[HTML]{F8A102}}c |
+>{\columncolor[HTML]{FFCC67}}c |c|ccl}
+\cline{2-7}
+\multicolumn{1}{c|}{add \$1, \$2, \$3} & IF & ID1 & ID2 & EXE                                                & MEM                         & WB  &                         &  &  \\ \cline{2-8}
+lw \$2, 0(\$1)                         &    & IF  & ID1 & \cellcolor[HTML]{FFFFFF}{\color[HTML]{000000} ID2} & \cellcolor[HTML]{F8A102}EXE & MEM & \multicolumn{1}{c|}{WB} &  &  \\ \cline{3-8}
+\end{tabular}
+\end{table}
+
+\begin{table}[!htb]
+\centering
 \label{for_ex_mem_exe}
 \begin{tabular}{ll|c|c|l|
 >{\columncolor[HTML]{FFCC67}}c |c|l}
@@ -278,8 +290,100 @@ sw \$1, 0(\$0)                      &    & IF  & ID1 & \cellcolor[HTML]{FFFFFF}{
 \end{tabular}
 \end{table}
 
+\subsection{Forwarding para EXE}
+
+\begin{table}[!htb]
+\centering
+\label{my-label}
+\begin{tabular}{ccc|c|c|c|
+>{\columncolor[HTML]{FFCB2F}}c |ccl}
+\cline{2-7}
+\multicolumn{1}{c|}{add \$1, \$2, \$3}                       & \multicolumn{1}{c|}{IF} & ID1                   & ID2 & EXE                                                & \cellcolor[HTML]{F8A102}MEM & WB                          &                          &                         &  \\ \cline{2-8}
+add \$2, \$1, \$1                                            & \multicolumn{1}{c|}{}   & IF                    & ID1 & \cellcolor[HTML]{FFFFFF}{\color[HTML]{000000} ID2} & \cellcolor[HTML]{F8A102}EXE & MEM                         & \multicolumn{1}{c|}{WB}  &                         &  \\ \cline{3-9}
+\multicolumn{1}{l}{{\color[HTML]{009901} add \$2, \$2, \$1}} & \multicolumn{1}{l}{}    & \multicolumn{1}{l|}{} & IF  & ID1                                                & ID2                         & \cellcolor[HTML]{F8A102}EXE & \multicolumn{1}{c|}{MEM} & \multicolumn{1}{c|}{WB} &  \\ \cline{4-9}
+\end{tabular}
+\end{table}
+
+\subsection{Forwarding para ID2}
+
+\begin{table}[!htb]
+\centering
+\label{my-label}
+\begin{tabular}{lccc|c|c|c|ccc}
+\cline{2-7}
+\multicolumn{1}{l|}{lw \$1, 0(\$0)} & \multicolumn{1}{c|}{IF} & \multicolumn{1}{c|}{ID1} & ID2 & EXE & \cellcolor[HTML]{F8A102}MEM & \cellcolor[HTML]{FFCC67}WB  &                          &                          &                         \\ \cline{2-8}
+add \$2,\$3, \$3                   & \multicolumn{1}{c|}{}   & \multicolumn{1}{c|}{IF}  & ID1 & ID2 & \cellcolor[HTML]{F8A102}EXE & \cellcolor[HTML]{FFCC67}MEM & \multicolumn{1}{c|}{WB}  &                          &                         \\ \cline{3-9}
+nop                               &                         & \multicolumn{1}{c|}{}    & IF  & ID1 & ID2                         & EXE                         & \multicolumn{1}{c|}{MEM} & \multicolumn{1}{c|}{WB}  &                         \\ \cline{4-10} 
+beq \$1, \$2, label                 &                         &                          &     & IF  & ID1                         & \cellcolor[HTML]{F8A102}ID2 & \multicolumn{1}{c|}{EXE} & \multicolumn{1}{c|}{MEM} & \multicolumn{1}{c|}{WB} \\ \cline{5-10} 
+\end{tabular}
+\end{table}
+
+Neste caso assumimos que só está disponível o valor de \$1 quando o lw está na fase de MEM, e este é necessário por uma instrução que vai ler este registo. O valor só vai ser escrito no final de WB, e se o valor for necessário na fase ID2 então teremos de fazer forward. No caso do add, o resultado de um add, este só vai ser gravado quando terminar a fase de WB, no entanto pode ser feito o forward de MEM/WB para EXE. Ou seja, para ID2 vamos ter apenas forward de EXE/MEM para ID2  só caso seja saltos e MEM/WB para ID2 nos outros casos todos.
+
+\newpage
+
+\begin{table}[!htb]
+\centering
+\label{my-label}
+\begin{tabular}{lccc|c|c|c|ccc}
+\cline{2-7}
+\multicolumn{1}{l|}{lw \$1, 0(\$0)} & \multicolumn{1}{c|}{IF} & \multicolumn{1}{c|}{ID1} & ID2 & EXE & \cellcolor[HTML]{F8A102}MEM & \cellcolor[HTML]{FFCC67}WB  &                          &                          &                         \\ \cline{2-8}
+add \$2, \$3, \$3                   & \multicolumn{1}{c|}{}   & \multicolumn{1}{c|}{IF}  & ID1 & ID2 & EXE & MEM & \multicolumn{1}{c|}{WB}  &                          &                         \\ \cline{3-9}
+nop                               &                         & \multicolumn{1}{c|}{}    & IF  & ID1 & ID2                         & EXE                         & \multicolumn{1}{c|}{MEM} & \multicolumn{1}{c|}{WB}  &                         \\ \cline{4-10} 
+add \$2, \$1, \$2                   &                         &                          &     & IF  & ID1                         & \cellcolor[HTML]{F8A102}ID2 & \multicolumn{1}{c|}{EXE} & \multicolumn{1}{c|}{MEM} & \multicolumn{1}{c|}{WB} \\ \cline{5-10} 
+\end{tabular}
+\end{table}
+
+\begin{table}[!htb]
+\centering
+\label{my-label}
+\begin{tabular}{lcc|c|c|c|c|ccc}
+\cline{2-7}
+\multicolumn{1}{l|}{add \$1, \$3, \$3} & \multicolumn{1}{c|}{IF} & ID1 & ID2 & \cellcolor[HTML]{F8A102}EXE & \cellcolor[HTML]{FFCC67}MEM & WB  &                          &                         &  \\ \cline{2-8}
+nop                                  & \multicolumn{1}{c|}{}   & IF  & ID1 & ID2                         & EXE                         & MEM & \multicolumn{1}{c|}{WB}  &                         &  \\ \cline{3-9}
+lw \$2, 0(\$1)                         &                         &     & IF  & ID1                         & \cellcolor[HTML]{F8A102}ID2 & EXE & \multicolumn{1}{c|}{MEM} & \multicolumn{1}{c|}{WB} &  \\ \cline{4-9}
+\end{tabular}
+\end{table}
+
+\begin{table}[!htb]
+\centering
+\label{my-label}
+\begin{tabular}{lccc|c|c|c|ccc}
+\cline{2-7}
+\multicolumn{1}{l|}{lw $1, 0($0)} & \multicolumn{1}{c|}{IF} & \multicolumn{1}{c|}{ID1} & ID2 & EXE & \cellcolor[HTML]{F8A102}MEM & \cellcolor[HTML]{FFCC67}WB  &                          &                          &                         \\ \cline{2-8}
+nop                               & \multicolumn{1}{c|}{}   & \multicolumn{1}{c|}{IF}  & ID1 & ID2 & EXE                         & MEM                         & \multicolumn{1}{c|}{WB}  &                          &                         \\ \cline{3-9}
+nop                               &                         & \multicolumn{1}{c|}{}    & IF  & ID1 & ID2                         & EXE                         & \multicolumn{1}{c|}{MEM} & \multicolumn{1}{c|}{WB}  &                         \\ \cline{4-10} 
+lw $2, 0($1)                      &                         &                          &     & IF  & ID1                         & \cellcolor[HTML]{F8A102}ID2 & \multicolumn{1}{c|}{EXE} & \multicolumn{1}{c|}{MEM} & \multicolumn{1}{c|}{WB} \\ \cline{5-10} 
+\end{tabular}
+\end{table}
 
 
+\begin{table}[!htb]
+\centering
+\label{my-label}
+\begin{tabular}{lccc|c|c|c|ccc}
+\cline{2-7}
+\multicolumn{1}{l|}{lw \$1, 0(\$0)} & \multicolumn{1}{c|}{IF} & \multicolumn{1}{c|}{ID1} & ID2 & EXE & \cellcolor[HTML]{F8A102}MEM & \cellcolor[HTML]{FFCC67}WB  &                          &                          &                         \\ \cline{2-8}
+nop                               & \multicolumn{1}{c|}{}   & \multicolumn{1}{c|}{IF}  & ID1 & ID2 & EXE                         & MEM                         & \multicolumn{1}{c|}{WB}  &                          &                         \\ \cline{3-9}
+nop                               &                         & \multicolumn{1}{c|}{}    & IF  & ID1 & ID2                         & EXE                         & \multicolumn{1}{c|}{MEM} & \multicolumn{1}{c|}{WB}  &                         \\ \cline{4-10} 
+lw \$2, 0(\$1)                      &                         &                          &     & IF  & ID1                         & \cellcolor[HTML]{F8A102}ID2 & \multicolumn{1}{c|}{EXE} & \multicolumn{1}{c|}{MEM} & \multicolumn{1}{c|}{WB} \\ \cline{5-10} 
+\end{tabular}
+\end{table}
+
+\subsection{Forwarding desde MEM/WB}
+
+\begin{table}[!htb]
+\centering
+\label{my-label}
+\begin{tabular}{lccc|c|c|
+>{\columncolor[HTML]{F8A102}}c |ccc}
+\cline{2-7}
+\multicolumn{1}{l|}{lw \$1, 0(\$0)} & \multicolumn{1}{c|}{IF} & \multicolumn{1}{c|}{ID1} & ID2 & EXE & \cellcolor[HTML]{F8A102}MEM & \cellcolor[HTML]{FFCC67}WB &                          &                          &                         \\ \cline{2-8}
+sw \$1, 0(\$0)                      & \multicolumn{1}{c|}{}   & \multicolumn{1}{c|}{IF}  & ID1 & ID2 & EXE                         & MEM                        & \multicolumn{1}{c|}{WB}  &                          &                         \\ \cline{3-9}
+add \$2, \$1, \$1                   &                         & \multicolumn{1}{c|}{}    & IF  & ID1 & ID2                         & EXE                        & \multicolumn{1}{c|}{MEM} & \multicolumn{1}{c|}{WB}  &                         \\ \cline{4-10} 
+lw \$2, 0(\$1)                      &                         &                          &     & IF  & ID1                         & ID2                        & \multicolumn{1}{c|}{EXE} & \multicolumn{1}{c|}{MEM} & \multicolumn{1}{c|}{WB} \\ \cline{5-10} 
+\end{tabular}
+\end{table}
 
 \newpage
 \section{Conclusão}
