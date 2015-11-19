@@ -10,17 +10,19 @@
 
 SC_MODULE(forwardunit) {
 
-  sc_in< sc_uint<5> > rs_id2, rt_id2;
-  sc_in< sc_uint<5> > WriteReg_exe, WriteReg_mem;
-  sc_in< bool > RegWrite_exe, RegWrite_mem, MemRead;
+  sc_in< sc_uint<5> > rs_id2, rt_id2, rs_exe, rt_exe, rs_mem, rt_mem;
+  sc_in< sc_uint<5> > WriteReg_exe, WriteReg_mem, WriteReg_wb;
+  sc_in< bool > RegWrite_exe, RegWrite_mem, RegWrite_wb, MemRead, MemRead_exe, MemRead_mem;
   sc_in< sc_uint<3> > branch;
-  sc_out< sc_uint<2> > rsmux_exe, rtmux_exe, rsmux_id2, rtmux_id2;
+  sc_out< sc_uint<2> > rs_mux_exe, rt_mux_exe, rs_mux_id2, rt_mux_id2;
 
   SC_CTOR(forwardunit)
      {
       SC_METHOD(forward_detect);
-      sensitive << rs_id2 << rt_id2 << WriteReg_exe << WriteReg_mem
-      << branch << RegWrite_exe << RegWrite_mem << MemRead;
+      sensitive << rs_id2 << rt_id2 << rs_exe << rt_exe
+      << rs_mem << rt_mem << WriteReg_exe << WriteReg_mem
+      << WriteReg_wb << RegWrite_wb << MemRead_mem
+      << branch << RegWrite_exe << RegWrite_mem << MemRead << MemRead_exe;
     }
 
   void forward_detect();

@@ -17,9 +17,14 @@
 #include "dmem.h"
 #include "control.h"
 #include "hazard.h"
+#include "forwardunit.h"
 #include "branchunit.h"
 
 #include "mux.h"
+#include "muxforward.h"
+#include "muxforward1.h"
+#include "muxforward2.h"
+#include "muxforward3.h"
 #include "reg.h"
 #include "ext.h"
 #include "shiftl2.h"
@@ -66,16 +71,21 @@ SC_MODULE(mips) {
    orgate *or_reset_id1id2;
    orgate *or_reset_regs;
    hazard *hazard_unit;
+   forwardunit *forward_unit;
 
    //ID2
    control           *ctrl;      // control
    branchunit        *br;
    mux< sc_uint<5> >  *mr;       // selects destination register
+   muxforward< sc_uint<32> >  *mr_rs_id2;
+   muxforward1< sc_uint<32> >  *mr_rt_id2;
    ext *e1;                      // sign extends imm to 32 bits
    orgate *or_reset_id2exe;
 
    //EXE
    alu               *alu1;      // ALU
+   muxforward2< sc_uint<32> >  *mr_rs_exe;
+   muxforward3< sc_uint<32> >  *mr_rt_exe;
    mux< sc_uint<32> > *m1;       // selects 2nd ALU operand
    shiftl2 *sl2;                 // shift left 2 imm_ext
    add *addbr;                   // adds imm to PC + 4
@@ -167,6 +177,8 @@ SC_MODULE(mips) {
    //EXE
    sc_signal < bool > Zero;            // ALU output is zero*/
    sc_signal < sc_uint<32> > imm_exe;
+   sc_signal < sc_uint<5> > rs_exe, rt_exe;
+
    /*sc_signal < sc_uint<32> > addr_ext; // imm_ext shift left 2*/
    sc_signal < sc_uint<5> > WriteReg_exe;
    sc_signal <bool> reset_haz_exmem, reset_exmem;
@@ -188,6 +200,8 @@ SC_MODULE(mips) {
    sc_signal < sc_uint<32> > MemOut;   // data memory output
    sc_signal < sc_uint<32> > ALUOut_mem, BranchTarget_mem;
    sc_signal < sc_uint<5> > WriteReg_mem;
+   sc_signal < sc_uint<5> > rs_mem, rt_mem;
+
    sc_signal <bool> MemRead_mem, MemWrite_mem, MemtoReg_mem;
    sc_signal <bool> RegWrite_mem, Zero_mem;
    /*sc_signal < sc_uint<3> > Branch_mem;*/
@@ -213,6 +227,17 @@ SC_MODULE(mips) {
    sc_signal < bool > BranchTaken;       // execute branch
    sc_signal < sc_uint<32> > const4;   // contant 4
    sc_signal < bool > const1;          // contant 4
+
+   //forward unit
+   sc_signal < sc_uint<2> > rs_mux_id2;
+   sc_signal < sc_uint<2> > rt_mux_id2;
+   sc_signal < sc_uint<2> > rs_mux_exe;
+   sc_signal < sc_uint<2> > rt_mux_exe;
+
+   sc_signal < sc_uint<32> > rs_mux_id2_out;
+   sc_signal < sc_uint<32> > rt_mux_id2_out;
+   sc_signal < sc_uint<32> > rs_mux_exe_out;
+   sc_signal < sc_uint<32> > rt_mux_exe_out;
 
    SC_CTOR(mips) {
        buildArchitecture();

@@ -26,8 +26,8 @@ SC_MODULE(reg_exe_mem_t) {
 	sc_in  < sc_uint<32> > aluOut_exe, regb_exe;
 	sc_out < sc_uint<32> > aluOut_mem, regb_mem;
 
-	sc_in  < sc_uint<5> > WriteReg_exe;
-	sc_out < sc_uint<5> > WriteReg_mem;
+	sc_in  < sc_uint<5> > WriteReg_exe, rs_exe, rt_exe;
+	sc_out < sc_uint<5> > WriteReg_mem, rs_mem, rt_mem;
 
 	sc_in  < bool > MemRead_exe, MemWrite_exe, MemtoReg_exe, RegWrite_exe;
 	sc_out < bool > MemRead_mem, MemWrite_mem, MemtoReg_mem, RegWrite_mem;
@@ -43,7 +43,7 @@ SC_MODULE(reg_exe_mem_t) {
 	// Modules
 
 	regT < sc_uint<32> > *aluOut, *regb;
-	regT < sc_uint<5> >  *WriteReg;
+	regT < sc_uint<5> >  *WriteReg, *reg_rs, *reg_rt;
 	regT < bool > *MemRead, *MemWrite, *MemtoReg, *RegWrite;
 
 	regT < sc_uint<32> > *PC;        // only for visualization purposes
@@ -71,6 +71,20 @@ SC_MODULE(reg_exe_mem_t) {
 		WriteReg->clk(clk);
 		WriteReg->enable(enable);
 		WriteReg->reset(reset);
+
+		reg_rs = new regT < sc_uint<5> > ("reg_rs");;
+		reg_rs->din(rs_exe);
+		reg_rs->dout(rs_mem);
+		reg_rs->clk(clk);
+		reg_rs->enable(enable);
+		reg_rs->reset(reset);
+
+		reg_rt = new regT < sc_uint<5> > ("reg_rt");;
+		reg_rt->din(rt_exe);
+		reg_rt->dout(rt_mem);
+		reg_rt->clk(clk);
+		reg_rt->enable(enable);
+		reg_rt->reset(reset);
 
 		/*BranchTarget = new regT < sc_uint<32> > ("BranchTarget");;
 		BranchTarget->din(BranchTarget_exe);

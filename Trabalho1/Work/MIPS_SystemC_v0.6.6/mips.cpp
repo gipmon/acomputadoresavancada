@@ -117,9 +117,21 @@ void mips::buildID2(void)
      ctrl->ALUSrc(ALUSrc);
      ctrl->RegWrite(RegWrite);
 
-     // Register File
+     mr_rs_id2 = new muxforward< sc_uint<32> > ("muxRsID2Dst");
 
+     mr_rs_id2->sel(rs_mux_id2);
+     mr_rs_id2->din0(regdata1_id2);
+     mr_rs_id2->din1(ALUOut_mem);
+     mr_rs_id2->din2(WriteVal_id2);
+     mr_rs_id2->dout(rs_mux_id2_out);
 
+     mr_rt_id2 = new muxforward1< sc_uint<32> > ("muxRtID2Dst");
+
+     mr_rt_id2->sel(rt_mux_id2);
+     mr_rt_id2->din0(regdata2_id2);
+     mr_rt_id2->din1(ALUOut_mem);
+     mr_rt_id2->din2(WriteVal_id2);
+     mr_rt_id2->dout(rt_mux_id2_out);
 
 }
 /**
@@ -131,14 +143,14 @@ void mips::buildEXE(void)
       m1 = new mux< sc_uint<32> > ("muxOp");
 
       m1->sel(ALUSrc_exe); // sinal de selecao
-      m1->din0(regb_exe); // registo, seleciona entre um imediato e um registo
+      m1->din0(rt_mux_exe_out); // registo, seleciona entre um imediato e um registo
       m1->din1(imm_exe); // imediato
       m1->dout(ALUIn2); // e um sinal
 
       // ALU
       alu1 = new alu("alu");
 
-      alu1->din1(rega_exe);
+      alu1->din1(rs_mux_exe_out);
       alu1->din2(ALUIn2);
       alu1->op(ALUOp_exe);
       alu1->dout(ALUOut);
@@ -155,6 +167,22 @@ void mips::buildEXE(void)
       addbr->op1(PC4_exe);
       addbr->op2(addr_ext);
       addbr->res(BranchTarget);*/
+
+      mr_rs_exe = new muxforward2< sc_uint<32> > ("muxRsEXEDst");
+
+      mr_rs_exe->sel(rs_mux_exe);
+      mr_rs_exe->din0(rega_exe);
+      mr_rs_exe->din1(ALUOut_mem);
+      mr_rs_exe->din2(WriteVal_id2);
+      mr_rs_exe->dout(rs_mux_exe_out);
+
+      mr_rt_exe = new muxforward3< sc_uint<32> > ("muxRtEXEDst");
+
+      mr_rt_exe->sel(rt_mux_exe);
+      mr_rt_exe->din0(regb_exe);
+      mr_rt_exe->din1(ALUOut_mem);
+      mr_rt_exe->din2(WriteVal_id2);
+      mr_rt_exe->dout(rt_mux_exe_out);
 
 }
 
@@ -269,9 +297,9 @@ void mips::buildArchitecture(void){
 
       //reg_id2_exe
       reg_id2_exe = new reg_id2_exe_t("reg_id2_exe");
-      reg_id2_exe->rega_id(regdata1_id2);
+      reg_id2_exe->rega_id(rs_mux_id2_out);
       reg_id2_exe->rega_exe(rega_exe);
-      reg_id2_exe->regb_id(regdata2_id2);
+      reg_id2_exe->regb_id(rt_mux_id2_out);
       reg_id2_exe->regb_exe(regb_exe);
       reg_id2_exe->imm_id(imm_ext);
       reg_id2_exe->imm_exe(imm_exe);
@@ -285,6 +313,10 @@ void mips::buildArchitecture(void){
       reg_id2_exe->MemWrite_exe(MemWrite_exe);
       reg_id2_exe->MemtoReg_id(MemtoReg);
       reg_id2_exe->MemtoReg_exe(MemtoReg_exe);
+      reg_id2_exe->rs_id2(rs_id2);
+      reg_id2_exe->rt_id2(rt_id2);
+      reg_id2_exe->rs_exe(rs_exe);
+      reg_id2_exe->rt_exe(rt_exe);
       /*reg_id2_exe->Branch_id(Branch);
       reg_id2_exe->Branch_exe(Branch_exe);*/
       reg_id2_exe->RegWrite_id(RegWrite);
@@ -328,6 +360,10 @@ void mips::buildArchitecture(void){
       reg_exe_mem->BranchTarget_mem(BranchTarget_mem);*/
       reg_exe_mem->regb_exe(regb_exe);
       reg_exe_mem->regb_mem(regb_mem);
+      reg_exe_mem->rs_exe(rs_exe);
+      reg_exe_mem->rt_exe(rt_exe);
+      reg_exe_mem->rs_mem(rs_mem);
+      reg_exe_mem->rt_mem(rt_mem);
       reg_exe_mem->WriteReg_exe(WriteReg_exe);
       reg_exe_mem->WriteReg_mem(WriteReg_mem);
       reg_exe_mem->PC_exe(PC_exe);
@@ -391,15 +427,31 @@ void mips::buildArchitecture(void){
       hazard_unit->reset_regs(reset_haz_regs);
       hazard_unit->enable_regs(enable_regs);
 
-      forward_unit = new forward_unit("forward_unit");
+      forward_unit = new forwardunit("forward_unit");
       forward_unit->rs_id2(rs_id2);
       forward_unit->rt_id2(rt_id2);
+      forward_unit->rs_exe(rs_exe);
+      forward_unit->rt_exe(rt_exe);
+      forward_unit->rs_mem(rs_mem);
+      forward_unit->rt_mem(rt_mem);
+
       forward_unit->WriteReg_exe(WriteReg_exe);
       forward_unit->RegWrite_exe(RegWrite_exe);
       forward_unit->WriteReg_mem(WriteReg_mem);
       forward_unit->RegWrite_mem(RegWrite_mem);
+      forward_unit->WriteReg_wb(WriteReg_wb);
+      forward_unit->RegWrite_wb(RegWrite_wb);
+
       forward_unit->MemRead(MemRead);
+      forward_unit->MemRead_exe(MemRead_exe);
+      forward_unit->MemRead_mem(MemRead_mem);
+
       forward_unit->branch(Branch);
+
+      forward_unit->rs_mux_id2(rs_mux_id2);
+      forward_unit->rt_mux_id2(rt_mux_id2);
+      forward_unit->rs_mux_exe(rs_mux_exe);
+      forward_unit->rt_mux_exe(rt_mux_exe);
 
    }
 

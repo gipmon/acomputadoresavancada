@@ -4,7 +4,7 @@ TEMPLATE	= app
 CONFIG		+= qt thread release
 HEADERS		= mips.h\
                   imem.h decode.h regfile.h alu.h dmem.h control.h\
-		  mem32.h mux.h muxforward.h reg.h add.h gates.h ext.h shiftl2.h\
+		  mem32.h mux.h muxforward.h muxforward1.h muxforward2.h muxforward3.h reg.h add.h gates.h ext.h shiftl2.h\
 		  regT.h reg_id2_exe.h reg_id1_id2.h reg_exe_mem.h reg_mem_wb.h\
 		  hazard.h branchunit.h forwardunit.h\
 		  mipsaux.h\

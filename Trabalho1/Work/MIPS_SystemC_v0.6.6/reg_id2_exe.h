@@ -26,8 +26,8 @@ SC_MODULE(reg_id2_exe_t) {
 	sc_in  < sc_uint<32> > rega_id, regb_id, imm_id;// PC4_id;
 	sc_out < sc_uint<32> > rega_exe, regb_exe, imm_exe;// PC4_exe;
 
-	sc_in  < sc_uint<5> > WriteReg_id;
-	sc_out < sc_uint<5> > WriteReg_exe;
+	sc_in  < sc_uint<5> > WriteReg_id, rs_id2, rt_id2;
+	sc_out < sc_uint<5> > WriteReg_exe, rs_exe, rt_exe;
 
 	sc_in  < bool > MemRead_id, MemWrite_id, MemtoReg_id;
 	sc_out < bool > MemRead_exe, MemWrite_exe, MemtoReg_exe;
@@ -47,7 +47,7 @@ SC_MODULE(reg_id2_exe_t) {
 
 	regT < sc_uint<32> > *rega,*regb,*imm/*,*PC4*/;
 	regT < bool > *MemRead, *MemWrite, *MemtoReg, /**Branch,*/ *RegWrite, *ALUSrc;
-	regT < sc_uint<5> > *WriteReg;
+	regT < sc_uint<5> > *WriteReg, *reg_rs, *reg_rt;
 	regT < sc_uint<3> > *ALUOp;
 
 	regT < sc_uint<32> > *PC;      // only for visualization purposes
@@ -75,6 +75,20 @@ SC_MODULE(reg_id2_exe_t) {
 		WriteReg->clk(clk);
 		WriteReg->enable(enable);
 		WriteReg->reset(reset);
+
+		reg_rs = new regT < sc_uint<5> >("reg_rs");
+		reg_rs->din(rs_id2);
+		reg_rs->dout(rs_exe);
+		reg_rs->clk(clk);
+		reg_rs->enable(enable);
+		reg_rs->reset(reset);
+
+		reg_rt = new regT < sc_uint<5> >("reg_rt");
+		reg_rt->din(rt_id2);
+		reg_rt->dout(rt_exe);
+		reg_rt->clk(clk);
+		reg_rt->enable(enable);
+		reg_rt->reset(reset);
 /*
 		PC4 = new regT < sc_uint<32> >("PC4");
 		PC4->din(PC4_id);

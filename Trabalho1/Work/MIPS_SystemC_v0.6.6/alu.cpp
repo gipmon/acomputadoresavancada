@@ -22,6 +22,14 @@ void alu::calc()
 
     sc_uint<32> res;
 
+    fprintf(stderr, "\n");
+    fprintf(stderr, "ALU DIN1: %x\n", (int)din1.read());
+    fprintf(stderr, "ALU DIN2:%x\n", (int)din2.read());
+    fprintf(stderr, "ALU RES:%x\n", (int)res);
+    fprintf(stderr, "\n");
+
+
+
     switch (op.read())
     {
        case 0: res = a & b;    // and
