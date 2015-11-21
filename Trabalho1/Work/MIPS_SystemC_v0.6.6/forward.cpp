@@ -1,7 +1,7 @@
 
-// forwardunit.cpp
+// forward.cpp
 
-#include "forwardunit.h"
+#include "forward.h"
 
 /**
  * \c forward unit module callback function.

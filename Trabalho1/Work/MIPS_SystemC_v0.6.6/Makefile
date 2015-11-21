@@ -59,7 +59,7 @@ SOURCES       = main.cpp \
 		shiftl2.cpp \
 		hazard.cpp \
 		branchunit.cpp \
-		forwardunit.cpp \
+		forward.cpp \
 		mipsaux.cpp \
 		GUI/MIPSctrl.cpp \
 		GUI/MIPSarch.cpp \
@@ -233,7 +233,7 @@ qmake:  FORCE
 
 dist: 
 	@$(CHK_DIR_EXISTS) .tmp/MIPS_SystemC1.0.0 || $(MKDIR) .tmp/MIPS_SystemC1.0.0 
-	$(COPY_FILE) --parents $(SOURCES) $(DIST) .tmp/MIPS_SystemC1.0.0/ && $(COPY_FILE) --parents mips.h imem.h decode.h regfile.h alu.h dmem.h control.h mem32.h mux.h muxforward.h muxforward1.h muxforward2.h muxforward3.h reg.h add.h gates.h ext.h shiftl2.h regT.h reg_id2_exe.h reg_id1_id2.h reg_exe_mem.h reg_mem_wb.h hazard.h branchunit.h forwardunit.h mipsaux.h GUI/MIPSctrl.h GUI/MIPSarch.h GUI/MIPSmods.h GUI/modview.h GUI/MIPSimemview.h GUI/MIPSregfileview.h GUI/MIPSdmemview.h GUI/MIPSmemview.h GUI/PortValItem.h GUI/PortValRead.h GUI/cycle.xpm GUI/reset.xpm GUI/regs.xpm GUI/datamem.xpm GUI/instmem.xpm GUI/readimem.xpm GUI/readdmem.xpm .tmp/MIPS_SystemC1.0.0/ && $(COPY_FILE) --parents main.cpp mips.cpp imem.cpp decode.cpp regfile.cpp alu.cpp dmem.cpp control.cpp mem32.cpp reg.cpp add.cpp gates.cpp ext.cpp shiftl2.cpp hazard.cpp branchunit.cpp forwardunit.cpp mipsaux.cpp GUI/MIPSctrl.cpp GUI/MIPSarch.cpp GUI/MIPSmods.cpp GUI/modview.cpp GUI/MIPSimemview.cpp GUI/MIPSdmemview.cpp GUI/MIPSregfileview.cpp GUI/MIPSmemview.cpp GUI/PortValItem.cpp GUI/PortValRead.cpp .tmp/MIPS_SystemC1.0.0/ && (cd `dirname .tmp/MIPS_SystemC1.0.0` && $(TAR) MIPS_SystemC1.0.0.tar MIPS_SystemC1.0.0 && $(COMPRESS) MIPS_SystemC1.0.0.tar) && $(MOVE) `dirname .tmp/MIPS_SystemC1.0.0`/MIPS_SystemC1.0.0.tar.gz . && $(DEL_FILE) -r .tmp/MIPS_SystemC1.0.0
+	$(COPY_FILE) --parents $(SOURCES) $(DIST) .tmp/MIPS_SystemC1.0.0/ && $(COPY_FILE) --parents mips.h imem.h decode.h regfile.h alu.h dmem.h control.h mem32.h mux.h muxforward.h muxforward1.h muxforward2.h muxforward3.h reg.h add.h gates.h ext.h shiftl2.h regT.h reg_id2_exe.h reg_id1_id2.h reg_exe_mem.h reg_mem_wb.h hazard.h branchunit.h forward.h mipsaux.h GUI/MIPSctrl.h GUI/MIPSarch.h GUI/MIPSmods.h GUI/modview.h GUI/MIPSimemview.h GUI/MIPSregfileview.h GUI/MIPSdmemview.h GUI/MIPSmemview.h GUI/PortValItem.h GUI/PortValRead.h GUI/cycle.xpm GUI/reset.xpm GUI/regs.xpm GUI/datamem.xpm GUI/instmem.xpm GUI/readimem.xpm GUI/readdmem.xpm .tmp/MIPS_SystemC1.0.0/ && $(COPY_FILE) --parents main.cpp mips.cpp imem.cpp decode.cpp regfile.cpp alu.cpp dmem.cpp control.cpp mem32.cpp reg.cpp add.cpp gates.cpp ext.cpp shiftl2.cpp hazard.cpp branchunit.cpp forward.cpp mipsaux.cpp GUI/MIPSctrl.cpp GUI/MIPSarch.cpp GUI/MIPSmods.cpp GUI/modview.cpp GUI/MIPSimemview.cpp GUI/MIPSdmemview.cpp GUI/MIPSregfileview.cpp GUI/MIPSmemview.cpp GUI/PortValItem.cpp GUI/PortValRead.cpp .tmp/MIPS_SystemC1.0.0/ && (cd `dirname .tmp/MIPS_SystemC1.0.0` && $(TAR) MIPS_SystemC1.0.0.tar MIPS_SystemC1.0.0 && $(COMPRESS) MIPS_SystemC1.0.0.tar) && $(MOVE) `dirname .tmp/MIPS_SystemC1.0.0`/MIPS_SystemC1.0.0.tar.gz . && $(DEL_FILE) -r .tmp/MIPS_SystemC1.0.0
 
 
 clean:compiler_clean 
@@ -313,7 +313,7 @@ main.o: main.cpp GUI/MIPSctrl.h \
 		dmem.h \
 		control.h \
 		hazard.h \
-		forwardunit.h \
+		forward.h \
 		branchunit.h \
 		mux.h \
 		muxforward.h \
@@ -342,7 +342,7 @@ mips.o: mips.cpp mips.h \
 		dmem.h \
 		control.h \
 		hazard.h \
-		forwardunit.h \
+		forward.h \
 		branchunit.h \
 		mux.h \
 		muxforward.h \
@@ -408,8 +408,8 @@ hazard.o: hazard.cpp hazard.h
 branchunit.o: branchunit.cpp branchunit.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o branchunit.o branchunit.cpp
 
-forwardunit.o: forwardunit.cpp forwardunit.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o forwardunit.o forwardunit.cpp
+forwardunit.o: forward.cpp forward.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o forwardunit.o forward.cpp
 
 mipsaux.o: mipsaux.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o mipsaux.o mipsaux.cpp
@@ -423,7 +423,7 @@ MIPSctrl.o: GUI/MIPSctrl.cpp mips.h \
 		dmem.h \
 		control.h \
 		hazard.h \
-		forwardunit.h \
+		forward.h \
 		branchunit.h \
 		mux.h \
 		muxforward.h \
@@ -469,7 +469,7 @@ MIPSarch.o: GUI/MIPSarch.cpp GUI/PortValItem.h \
 		dmem.h \
 		control.h \
 		hazard.h \
-		forwardunit.h \
+		forward.h \
 		branchunit.h \
 		mux.h \
 		muxforward.h \
@@ -499,7 +499,7 @@ MIPSmods.o: GUI/MIPSmods.cpp mips.h \
 		dmem.h \
 		control.h \
 		hazard.h \
-		forwardunit.h \
+		forward.h \
 		branchunit.h \
 		mux.h \
 		muxforward.h \

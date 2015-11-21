@@ -17,7 +17,7 @@
 #include "dmem.h"
 #include "control.h"
 #include "hazard.h"
-#include "forwardunit.h"
+#include "forward.h"
 #include "branchunit.h"
 
 #include "mux.h"
