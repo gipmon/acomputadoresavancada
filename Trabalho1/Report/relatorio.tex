@@ -82,6 +82,56 @@ Para este primeiro exercício criou-se um novo barramento de registos ID1/ID2, q
 
 Na unidade de hazard foram feitas algumas alterações para que estes fossem resolvidos em ID2, que anteriormente eram resolvidos em ID. A única diferença é que são os registos em ID2, rs e rt, que definem a existência de hazard tendo em conta as fases mais avançadas da pipeline, como EXE, MEM e WB.
 
+As condições para a existência de hazards são:
+
+
+\begin{lstlisting}[language=c]
+rs_id2.read()!=0 && rs_id2.read()==WriteReg_exe.read() 
+&& RegWrite_exe.read()==true 
+|| rt_id2.read()!=0 && rt_id2.read()==WriteReg_exe.read() 
+&& RegWrite_exe.read()==true && MemRead.read()== false
+\end{lstlisting} 
+
+\begin{table}[!htb]
+\centering
+\label{my-label}
+\resizebox{\textwidth}{!}{\begin{tabular}{ll|l|l|l|l|l|lll}
+\cline{2-7}
+\multicolumn{1}{l|}{add \$3, \$2, \$1} & IF & ID1 & ID2 & EXE                         & MEM                         & WB  &                          &                          &                                                \\ \cline{2-10} 
+add \$4, \$3, \$1                      &    & IF  & ID1 & \cellcolor[HTML]{F8A102}ID2 & \cellcolor[HTML]{F8A102}ID2 & ID2 & \multicolumn{1}{l|}{EXE} & \multicolumn{1}{l|}{MEM} & \multicolumn{1}{l|}{{\color[HTML]{333333} WB}} \\ \cline{3-10} 
+\end{tabular}}
+\end{table}
+
+Nestas primeiras condições estudamos os casos em que o registo rs ou rt da instrução que está em ID2, é o registo onde vai ser escrito pela instrução que se encontra em EXE, pelo que é necessário a existência de stalls. 
+
+\begin{lstlisting}[language=c]
+rs_id2.read()!=0 && rs_id2.read()==WriteReg_mem.read() 
+&& RegWrite_mem.read()==true
+|| rt_id2.read()!=0 && rt_id2.read()==WriteReg_mem.read() 
+&& RegWrite_mem.read()==true && MemRead.read() == false
+\end{lstlisting}
+
+\begin{table}[!htb]
+\centering
+\label{my-label}
+\resizebox{\textwidth}{!}{\begin{tabular}{lll|l|l|l|l|lll}
+\cline{2-7}
+\multicolumn{1}{l|}{add \$3, \$2, \$1} & \multicolumn{1}{l|}{IF} & ID1 & ID2 & EXE & MEM                                                & WB  &                          &                          &                         \\ \cline{2-8}
+add \$0, \$0, \$0                      & \multicolumn{1}{l|}{}   & IF  & ID1 & ID2 & EXE                                                & MEM & \multicolumn{1}{l|}{WB}  &                          &                         \\ \cline{3-10} 
+add \$4, \$3, \$1                      &                         &     & IF  & ID1 & \cellcolor[HTML]{F8A102}{\color[HTML]{000000} ID2} & ID2 & \multicolumn{1}{l|}{EXE} & \multicolumn{1}{l|}{MEM} & \multicolumn{1}{l|}{WB} \\ \cline{4-10} 
+\end{tabular}}
+\end{table}
+
+Para os casos em que o registo rs ou rt da instrução que está em ID2, é o registo onde vai ser escrito pela instrução que se encontra em MEM, pelo que continua a existir a necessidade de stalls.
+
+\begin{lstlisting}[language=c]
+rs_id2.read()!=0 && rs_id2.read()==WriteReg_wb.read() 
+&& RegWrite_wb.read() == true
+|| rt_id2.read()!=0 && rt_id2.read()==WriteReg_wb.read() 
+&& RegWrite_wb.read() == true && MemRead.read() == false) {
+\end{lstlisting} 
+
+Por último existem ainda os casos onde o registo rs ou rt que está em ID2, é o registo que vai ser escrito pela instrução que se encontra em WB, pelo que só no ciclo a seguir o valor estará disponível no banco de registos, obrigando a introdução de um stall.
 \newpage
 \section{Exercício 2}
 
@@ -167,18 +217,18 @@ Este tipo de forwarding é causado por uma instrução que escreva num registo e
 Tanto para RS e RT em ID2 comparamos com o WriteReg, se o registo RS/RT em ID2 é diferente de 0 e se vai escrever no registo ambos em EXE. 
 Caso esta condição seja verdadeira, vamos então mudar o sinal de seleção do multiplexer para 1, sendo este sinal o que vai selecionar no mux o valor da entrada da ALU como "rs/rt".
 
-Teve-se em atenção que o rt quando MemRead é verdadeiro é porque se vai escrever em rt, e o que nós queremos é ler em rt e não escrever em rt por isso adicionou-se a condição para que MemRead seja igual a false.
+Teve-se em atenção que o rt quando MemRead é verdadeiro é porque se vai escrever em rt, e o que nós queremos é ler em rt e não escrever em rt por isso adicionou-se a condição para que MemRead\_exe seja igual a false.
 \linebreak
 
 \begin{lstlisting}[language=c]
-if(rs_id2.read()!=0 && rs_id2.read()==WriteReg_exe.read() 
-	&& RegWrite_exe.read()==true){
-    rsmux_exe.write(1); 
+if(rs_exe.read()!=0 && rs_exe.read()==WriteReg_mem.read() 
+	&& RegWrite_mem.read()==true){
+    rs_mux_exe.write(1); 
 }
-if(rt_id2.read()!=0 && rt_id2.read()==WriteReg_exe.read() 
-	&& RegWrite_exe.read()==true 
-	&& MemRead.read()==false){
-   rtmux_exe.write(1);
+if(rt_exe.read()!=0 && rt_exe.read()==WriteReg_mem.read() 
+	&& RegWrite_mem.read()==true 
+	&& MemRead_exe.read()==false){
+   rt_mux_exe.write(1);
 }
 \end{lstlisting} 
 
@@ -197,18 +247,18 @@ beq \$1, \$0, label                      &                         &     & IF  &
 
 Este tipo de forwarding é causado por uma instrução que escreva num registo para o qual um branch condicional necessite de ler esse registo para tomar uma decisão. Por exemplo, neste caso, tem-se uma instrução add \$1, \$2, \$3 que vai escrever em \$1 e o beq vai necessitar de \$1 para calcular a decisão, neste caso é o \$rs mas também podia ser o \$rt o registo necessário para calcular a decisão que estivesse a ser escrito por uma outra instrução. É feito então o forwarding da fase EXE/MEM para ID2.
 
-Nas condições que usamos para detetar estes casos de forwarding comparamos o rs/rt em id2 com o WriteReg em EXE, se vai escrever no registo em EXE e se é uma branch, ou seja, branch tem de ser diferente de 0, isto deve-se porque no exercício anterior colocou-se o sinal de branch a ter valores de 0 a 6. O multiplexer vai selecionar o forward de EXE/MEM para esta fase, fazendo com que os valores sejam selecionados os que está a ser feito o forward e não os que saiem dos registos.
+Nas condições que usamos para detetar estes casos de forwarding comparamos o rs/rt em id2 com o WriteReg em EXE, se vai escrever no registo em EXE e se é uma branch, ou seja, branch tem de ser diferente de 0, isto deve-se porque no exercício anterior colocou-se o sinal de branch a ter valores de 0 a 6. O multiplexer vai selecionar o forward de EXE/MEM para esta fase, fazendo com que os valores sejam selecionados os que está a ser feito o forward e não os que saem dos registos.
 
 \begin{lstlisting}[language=c]
-if(rs_id2.read()!=0 && rs_id2.read()==WriteReg_exe.read() 
-	&& RegWrite_exe.read()==true && branch.read()!=0){
-    rsmux_id2.write(1);
+if(rs_id2.read()!=0 && rs_id2.read()==WriteReg_mem.read() 
+	&& RegWrite_mem.read()==true && branch.read()!=0){
+    rs_mux_id2.write(1);
 }
-if(rt_id2.read()!=0 && rt_id2.read()==WriteReg_exe.read() 
-	&& RegWrite_exe.read()==true 
+if(rt_id2.read()!=0 && rt_id2.read()==WriteReg_mem.read() 
+	&& RegWrite_mem.read()==true 
 	&& branch.read()!=0 
 	&& MemRead.read()==false){
-   rtmux_id2.write(1);
+   rt_mux_id2.write(1);
 }
 \end{lstlisting} 
 
@@ -252,14 +302,14 @@ Este tipo de forwarding é provocado por uma instrução do que escreva para um 
 Por exemplo, no nosso caso temos uma operação do tipo LW que lê na memória para o registo \$1, e depois, duas em EXE existe uma instrução que vai ler do registo que foi escrito pela instrução LW. Assim como podemos ter uma instrução do tipo R na fase MEM e uma instrução do tipo R que também necessite desse registo escrito pela primeira instrução na fase EXE. 
 
 \begin{lstlisting}[language=c]
-if(rs_id2.read()!=0 && rs_id2.read()==WriteReg_mem.read()
-  && RegWrite_mem.read()==true){
-    rsmux_exe.write(2);
+if(rs_exe.read()!=0 && rs_exe.read()==WriteReg_wb.read()
+  && RegWrite_wb.read()==true){
+    rs_mux_exe.write(2);
 }
-if(rt_id2.read()!=0 && rt_id2.read()==WriteReg_mem.read() 
-  && RegWrite_mem.read()==true 
-  && MemRead.read()==false){
-    rtmux_exe.write(2);
+if(rt_exe.read()!=0 && rt_exe.read()==WriteReg_wb.read() 
+  && RegWrite_wb.read()==true 
+  && MemRead_exe.read()==false){
+    rt_mux_exe.write(2);
 }
 \end{lstlisting} 
 
@@ -279,6 +329,18 @@ nop                                   &                         & \multicolumn{1
 
 O caso de MEM/WB para ID2 apenas acontece quando existe uma instrução de leitura na memória e em que esse valor lido da memória apenas está disponível em WB e em ID2 está uma operação de beq ou outro tipo que leia um registo que está a para ser escrito pela instrução de lw. Será feito um forward desse valor de MEM/WB para ID2.
 
+\begin{lstlisting}[language=c]
+if(rs_id2.read()!=0 && rs_id2.read()==WriteReg_wb.read()
+  && RegWrite_wb.read()==true){
+    rs_mux_id2.write(2);
+}
+if(rt_id2.read()!=0 && rt_id2.read()==WriteReg_wb.read() 
+  && RegWrite_wb.read()==true 
+  && MemRead.read()==false){
+    rt_mux_id2.write(2);
+}
+\end{lstlisting} 
+
 \subsection{MEM/WB->MEM}
 \begin{table}[!htb]
 \centering
@@ -294,6 +356,15 @@ sw \$1, 0(\$0)                      &    & IF  & ID1 & \cellcolor[HTML]{FFFFFF}{
 
 As condições para este caso acontecer são muito específicas, apenas dizem respeito a um lw seguido sw, não diz respeito a uma instrução do tipo R seguida de um sw porque nesse caso é feito o forward de EXE/MEM para EXE para resolver esse caso. Isto só acontece porque o lw só está disponível em MEM, ou seja, para a instrução de sw precisa na fase de MEM desse valor terá de ser feito o forward de MEM/WB para MEM. 
 As condições são: em MemRead{\_}Wb==true, MemWrite{\_}Mem==true e WriteReg{\_}wb==rt{\_}mem!=0.
+
+\begin{lstlisting}[language=c]
+if(rt_mem.read()!=0 && rt_mem.read()==WriteReg_wb.read() 
+  && RegWrite_wb.read()==true 
+  && MemRead_wb.read()==true
+  && MemWrite_mem.read()==true){
+    mux_mem.write(1);
+}
+\end{lstlisting} 
 
 \subsection{Forwarding para EXE}
 
@@ -502,6 +573,6 @@ Este trabalho foi útil para assentarmos todos os conhecimentos que fomos obtend
 
 Na primeira entrega houve uma falha na implementação, esqueceu-se de realizar o shift left 2 do program counter para calcular o endereço para onde é suposto saltar a instrução jump.
 
-Já na segunda entrega teve-se os máximos cuidados para que não faltasse nada, mas tudo pode acontecer.
+Já na segunda entrega teve-se os máximos cuidados para que tudo funcionasse perfeitamente.
 
 \end{document}
