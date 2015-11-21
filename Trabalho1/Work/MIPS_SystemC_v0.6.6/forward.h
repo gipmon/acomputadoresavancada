@@ -1,5 +1,5 @@
-#ifndef FORWARDUNIT_H
-#define FORWARDUNIT_H
+#ifndef FORWARD_H
+#define FORWARD_H
 
 /**
  *
