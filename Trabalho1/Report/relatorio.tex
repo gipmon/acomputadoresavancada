@@ -55,11 +55,11 @@
 \section{Introdução}
 % o que, porquê e o objetivo
 
-O trabalho proposto para a unidade curricular de Arquitetura de Computadores Avançada é a implementação de uma nova fase pipeline que resulta da divisão da fase já existente ID, ficando assim duas fases ID1 e ID2.
+O trabalho proposto para a unidade curricular de Arquitetura de Computadores Avançada foi a implementação de uma nova fase pipeline que resulta da divisão da fase já existente ID, ficando assim duas fases ID1 e ID2.
 
-A primeira entrega é constituída pela implementação desta nova fase, sem forwarding, e é apenas pedido que sejam introduzidos os stalls e que as operações de salto condicional e incondicional sejam resolvidas nesta nova fase.
+A primeira entrega é constituída pela implementação desta nova fase, sem forwarding, e é apenas pedido que se seja introduza os stalls e que as operações de salto condicional e incondicional sejam resolvidas nesta nova fase.
 
-Já a segunda entrega consiste na evolução da pipeline através da introdução de forwarding, que reduz significativamente alguns stall. Não sendo possível através de forwarding remover todos os stalls, foi então pedido também que se introduzissem apenas os stalls necessários nesta actualização da pipeline.
+Já a segunda entrega consiste na evolução da pipeline através da introdução de forwarding, que reduz significativamente o número de stalls. Não sendo possível através de forwarding remover todos os stalls, foi então pedido também que se introduzissem apenas os stalls necessários nesta atualização da pipeline.
 
 O relatório reflete uma descrição das condições introduzidas tanto para forwarding como hazards, assim como testes e exemplos para demonstração destas condições e exercícios propostos, e por último a conclusão deste mesmo trabalho.
 
@@ -76,7 +76,7 @@ Neste primeiro exercício, era pedido que se fizesse a divisão da fase ID, por 
  \label{fig:ex1RegID1ID2}
 \end{figure}
 
-O inicio da leitura de registos tem inicio em ID1 e termina em ID2 (como podemos verificar na figura 1), sendo que na fase ID1 também é feito o decode da instrução para obter os sinais de rs, rt, rd, funct, opcode e immed.  Tudo o que se resolvia em ID agora resolve-se em ID2, como por exemplo a unidade de Controlo, o extend e o Mux entre o rt e o rd.
+O início da leitura de registos tem início em ID1 e termina em ID2 (como se pode verificar na figura 1), sendo que na fase ID1 também é feito o decode da instrução para obter os sinais de rs, rt, rd, funct, opcode e immed.  Tudo o que se resolvia em ID agora resolve-se em ID2, como por exemplo a unidade de Controlo, o extend e o Mux entre o rt e o rd.
 
 Para este primeiro exercício criou-se um novo barramento de registos ID1/ID2, que toma como entradas o \textit{opcode}, o \textit{funct}, o \textit{immed}, o \textit{rt}, o \textit{rs} e o \textit{rd} vindos do decoder de ID1, sendo as saídas as correspondentes a estas mesmas portas. Existe também uma entrada vinda da unidade de Hazard, \textit{reset\_id1id2}, para fazer reset a este registo aquando da necessidade de existirem stalls ou branchs.
 
@@ -102,7 +102,7 @@ add \$4, \$3, \$1                      &    & IF  & ID1 & \cellcolor[HTML]{F8A10
 \end{tabular}}
 \end{table}
 
-Nestas primeiras condições estudamos os casos em que o registo rs ou rt da instrução que está em ID2, é o registo onde vai ser escrito pela instrução que se encontra em EXE, pelo que é necessário a existência de stalls. 
+Nestas primeiras condições estudou-se os casos em que o registo rs ou rt da instrução que está em ID2, é o registo onde vai ser escrito pela instrução que se encontra em EXE, pelo que é necessário a existência de stalls. 
 
 \begin{lstlisting}[language=c]
 rs_id2.read()!=0 && rs_id2.read()==WriteReg_mem.read() 
@@ -147,7 +147,7 @@ Por último existem ainda os casos onde o registo rs ou rt que está em ID2, é 
 \newpage
 \section{Exercício 2}
 
-Neste segundo exercício, foi-nos proposto para que todos os saltos condicionais e incondicionais, fossem resolvidos em ID2. Para isso foi criada uma unidade de branch, que através de entradas como \textit{opcode}, \textit{rsdata}, \textit{rtdata}, \textit{branch}, \textit{target}, \textit{imm\_ext} e \textit{PC4}, calcula o \textit{branchTaken}, que nos diz se existe salto ou não, e o \textit{branchTarget} (Figura 2).
+Neste segundo exercício, foi proposto para que todos os saltos condicionais e incondicionais, fossem resolvidos em ID2. Para isso foi criada uma unidade de branch, que através de entradas como \textit{opcode}, \textit{rsdata}, \textit{rtdata}, \textit{branch}, \textit{target}, \textit{imm\_ext} e \textit{PC4}, calcula o \textit{branchTaken}, que diz se existe salto ou não, e o \textit{branchTarget} (Figura 2).
 
 \begin{figure}[!htb]
 \center
@@ -157,7 +157,7 @@ Neste segundo exercício, foi-nos proposto para que todos os saltos condicionais
 
 \subsection{Unidade de Branch}
 
-Para que os saltos fossem resolvidos em ID2, foi necessário na unidade de branch resolver os mesmos. Para isto dentro da unidade de controlo, alterou-se a informação que a saída de branch possuí. Disponibilizaram-se mais bits para que esta saída indique na unidade de branch o tipo de salto que estamos a resolver.
+Para que os saltos fossem resolvidos em ID2, foi necessário na unidade de branch resolver os mesmos. Para isto dentro da unidade de controlo, alterou-se a informação que a saída de branch possuí. Disponibilizaram-se mais bits para que esta saída indique na unidade de branch o tipo de salto que se está a resolver.
 
 Posto isto na unidade de branch, efetuam-se 6 casos diferentes:
 
@@ -226,11 +226,11 @@ Sendo os saltos resolvidos em ID2, foram removidos de fases mais avançadas unid
 
 \subsection{Unidade de Hazard adaptada para a nova resolução de saltos}
 
-Para que instruções que entrem de forma errada na pipeline quando um branch ocorre sejam descartadas excepto a seguinte (delayed branch slot), foi necessário alterar na unidade de Hazard as fases às quais é necessário fazer reset. Desta feita quando a nossa unidade de Hazard trata de descartar instruções que entrem de forma errada na pipeline e de colocar stalls aquando da ocorrência destes.
+Para que as instruções que entram de forma errada na pipeline quando um branch ocorre sejam descartadas excepto a seguinte (delayed branch slot), foi necessário alterar na unidade de Hazard as fases às quais é necessário fazer reset. Quando a unidade de Hazard trata de descartar instruções que entrem de forma errada na pipeline e de colocar stalls aquando da ocorrência destes.
 
 \section{Forwarding}
 
-Na tarefa 3 foi-nos pedido para identificar quais são os tipos de forwarding que podem ocorrer na nossa arquitetura onde a origem dos valores são os valores dos registos da pipeline e o seu destino é a "stage".
+Na tarefa 3 foi pedido para identificar quais são os tipos de forwarding que podem ocorrer na arquitetura onde a origem dos valores são os valores dos registos da pipeline e o seu destino é a "stage".
 
 Os tipos de forwarding são:
 \begin{itemize}
@@ -275,13 +275,13 @@ sub \$2, \$1, \$3                      &                         & IF  & ID1 & I
 \end{tabular}}
 \end{table}
 
-Este tipo de forwarding é causado por uma instrução que escreva num registo e de seguida uma outra instrução precise desse registo para realizar uma operação, ou seja, precisa de ler esse registo. Por exemplo, podemos ter um add \$1, \$2, \$3 e depois um sub \$2, \$1, \$3, a primeira instrução escreve em \$1 e a segunda instrução precisa do \$1  para realizar a operação de sub com \$3.
+Este tipo de forwarding é causado por uma instrução que escreva num registo e de seguida uma outra instrução precise desse registo para realizar uma operação, ou seja, precisa de ler esse registo. Por exemplo, pode-se ter um add \$1, \$2, \$3 e depois um sub \$2, \$1, \$3, a primeira instrução escreve em \$1 e a segunda instrução precisa do \$1  para realizar a operação de sub com \$3.
 \linebreak
 
-Tanto para RS e RT em ID2 comparamos com o WriteReg, se o registo RS/RT em ID2 é diferente de 0 e se vai escrever no registo ambos em EXE. 
-Caso esta condição seja verdadeira, vamos então mudar o sinal de seleção do multiplexer para 1, sendo este sinal o que vai selecionar no mux o valor da entrada da ALU como "rs/rt".
+Tanto para RS e RT em ID2 compara-se com o WriteReg, se o registo RS/RT em ID2 é diferente de 0 e se vai escrever no registo ambos em EXE. 
+Caso esta condição seja verdadeira, vai-se então mudar o sinal de seleção do multiplexer para 1, sendo este sinal o que vai selecionar no mux o valor da entrada da ALU como "rs/rt".
 
-Teve-se em atenção que o rt quando MemRead é verdadeiro é porque se vai escrever em rt, e o que nós queremos é ler em rt e não escrever em rt por isso adicionou-se a condição para que MemRead\_exe seja igual a false.
+Teve-se em atenção que o rt quando MemRead é verdadeiro é porque se vai escrever em rt, e o que se queria é ler em rt e não escrever em rt por isso adicionou-se a condição para que MemRead\_exe seja igual a false.
 \linebreak
 
 \begin{lstlisting}[language=c]
@@ -311,7 +311,7 @@ beq \$1, \$0, label                      &                         &     & IF  &
 
 Este tipo de forwarding é causado por uma instrução que escreva num registo para o qual um branch condicional necessite de ler esse registo para tomar uma decisão. Por exemplo, neste caso, tem-se uma instrução add \$1, \$2, \$3 que vai escrever em \$1 e o beq vai necessitar de \$1 para calcular a decisão, neste caso é o \$rs mas também podia ser o \$rt o registo necessário para calcular a decisão que estivesse a ser escrito por uma outra instrução. É feito então o forwarding da fase EXE/MEM para ID2.
 
-Nas condições que usamos para detetar estes casos de forwarding comparamos o rs/rt em id2 com o WriteReg em EXE, se vai escrever no registo em EXE e se é uma branch, ou seja, branch tem de ser diferente de 0, isto deve-se porque no exercício anterior colocou-se o sinal de branch a ter valores de 0 a 6. O multiplexer vai selecionar o forward de EXE/MEM para esta fase, fazendo com que os valores sejam selecionados os que está a ser feito o forward e não os que saem dos registos.
+Nas condições que se usa para detetar estes casos de forwarding compara-se o rs/rt em id2 com o WriteReg em EXE, se vai escrever no registo em EXE e se é uma branch, ou seja, branch tem de ser diferente de 0, isto deve-se porque no exercício anterior colocou-se o sinal de branch a ter valores de 0 a 6. O multiplexer vai selecionar o forward de EXE/MEM para esta fase, fazendo com que os valores sejam selecionados os que está a ser feito o forward e não os que saem dos registos.
 
 \begin{lstlisting}[language=c]
 if(rs_id2.read()!=0 && rs_id2.read()==WriteReg_mem.read() 
@@ -363,7 +363,7 @@ lw \$1, 0(\$1)                      &                         &     & IF  & ID1 
 
 Este tipo de forwarding é provocado por uma instrução do que escreva para um registo que uma terceira instrução na pipeline necessite de ler para efetuar a sua operação em EXE. 
 
-Por exemplo, no nosso caso temos uma operação do tipo LW que lê na memória para o registo \$1, e depois, duas em EXE existe uma instrução que vai ler do registo que foi escrito pela instrução LW. Assim como podemos ter uma instrução do tipo R na fase MEM e uma instrução do tipo R que também necessite desse registo escrito pela primeira instrução na fase EXE. 
+Por exemplo, neste caso tem-se uma operação do tipo LW que lê na memória para o registo \$1, e depois, duas em EXE existe uma instrução que vai ler do registo que foi escrito pela instrução LW. Assim como se pode ter uma instrução do tipo R na fase MEM e uma instrução do tipo R que também necessite desse registo escrito pela primeira instrução na fase EXE. 
 
 \begin{lstlisting}[language=c]
 if(rs_exe.read()!=0 && rs_exe.read()==WriteReg_wb.read()
@@ -484,7 +484,7 @@ lw \$2, 0(\$1)                      &                         &                 
 \end{tabular}}
 \end{table}
 
-Neste caso assumimos que só está disponível o valor de \$1 quando o lw está na fase de MEM, e este é necessário por uma instrução que vai ler este registo. O valor só vai ser escrito no final de WB, e se o valor for necessário na fase ID2 então teremos de fazer forward. No caso do add, o resultado de um add, este só vai ser gravado quando terminar a fase de WB, no entanto pode ser feito o forward de EXE/MEM para ID2, pois este valor é necessário na fase ID2 (devido ao salto condicional). No caso do lw é necessário fazer o forward de MEM/WB para ID2, porque o valor também ainda não está disponível no banco de registo.
+Neste caso assume-se que só está disponível o valor de \$1 quando o lw está na fase de MEM, e este é necessário por uma instrução que vai ler este registo. O valor só vai ser escrito no final de WB, e se o valor for necessário na fase ID2 então vai ser necessário fazer forward. No caso do add, o resultado de um add, este só vai ser gravado quando terminar a fase de WB, no entanto pode ser feito o forward de EXE/MEM para ID2, pois este valor é necessário na fase ID2 (devido ao salto condicional). No caso do lw é necessário fazer o forward de MEM/WB para ID2, porque o valor também ainda não está disponível no banco de registo.
 
 \subsection{Forwarding desde MEM/WB}
 
@@ -637,7 +637,7 @@ rs_id2.read()!=0 && rs_id2.read()==WriteReg_exe.read()
 && MemRead.read()==false
 \end{lstlisting}
 
-Neste caso tal como no primeiro caso, o valor lido da memória apenas está disponível na fase de WB, ou seja, é possível fazer forward de MEM/WB para outra fase. No nosso caso é feito forward diretamente para EXE causando um ciclo de stall. 
+Neste caso tal como no primeiro caso, o valor lido da memória apenas está disponível na fase de WB, ou seja, é possível fazer forward de MEM/WB para outra fase. Neste caso é feito forward diretamente para EXE causando um ciclo de stall. 
 \newpage
 \subsection{lw e beq}
 \begin{table}[!htb]
@@ -667,14 +667,14 @@ rs_id2.read()!=0 && rs_id2.read()==WriteReg_exe.read()
 
 \end{lstlisting}
 
-Este é o único caso que provoca dois stalls em ID2. As condições de salto são calculadas em ID2 o que faz com que os valores que são usados para calcular a condição de salto têm de estar disponíveis em ID2 ou então é necessário que seja feito forward de barramentos da pipeline mais avançados para esta fase caso completem as necessidades. 
+Este é o único caso que provoca dois stalls em ID2. As condições de salto são calculadas em ID2 o que faz com que os valores que são usados para calcular a condição de salto tenham de estar disponíveis em ID2, ou então é necessário que seja feito forward de barramentos da pipeline mais avançados para esta fase caso completem as necessidades. 
 
 Neste caso o lw apenas tem disponível em MEM/WB o valor lido da memória para fazer forward para ID2 e assim a condição de salto pode ser calculada. Para que o lw leia da memória e depois faça o forward é necessário que o beq adicione dois stalls.
 
 \newpage
 \section{Conclusão}
 
-Este trabalho foi útil para assentarmos todos os conhecimentos que fomos obtendo ao longo destes anos, tanto em Arquitectura de Computadores Avançada como em Arquitetura de Computadores I e II. Ambas as entregas foram primeiro planeadas em papel antes de se avançar para a implementação o que resultou em bons resultados a nível de tempo despendido, para ambos as entregas fez-se uso de dois dias de trabalho.
+Este trabalho foi útil para assentar todos os conhecimentos que se foi obtendo ao longo destes anos, tanto em Arquitectura de Computadores Avançada como em Arquitetura de Computadores I e II. Ambas as entregas foram primeiro planeadas em papel antes de se avançar para a implementação o que resultou em bons resultados a nível de tempo despendido, para ambos as entregas fez-se uso de dois dias de trabalho.
 
 Na primeira entrega houve uma falha na implementação, esqueceu-se de realizar o shift left 2 do program counter para calcular o endereço para onde é suposto saltar a instrução jump.
 
