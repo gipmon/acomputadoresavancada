@@ -587,7 +587,7 @@ rs_id2.read()!=0 && rs_id2.read()==WriteReg_exe.read()
 && RegWrite_exe.read()==true && MemRead_exe.read()==true
 || rt_id2.read()!=0 && rt_id2.read()==WriteReg_exe.read() 
 && RegWrite_exe.read()==true && MemRead_exe.read()==true 
-&& MemRead.read()==false
+&& MemRead.read()==false && MemWrite.read()==false
 \end{lstlisting}
 
 Esta condição acontece porque o primeiro lw só tem o valor disponível em MEM/WB, após ter lido da memória, e como o segundo lw necessita desse valor em EXE para calcular o valor do endereço, então terá de ser feito um forward de MEM/WB para EXE. Para isso acontecer terá de ser feito um stall em ID2.
@@ -634,7 +634,7 @@ rs_id2.read()!=0 && rs_id2.read()==WriteReg_exe.read()
 && RegWrite_exe.read()==true && MemRead_exe.read()==true
 || rt_id2.read()!=0 && rt_id2.read()==WriteReg_exe.read() 
 && RegWrite_exe.read()==true && MemRead_exe.read()==true 
-&& MemRead.read()==false
+&& MemRead.read()==false && MemWrite.read()==false
 \end{lstlisting}
 
 Neste caso tal como no primeiro caso, o valor lido da memória apenas está disponível na fase de WB, ou seja, é possível fazer forward de MEM/WB para outra fase. Neste caso é feito forward diretamente para EXE causando um ciclo de stall. 
