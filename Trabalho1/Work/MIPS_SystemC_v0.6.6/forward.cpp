@@ -52,16 +52,16 @@ void forwardunit::forward_detect()
     mux_mem.write(1);
   }
 
-  fprintf(stderr, "* rs_id2: %d\n", (int)rs_id2.read());
-	fprintf(stderr, "# rt_id2: %d\n", (int)rt_id2.read());
-  fprintf(stderr, "# WriteReg_exe: %d\n", (int)WriteReg_exe.read());
-	fprintf(stderr, "# WriteReg_mem: %d\n", (int)WriteReg_mem.read());
-  fprintf(stderr, "# branch: %d\n", (int)WriteReg_exe.read());
-	fprintf(stderr, "\n");
-  fprintf(stderr, "* rs_mux_id2: %d\n", (int)rs_mux_id2.read());
-	fprintf(stderr, "# rt_mux_id2: %d\n", (int)rt_mux_id2.read());
-  fprintf(stderr, "# rs_mux_exe: %d\n", (int)rs_mux_exe.read());
-	fprintf(stderr, "# rt_mux_exe: %d\n", (int)rt_mux_exe.read());
-	fprintf(stderr, "\n");
+  // fprintf(stderr, "* rs_id2: %d\n", (int)rs_id2.read());
+	// fprintf(stderr, "# rt_id2: %d\n", (int)rt_id2.read());
+  // fprintf(stderr, "# WriteReg_exe: %d\n", (int)WriteReg_exe.read());
+	// fprintf(stderr, "# WriteReg_mem: %d\n", (int)WriteReg_mem.read());
+  // fprintf(stderr, "# branch: %d\n", (int)WriteReg_exe.read());
+	// fprintf(stderr, "\n");
+  // fprintf(stderr, "* rs_mux_id2: %d\n", (int)rs_mux_id2.read());
+	// fprintf(stderr, "# rt_mux_id2: %d\n", (int)rt_mux_id2.read());
+  // fprintf(stderr, "# rs_mux_exe: %d\n", (int)rs_mux_exe.read());
+	// fprintf(stderr, "# rt_mux_exe: %d\n", (int)rt_mux_exe.read());
+	// fprintf(stderr, "\n");
 
 }

@@ -12,10 +12,10 @@ void branchunit::branch_detect()
     sc_uint<32> branchTarget_res;
     bool branchTaken_res;
     sc_uint<32> target32 = target.read();
-
-    fprintf(stderr, "# branch rs: %#08x\n", (int)rs.read());
-    fprintf(stderr, "# branch rt: %#08x\n", (int)rt.read());
-    fprintf(stderr, "#branch: %d\n", (int)branch.read());
+    //
+    // fprintf(stderr, "# branch rs: %#08x\n", (int)rs.read());
+    // fprintf(stderr, "# branch rt: %#08x\n", (int)rt.read());
+    // fprintf(stderr, "#branch: %d\n", (int)branch.read());
 
     switch (branch.read())
     {
@@ -66,7 +66,7 @@ void branchunit::branch_detect()
               branchTaken_res = false;
               break;
     }
-    fprintf(stderr, "# branch res: %d\n", (int)branchTaken_res);
+    // fprintf(stderr, "# branch res: %d\n", (int)branchTaken_res);
     branchTaken.write(branchTaken_res);
     branchTarget.write(branchTarget_res);
 }

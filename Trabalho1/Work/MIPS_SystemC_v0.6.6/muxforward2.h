@@ -45,14 +45,14 @@ template <class T> void muxforward2<T>::entry()
     if(sel.read() == 0) dout.write(din0.read());
     else if(sel.read() == 1) dout.write(din1.read());
     else dout.write(din2.read());
-    
-    fprintf(stderr, "MUX rs_exe");
-    fprintf(stderr, "* sel: %d\n", (int)sel.read());
-  	fprintf(stderr, "# din0: %d\n", (int)din0.read());
-    fprintf(stderr, "# din1: %d\n", (int)din1.read());
-  	fprintf(stderr, "# din2: %d\n", (int)din2.read());
-    fprintf(stderr, "# dout: %d\n", (int)dout.read());
-    fprintf(stderr, "\n");
+
+    // fprintf(stderr, "MUX rs_exe");
+    // fprintf(stderr, "* sel: %d\n", (int)sel.read());
+  	// fprintf(stderr, "# din0: %d\n", (int)din0.read());
+    // fprintf(stderr, "# din1: %d\n", (int)din1.read());
+  	// fprintf(stderr, "# din2: %d\n", (int)din2.read());
+    // fprintf(stderr, "# dout: %d\n", (int)dout.read());
+    // fprintf(stderr, "\n");
 
 }
 

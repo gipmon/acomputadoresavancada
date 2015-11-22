@@ -31,7 +31,7 @@ void hazard::detect_hazard()
 		enable_regs.write(false);
 		reset_id2exe.write(true);
 	}else if(BranchTaken.read()==true){
-		fprintf(stderr, "BranchTaken entrou!\n");
+		// fprintf(stderr, "BranchTaken entrou!\n");
 		enable_pc.write(true);
 		enable_ifid.write(true);
 		reset_ifid.write(true);
@@ -60,25 +60,25 @@ void hazard::detect_hazard()
 	// control hazard
 
 
-	fprintf(stderr, "* BranchTaken: %d\n", (int)BranchTaken.read());
-	fprintf(stderr, "\n");
-	fprintf(stderr, "# rs: %d\n", (int)rs_id2.read());
-	fprintf(stderr, "# rt: %d\n", (int)rt_id2.read());
-	fprintf(stderr, "# WriteReg_exe: %d\n", (int)WriteReg_exe.read());
-	fprintf(stderr, "# WriteReg_mem: %d\n", (int)WriteReg_mem.read());
-	fprintf(stderr, "# RegWrite_exe: %d\n", (int)RegWrite_exe.read());
-	fprintf(stderr, "# branch: %d\n", (int)branch.read());
-	fprintf(stderr, "# MemRead_exe: %d\n", (int)MemRead_exe.read());
-	fprintf(stderr, "# MemRead_mem: %d\n", (int)MemRead_mem.read());
-	fprintf(stderr, "# MemRead: %d\n", (int)MemRead.read());
-	fprintf(stderr, "\n");
-	fprintf(stderr, "@ enable_pc: %d\n", (int)enable_pc.read());
-	fprintf(stderr, "@ enable_ifid: %d\n", (int)enable_ifid.read());
-	fprintf(stderr, "@ enable_id1id2: %d\n", (int)enable_id1id2.read());
-	fprintf(stderr, "@ enable_id2exe: %d\n", (int)enable_id2exe.read());
-	fprintf(stderr, "@ reset_id2exe: %d\n", (int)reset_id2exe.read());
-	fprintf(stderr, "@ reset_exmem: %d\n", (int)reset_id2exe.read());
-	fprintf(stderr, "@ reset_ifid: %d\n", (int)reset_id2exe.read());
-	fprintf(stderr, "@ enable_regs: %d\n", (int)enable_regs.read());
-	fprintf(stderr, "--- fim hazard ----\n");
+	// fprintf(stderr, "* BranchTaken: %d\n", (int)BranchTaken.read());
+	// fprintf(stderr, "\n");
+	// fprintf(stderr, "# rs: %d\n", (int)rs_id2.read());
+	// fprintf(stderr, "# rt: %d\n", (int)rt_id2.read());
+	// fprintf(stderr, "# WriteReg_exe: %d\n", (int)WriteReg_exe.read());
+	// fprintf(stderr, "# WriteReg_mem: %d\n", (int)WriteReg_mem.read());
+	// fprintf(stderr, "# RegWrite_exe: %d\n", (int)RegWrite_exe.read());
+	// fprintf(stderr, "# branch: %d\n", (int)branch.read());
+	// fprintf(stderr, "# MemRead_exe: %d\n", (int)MemRead_exe.read());
+	// fprintf(stderr, "# MemRead_mem: %d\n", (int)MemRead_mem.read());
+	// fprintf(stderr, "# MemRead: %d\n", (int)MemRead.read());
+	// fprintf(stderr, "\n");
+	// fprintf(stderr, "@ enable_pc: %d\n", (int)enable_pc.read());
+	// fprintf(stderr, "@ enable_ifid: %d\n", (int)enable_ifid.read());
+	// fprintf(stderr, "@ enable_id1id2: %d\n", (int)enable_id1id2.read());
+	// fprintf(stderr, "@ enable_id2exe: %d\n", (int)enable_id2exe.read());
+	// fprintf(stderr, "@ reset_id2exe: %d\n", (int)reset_id2exe.read());
+	// fprintf(stderr, "@ reset_exmem: %d\n", (int)reset_id2exe.read());
+	// fprintf(stderr, "@ reset_ifid: %d\n", (int)reset_id2exe.read());
+	// fprintf(stderr, "@ enable_regs: %d\n", (int)enable_regs.read());
+	// fprintf(stderr, "--- fim hazard ----\n");
 }
