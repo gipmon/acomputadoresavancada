@@ -18,7 +18,7 @@ void hazard::detect_hazard()
 	//     || rt_id2.read()!=0 && rt_id2.read()==WriteReg_mem.read() && RegWrite_mem.read()==true && MemRead.read() == false
 	// 		|| rt_id2.read()!=0 && rt_id2.read()==WriteReg_wb.read() && RegWrite_wb.read() == true && MemRead.read() == false) {
 	if(rs_id2.read()!=0 && rs_id2.read()==WriteReg_exe.read() && RegWrite_exe.read()==true && MemRead_exe.read()==true
-	|| rt_id2.read()!=0 && rt_id2.read()==WriteReg_exe.read() && RegWrite_exe.read()==true && MemRead_exe.read() == true && MemRead.read()==false
+	|| rt_id2.read()!=0 && rt_id2.read()==WriteReg_exe.read() && RegWrite_exe.read()==true && MemRead_exe.read() == true && MemRead.read()==false && MemWrite.read()==false
 	|| rs_id2.read()!=0 && rs_id2.read()==WriteReg_exe.read() && RegWrite_exe.read()==true && branch.read()!=0
 	|| rt_id2.read()!=0 && rt_id2.read()==WriteReg_exe.read() && RegWrite_exe.read()==true && branch.read()!=0 && MemRead.read()==false
 	|| rs_id2.read()!=0 && rs_id2.read()==WriteReg_mem.read() && RegWrite_mem.read()==true && branch.read()!=0 && MemRead_mem.read()==true

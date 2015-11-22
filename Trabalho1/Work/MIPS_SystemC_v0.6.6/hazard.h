@@ -33,7 +33,7 @@ SC_MODULE( hazard )
     sc_in< sc_uint<5> >  rt, rt_id2;
     sc_in< sc_uint<5> >  WriteReg_exe, WriteReg_mem, WriteReg_wb;
     sc_in< sc_uint<3> >  branch;
-    sc_in< bool >  RegWrite_exe, RegWrite_mem, RegWrite_wb, MemRead, BranchTaken, MemRead_mem, MemRead_exe;
+    sc_in< bool >  RegWrite_exe, RegWrite_mem, RegWrite_wb, MemRead, BranchTaken, MemRead_mem, MemRead_exe, MemWrite;
 
     sc_out< bool >  enable_pc, enable_ifid, enable_id1id2, reset_id1id2, enable_id2exe, reset_id2exe, reset_exmem, reset_ifid, enable_regs, reset_regs;
 
@@ -47,7 +47,7 @@ SC_MODULE( hazard )
       << WriteReg_wb << RegWrite_wb
       << MemRead << BranchTaken
       << branch << MemRead_mem
-      << MemRead_exe;
+      << MemRead_exe << MemWrite;
    }
 
     void detect_hazard();

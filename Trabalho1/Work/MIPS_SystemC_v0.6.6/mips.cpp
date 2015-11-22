@@ -427,6 +427,7 @@ void mips::buildArchitecture(void){
       hazard_unit->MemRead(MemRead);
       hazard_unit->MemRead_mem(MemRead_mem);
       hazard_unit->MemRead_exe(MemRead_exe);
+      hazard_unit->MemWrite(MemWrite);
       hazard_unit->branch(Branch);
       hazard_unit->BranchTaken(BranchTaken);
       hazard_unit->enable_pc(enable_pc);
