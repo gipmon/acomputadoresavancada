@@ -11,7 +11,10 @@ __global__  void arrAdd(float* A, float* B, float* C)
 
 	id = blockIdx.x * blockDim.x + threadIdx.x;
 
-  C[id] = A[id] + B[id];
+	if(id<SIZE){
+		C[id] = A[id] + B[id];
+	}
+	
 }
 
 int  main(void)
