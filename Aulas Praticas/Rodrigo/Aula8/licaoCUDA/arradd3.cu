@@ -9,9 +9,7 @@ __global__  void arrAdd(float* A, float* B, float* C)
 	// TODO: determine id
 	int id;
 
-	if(id < SIZE){
-		id = (blockIdx.x * blockDim.x * blockDim.y) + (blockDim.x * threadIdx.y) + threadIdx.x;
-	}
+	id = (blockIdx.x * blockDim.x * blockDim.y) + (blockDim.x * threadIdx.y) + threadIdx.x;
 
 	if(id < SIZE)
 	{
