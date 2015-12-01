@@ -1,5 +1,5 @@
 
-TARGETS = arradd1 #arradd2 arradd3 arradd4 
+TARGETS = arradd1 arradd2 #arradd3 arradd4 
 
 
 all: $(TARGETS)
