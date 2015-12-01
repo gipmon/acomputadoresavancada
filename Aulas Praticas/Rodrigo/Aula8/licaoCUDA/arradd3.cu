@@ -45,8 +45,8 @@ int  main(void)
 	cudaMemcpy(devPtrB, B, memsize,  cudaMemcpyHostToDevice);
 
 	// __global__ functions are called:  Func <<< dim grid, dim block >>> (parameter);
-	dim3 dimGrid(2,2);
-	dim3 dimBlock(4,1);
+	dim3 dimGrid(4,1);
+	dim3 dimBlock(2,2);
 
 	// Execute the Kernell
 	arrAdd <<<dimGrid, dimBlock>>> (devPtrA,  devPtrB, devPtrC);
