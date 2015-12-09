@@ -48,7 +48,7 @@ void forwardunit::forward_detect()
   }
 
   //MEM/WB->MEM(rs)
-  if(rt_mem.read()!=0 && rt_mem.read()==WriteReg_wb.read() && RegWrite_wb.read()==true && MemRead_wb.read()==true && MemWrite_mem.read()==true){
+  if(rt_mem.read()!=0 && rt_mem.read()==WriteReg_wb.read() && RegWrite_wb.read()==true && MemWrite_mem.read()==true){
     mux_mem.write(1);
   }
 
