@@ -15,35 +15,32 @@ void forwardunit::forward_detect()
   mux_mem.write(0);
 
   //EXE/MEM->EXE(rs)
+  //MEM/WB->EXE(rs)
+
   if(rs_exe.read()!=0 && rs_exe.read()==WriteReg_mem.read() && RegWrite_mem.read()==true){
     rs_mux_exe.write(1);
-  }
-  //EXE/MEM->EXE(rt)
-  if(rt_exe.read()!=0 && rt_exe.read()==WriteReg_mem.read() && RegWrite_mem.read()==true && MemRead_exe.read()==false){
-    rt_mux_exe.write(1);
-  }
-  //EXE/MEM->ID2(rs) saltos
-  if(rs_id2.read()!=0 && rs_id2.read()==WriteReg_mem.read() && RegWrite_mem.read()==true && branch.read()!=0){
-    rs_mux_id2.write(1);
-  }
-  //EXE/MEM->ID2(rt) saltos
-  if(rt_id2.read()!=0 && rt_id2.read()==WriteReg_mem.read() && RegWrite_mem.read()==true && branch.read()!=0 && MemRead.read()==false){
-    rt_mux_id2.write(1);
-  }
-  //MEM/WB->EXE(rs)
-  if(rs_exe.read()!=0 && rs_exe.read()==WriteReg_wb.read() && RegWrite_wb.read()==true){
+  }else if(rs_exe.read()!=0 && rs_exe.read()==WriteReg_wb.read() && RegWrite_wb.read()==true){
     rs_mux_exe.write(2);
   }
+  //EXE/MEM->EXE(rt)
   //MEM/WB->EXE(rt)
-  if(rt_exe.read()!=0 && rt_exe.read()==WriteReg_wb.read() && RegWrite_wb.read()==true && MemRead_exe.read()==false){
+  if(rt_exe.read()!=0 && rt_exe.read()==WriteReg_mem.read() && RegWrite_mem.read()==true && MemRead_exe.read()==false){
+    rt_mux_exe.write(1);
+  }else if(rt_exe.read()!=0 && rt_exe.read()==WriteReg_wb.read() && RegWrite_wb.read()==true && MemRead_exe.read()==false){
     rt_mux_exe.write(2);
   }
+  //EXE/MEM->ID2(rs) saltos
   //MEM/WB->ID2(rs)
-  if(rs_id2.read()!=0 && rs_id2.read()==WriteReg_wb.read() && RegWrite_wb.read()==true){
+  if(rs_id2.read()!=0 && rs_id2.read()==WriteReg_mem.read() && RegWrite_mem.read()==true && branch.read()!=0){
+    rs_mux_id2.write(1);
+  }else if(rs_id2.read()!=0 && rs_id2.read()==WriteReg_wb.read() && RegWrite_wb.read()==true){
     rs_mux_id2.write(2);
   }
+  //EXE/MEM->ID2(rt) saltos
   //MEM/WB->ID2(rt)
-  if(rt_id2.read()!=0 && rt_id2.read()==WriteReg_wb.read() && RegWrite_wb.read()==true && MemRead.read()==false){
+  if(rt_id2.read()!=0 && rt_id2.read()==WriteReg_mem.read() && RegWrite_mem.read()==true && branch.read()!=0 && MemRead.read()==false){
+    rt_mux_id2.write(1);
+  }else if(rt_id2.read()!=0 && rt_id2.read()==WriteReg_wb.read() && RegWrite_wb.read()==true && MemRead.read()==false){
     rt_mux_id2.write(2);
   }
 
