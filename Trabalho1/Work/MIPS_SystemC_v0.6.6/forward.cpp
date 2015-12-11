@@ -31,14 +31,14 @@ void forwardunit::forward_detect()
   }
   //EXE/MEM->ID2(rs) saltos
   //MEM/WB->ID2(rs)
-  if(rs_id2.read()!=0 && rs_id2.read()==WriteReg_mem.read() && RegWrite_mem.read()==true && branch.read()!=0){
+  if(rs_id2.read()!=0 && rs_id2.read()==WriteReg_mem.read() && RegWrite_mem.read()==true){
     rs_mux_id2.write(1);
   }else if(rs_id2.read()!=0 && rs_id2.read()==WriteReg_wb.read() && RegWrite_wb.read()==true){
     rs_mux_id2.write(2);
   }
   //EXE/MEM->ID2(rt) saltos
   //MEM/WB->ID2(rt)
-  if(rt_id2.read()!=0 && rt_id2.read()==WriteReg_mem.read() && RegWrite_mem.read()==true && branch.read()!=0 && MemRead.read()==false){
+  if(rt_id2.read()!=0 && rt_id2.read()==WriteReg_mem.read() && RegWrite_mem.read()==true && MemRead.read()==false){
     rt_mux_id2.write(1);
   }else if(rt_id2.read()!=0 && rt_id2.read()==WriteReg_wb.read() && RegWrite_wb.read()==true && MemRead.read()==false){
     rt_mux_id2.write(2);
