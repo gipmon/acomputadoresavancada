@@ -351,7 +351,7 @@ void sgmHost(   const int *h_leftIm, const int *h_rightIm,
 }
 
 // Kernel
-__global__ intensity(int *inImage, int *outImage, int nx, int ny, int val){
+__global__ void intensity(int *inImage, int *outImage, int nx, int ny, int val){
   int i = blockIdx.x * blockDim.x + threadIdx.x;
   int j = blockIdx.y * blockDim.y + threadIdx.y;
 
