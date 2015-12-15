@@ -350,64 +350,56 @@ void sgmHost(   const int *h_leftIm, const int *h_rightIm,
   free(accumulated_costs);
 }
 
+// Kernel
+__global__ void intensity(int *inImage, int *outImage, int nx, int ny, int val){
+  int i = blockIdx.x * blockDim.x + threadIdx.x;
+  int j = blockIdx.y * blockDim.y + threadIdx.y;
+
+  int id = i + (j * nx); // j * nx = STRIDE
+
+  if (i < nx && j < ny)
+  {
+      outImage[id] = ((inImage[id] + val > 255) ? 255 : inImage[id] + val);
+  }
+}
 
 // sgm code to run on the GPU
 void sgmDevice( const int *h_leftIm, const int *h_rightIm,
                 int *h_dispImD,
                 const int w, const int h, const int disp_range )
 {
-  const int nx = w;
-  const int ny = h;
+    int nx = w;
+    int ny = h;
+    int imageSize = nx * ny * sizeof(int);
+    // nx * ny e a dimensao da imagem, x4 porque e o int
 
-  // Processing all costs. W*H*D. D= disp_range
-  int *costs = (int *) calloc(nx*ny*disp_range,sizeof(int));
-  if (costs == NULL) {
-        fprintf(stderr, "sgm_cuda:"
-                " Failed memory allocation(s).\n");
-        exit(1);
-  }
+    int *devPtr_inImage;
+    int *devPtr_outImage;
 
-  determine_costs(h_leftIm, h_rightIm, costs, nx, ny, disp_range);
+    cudaMalloc((void**)&devPtr_inImage, imageSize);
+    cudaMalloc((void**)&devPtr_outImage, imageSize);
 
-  int *accumulated_costs = (int *) calloc(nx*ny*disp_range,sizeof(int));
-  int *dir_accumulated_costs = (int *) calloc(nx*ny*disp_range,sizeof(int));
-  if (accumulated_costs == NULL || dir_accumulated_costs == NULL) {
-        fprintf(stderr, "sgm_cuda:"
-                " Failed memory allocation(s).\n");
-        exit(1);
-  }
+    // 1º destino, 2º origem, 3º bytes que quero transf, 4º sentido da transf
+    cudaMemcpy(devPtr_inImage, h_leftIm, imageSize, cudaMemcpyHostToDevice);
 
-  int dirx=0,diry=0;
-  for(dirx=-1; dirx<2; dirx++) {
-      if(dirx==0 && diry==0) continue;
-      std::fill(dir_accumulated_costs, dir_accumulated_costs+nx*ny*disp_range, 0);
-      iterate_direction( dirx,diry, h_leftIm, costs, dir_accumulated_costs, nx, ny, disp_range);
-      inplace_sum_views( accumulated_costs, dir_accumulated_costs, nx, ny, disp_range);
-  }
-  dirx=0;
-  for(diry=-1; diry<2; diry++) {
-      if(dirx==0 && diry==0) continue;
-      std::fill(dir_accumulated_costs, dir_accumulated_costs+nx*ny*disp_range, 0);
-      iterate_direction( dirx,diry, h_leftIm, costs, dir_accumulated_costs, nx, ny, disp_range);
-      inplace_sum_views( accumulated_costs, dir_accumulated_costs, nx, ny, disp_range);
-  }
+    int block_x = 32;
+    int block_y = 16;
 
-  free(costs);
-  free(dir_accumulated_costs);
+    int grid_x = ceil((float)nx / block_x);
+    int grid_y = ceil((float)ny / block_y);
 
-  // imagem de saida
-  // geometria do kernel
-  // alocar a memoria
-  // reservar memoria para o accumulated_costs, cudaMalloc com a dimensao q esta la
-  // h e de host => d para ser device
-  // d_dispIm e a saida
+    dim3 block(block_x, block_y);
+    dim3 grid(grid_x, grid_y);
 
-  // ll d_bull.pgm
-  // ll d_bull.pgm
-  // ./testDiffs d_bull.pgm h_bull.pgm
-  create_disparity_view( accumulated_costs, h_dispIm, nx, ny, disp_range ); // facil +
+    // factor de intensidade
+    int factor = 50;
 
-  free(accumulated_costs);
+    intensity <<<grid, block>>> (devPtr_inImage, devPtr_outImage,  nx, ny, factor);
+
+    cudaMemcpy(h_dispImD, devPtr_outImage, imageSize, cudaMemcpyDeviceToHost);
+
+    cudaFree(devPtr_inImage);
+    cudaFree(devPtr_outImage);
 }
 
 // print command line format
