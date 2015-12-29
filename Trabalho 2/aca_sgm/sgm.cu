@@ -440,17 +440,6 @@ void sgmDevice( const int *h_leftIm, const int *h_rightIm,
 
   // 1º destino, 2º origem, 3º bytes que quero transf, 4º sentido da transf
   cudaMemcpy(devPtr_inImage, h_dispImD, imageSize, cudaMemcpyHostToDevice);
-
-
-  // ./testDiffs d_bull.pgm h_bull.pgm
-  // ll d_bull.pgm
-  // ll d_bull.pgm
-  // factor de intensidade
-  // geometria do kernel
-  // alocar a memoria
-  // reservar memoria para o accumulated_costs, cudaMalloc com a dimensao q esta la
-  // h e de host => d para ser device
-  // d_dispIm e a saida
   cudaMemcpy(devPtr_accumulatedCosts, accumulated_costs, nx*ny*disp_range*sizeof(int), cudaMemcpyHostToDevice);
 
   disparity_view <<<grid, block>>> (devPtr_inImage, devPtr_accumulatedCosts, nx, ny, disp_range);
