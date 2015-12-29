@@ -246,18 +246,15 @@ int find_min_index( const int *v, const int disp_range )
     return minind;
 }
 
-__global__ int find_min_index(int *v, int disp_range){
+__device__ int find_min_index_device(int *v, int disp_range){
   int min = std::numeric_limits<int>::max();
   int minind = -1;
-  int i = blockIdx.x * blockDim.x + threadIdx.x;
-  int j = blockIdx.y * blockDim.y + threadIdx.y;
-
-  int id = i + (j * nx);  // j * nx = STRIDE
-  if(v[id]<min) {
-       min = v[id];
-       minind = id;
+  for (int d=0; d < disp_range; d++) {
+       if(v[d]<min) {
+            min = v[d];
+            minind = d;
+       }
   }
-
   return minind;
 
 }
@@ -314,11 +311,10 @@ __global__ void disparity_view(int *inImage, int *outImage, int *accumulated_cos
   int j = blockIdx.y * blockDim.y + threadIdx.y;
 
   int id = i + (j * nx);  // j * nx = STRIDE
-  dim3 block(32, 1);
-  dim3 grid(1, 1);
+
   if (i < nx && j < ny)
   {
-    outImage[id] = 4 * find_min_index<<<grid, block>>>(&accumulated_costs[id], disp_range);
+    outImage[id] = 4 * find_min_index_device(&accumulated_costs[id], disp_range);
   }
 
 }
