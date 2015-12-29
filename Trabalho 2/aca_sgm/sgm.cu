@@ -312,11 +312,10 @@ __global__ void disparity_view(int *outImage, int *accumulated_costs, int nx, in
   int j = blockIdx.y * blockDim.y + threadIdx.y;
 
   int id = i + (j * nx);  // j * nx = STRIDE
-  int accumulated = i*dist_range+j*disp_range;
 
   if (i < nx && j < ny)
   {
-    outImage[id] = 4 * find_min_index_device(&accumulated_costs[accumulated], disp_range);
+    outImage[id] = 4 * find_min_index_device(&ACCUMULATED_COSTS(i,j,0)) disp_range);
   }
 
 }
