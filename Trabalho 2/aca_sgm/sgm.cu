@@ -247,7 +247,7 @@ int find_min_index( const int *v, const int disp_range )
 }
 
 __device__ int find_min_index_device(int *v, int disp_range){
-  int min = std::numeric_limits<int>::max();
+  int min = NPP_MAX_32U;
   int minind = -1;
   for (int d=0; d < disp_range; d++) {
        if(v[d]<min) {
