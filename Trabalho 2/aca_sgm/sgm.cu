@@ -233,7 +233,7 @@ void inplace_sum_views( int * im1, const int * im2,
     }
 }
 
-__device__ __host__ int find_min_index( const int *v, const int disp_range )
+int find_min_index( const int *v, const int disp_range )
 {
     int min = std::numeric_limits<int>::max();
     int minind = -1;
@@ -244,6 +244,22 @@ __device__ __host__ int find_min_index( const int *v, const int disp_range )
          }
     }
     return minind;
+}
+
+__global__ int find_min_index(int *v, int disp_range){
+  int min = std::numeric_limits<int>::max();
+  minind = -1;
+  int i = blockIdx.x * blockDim.x + threadIdx.x;
+  int j = blockIdx.y * blockDim.y + threadIdx.y;
+
+  int id = i + (j * nx);  // j * nx = STRIDE
+  if(v[id]<min) {
+       min = v[id];
+       minind = id;
+  }
+
+  return minind;
+
 }
 
 void evaluate_path(const int *prior, const int *local,
@@ -298,9 +314,11 @@ __global__ void disparity_view(int *inImage, int *outImage, int *accumulated_cos
   int j = blockIdx.y * blockDim.y + threadIdx.y;
 
   int id = i + (j * nx);  // j * nx = STRIDE
+  dim3 block(32, 1);
+  dim3 grid(1, 1);
   if (i < nx && j < ny)
   {
-    outImage[id] = 4 * find_min_index(&accumulated_costs[id], disp_range);
+    outImage[id] = 4 * find_min_index<<<grid, block>>>(&accumulated_costs[id], disp_range);
   }
 
 }
