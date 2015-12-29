@@ -23,6 +23,7 @@
 #define PENALTY1 15
 #define PENALTY2 100
 
+#define NPP_MAX_32U 4294967295
 #define COSTS(i,j,d)              costs[(i)*disp_range+(j)*nx*disp_range+(d)]
 #define ACCUMULATED_COSTS(i,j,d)  accumulated_costs[(i)*disp_range+(j)*nx*disp_range+(d)]
 #define LEFT_IMAGE(i,j)           left_image[(i)+(j)*nx]
