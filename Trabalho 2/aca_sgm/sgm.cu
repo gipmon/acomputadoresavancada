@@ -315,7 +315,7 @@ __global__ void disparity_view(int *outImage, int *accumulated_costs, int nx, in
 
   if (i < nx && j < ny)
   {
-    outImage[id] = 4 * find_min_index_device(&ACCUMULATED_COSTS(i,j,0)) disp_range);
+    outImage[id] = 4 * find_min_index_device(&ACCUMULATED_COSTS(i,j,0), disp_range);
   }
 
 }
