@@ -387,7 +387,7 @@ void sgmDevice( const int *h_leftIm, const int *h_rightIm,
 
   int *devPtr_inImage;
   int *devPtr_outImage;
-  int *accumulated_costs;
+  int *devPtr_accumulatedCosts;
 
   int block_x = 32;
   int block_y = 16;
@@ -408,7 +408,11 @@ void sgmDevice( const int *h_leftIm, const int *h_rightIm,
 
   determine_costs(h_leftIm, h_rightIm, costs, nx, ny, disp_range);
 
-  cudaCalloc((void**)&accumulated_costs, nx*ny*disp_range*sizeof(int));
+  int *accumulated_costs = (int *) calloc(nx*ny*disp_range,sizeof(int));
+
+  cudaMalloc((void**)&devPtr_accumulatedCosts, nx*ny*disp_range*sizeof(int));
+  cudaMemCpy(devPtr_accumulatedCosts, accumulated_costs, nx*ny*disp_range*sizeof(int),cudaMemcpyHostToDevice);
+
   int *dir_accumulated_costs = (int *) calloc(nx*ny*disp_range,sizeof(int));
   if (accumulated_costs == NULL || dir_accumulated_costs == NULL) {
         fprintf(stderr, "sgm_cuda:"
@@ -451,7 +455,7 @@ void sgmDevice( const int *h_leftIm, const int *h_rightIm,
   // reservar memoria para o accumulated_costs, cudaMalloc com a dimensao q esta la
   // h e de host => d para ser device
   // d_dispIm e a saida
-  disparity_view <<<grid, block>>> (devPtr_inImage, devPtr_outImage, accumulated_costs, nx, ny, disp_range);
+  disparity_view <<<grid, block>>> (devPtr_inImage, devPtr_outImage, devPtr_accumulatedCosts, nx, ny, disp_range);
 
   cudaMemcpy(h_dispImD, devPtr_outImage, imageSize, cudaMemcpyDeviceToHost);
 
@@ -460,7 +464,7 @@ void sgmDevice( const int *h_leftIm, const int *h_rightIm,
 
   //create_disparity_view( accumulated_costs, h_dispIm, nx, ny, disp_range ); // facil +
 
-  cudaFree(accumulated_costs);
+  free(accumulated_costs);
 }
 
 // print command line format
