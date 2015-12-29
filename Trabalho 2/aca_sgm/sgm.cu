@@ -248,7 +248,7 @@ int find_min_index( const int *v, const int disp_range )
 
 __global__ int find_min_index(int *v, int disp_range){
   int min = std::numeric_limits<int>::max();
-  minind = -1;
+  int minind = -1;
   int i = blockIdx.x * blockDim.x + threadIdx.x;
   int j = blockIdx.y * blockDim.y + threadIdx.y;
 
