@@ -247,7 +247,7 @@ int find_min_index( const int *v, const int disp_range )
     return minind;
 }
 
-__device__ int find_min_index( const int *v, const int disp_range )
+__device__ int find_min_index_device( const int *v, const int disp_range )
 {
     int min = std::numeric_limits<int>::max();
     int minind = -1;
@@ -315,7 +315,7 @@ __global__ void disparity_view(int *inImage, int *outImage, int *accumulated_cos
 
   if (i < nx && j < ny)
   {
-    outImage[id] = 4 * find_min_index(&accumulated_costs[id], disp_range);
+    outImage[id] = 4 * find_min_index_device(&accumulated_costs[id], disp_range);
   }
 
 }
