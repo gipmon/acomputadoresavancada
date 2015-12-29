@@ -246,17 +246,6 @@ __device__ int find_min_index( const int *v, const int disp_range )
     return minind;
 }
 
-__global__ find_min_index(int *v, int disp_range){
-  int min = std::numeric_limits<int>::max();
-  int minind = -1;
-  int id =
-  if(v[id]<min){
-    min = v[id];
-    minind = id;
-  }
-
-}
-
 void evaluate_path(const int *prior, const int *local,
                    int path_intensity_gradient, int *curr_cost ,
                    const int nx, const int ny, const int disp_range)
