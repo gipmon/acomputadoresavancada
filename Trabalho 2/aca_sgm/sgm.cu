@@ -407,7 +407,7 @@ void sgmDevice( const int *h_leftIm, const int *h_rightIm,
 
   determine_costs(h_leftIm, h_rightIm, costs, nx, ny, disp_range);
 
-  int *accumulated_costs = (int *) calloc(nx*ny*disp_range,sizeof(int));
+  int *accumulated_costs = (int *) cudaMalloc(nx*ny*disp_range,sizeof(int));
   int *dir_accumulated_costs = (int *) calloc(nx*ny*disp_range,sizeof(int));
   if (accumulated_costs == NULL || dir_accumulated_costs == NULL) {
         fprintf(stderr, "sgm_cuda:"
@@ -459,7 +459,7 @@ void sgmDevice( const int *h_leftIm, const int *h_rightIm,
 
   //create_disparity_view( accumulated_costs, h_dispIm, nx, ny, disp_range ); // facil +
 
-  free(accumulated_costs);
+  cudaFree(accumulated_costs);
 }
 
 // print command line format
