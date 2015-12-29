@@ -408,7 +408,7 @@ void sgmDevice( const int *h_leftIm, const int *h_rightIm,
 
   determine_costs(h_leftIm, h_rightIm, costs, nx, ny, disp_range);
 
-  cudaMalloc((void**)&accumulated_costs, nx*ny*disp_range*sizeof(int));
+  cudaCalloc((void**)&accumulated_costs, nx*ny*disp_range*sizeof(int));
   int *dir_accumulated_costs = (int *) calloc(nx*ny*disp_range,sizeof(int));
   if (accumulated_costs == NULL || dir_accumulated_costs == NULL) {
         fprintf(stderr, "sgm_cuda:"
