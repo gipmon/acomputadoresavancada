@@ -406,7 +406,7 @@ void sgmDevice( const int *h_leftIm, const int *h_rightIm,
 
   determine_costs_device<<<grid, block>>>(devPtr_leftImage, devPtr_rightImage, devPtr_costs, nx, ny, disp_range);
   //determine_costs(h_leftIm, h_rightIm, costs, nx, ny, disp_range);
-  cudaMemcpy(costs, devPtr_costs, nx*ny*disp_range*sizeof(int), cudaMemcpyDeviceToHost)
+  cudaMemcpy(costs, devPtr_costs, nx*ny*disp_range*sizeof(int), cudaMemcpyDeviceToHost);
   int *accumulated_costs = (int *) calloc(nx*ny*disp_range,sizeof(int));
   int *dir_accumulated_costs = (int *) calloc(nx*ny*disp_range,sizeof(int));
   if (accumulated_costs == NULL || dir_accumulated_costs == NULL) {
@@ -444,7 +444,7 @@ void sgmDevice( const int *h_leftIm, const int *h_rightIm,
   // ll d_bull.pgm
   // ll d_bull.pgm
   // ./testDiffs d_bull.pgm h_bull.pgm
-  create_disparity_view( accumulated_costs, h_dispIm, nx, ny, disp_range ); // facil +
+  create_disparity_view( accumulated_costs, h_dispImD, nx, ny, disp_range ); // facil +
 
   free(accumulated_costs);
   cudaFree(devPtr_leftImage);
