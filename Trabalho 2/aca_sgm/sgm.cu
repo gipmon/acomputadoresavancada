@@ -307,15 +307,14 @@ void create_disparity_view( const int *accumulated_costs , int * disp_image,
 }
 
 
-__global__ void create_disparity_view(int *outImage, int *accumulated_costs, int nx, int ny, int disp_range){
+__global__ void disparity_view(int *disp_image, int *accumulated_costs, int nx, int ny, int disp_range){
   int i = blockIdx.x * blockDim.x + threadIdx.x;
   int j = blockIdx.y * blockDim.y + threadIdx.y;
 
   int id = i + (j * nx);  // j * nx = STRIDE
-
   if (i < nx && j < ny)
   {
-    outImage[id] = 4 * find_min_index_device(&ACCUMULATED_COSTS(i,j,0), disp_range);
+    DISP_IMAGE(i,j) = 4 * find_min_index_device(&ACCUMULATED_COSTS(i,j,0), disp_range);
   }
 
 }
@@ -455,7 +454,7 @@ void sgmDevice( const int *h_leftIm, const int *h_rightIm,
   // reservar memoria para o accumulated_costs, cudaMalloc com a dimensao q esta la
   // h e de host => d para ser device
   // d_dispIm e a saida
-  create_disparity_view <<<grid, block>>> (devPtr_inImage, devPtr_accumulatedCosts, nx, ny, disp_range);
+  disparity_view <<<grid, block>>> (devPtr_inImage, devPtr_accumulatedCosts, nx, ny, disp_range);
 
   cudaMemcpy(h_dispImD, devPtr_inImage, imageSize, cudaMemcpyDeviceToHost);
   cudaMemcpy(accumulated_costs, devPtr_accumulatedCosts, nx*ny*disp_range*sizeof(int), cudaMemcpyDeviceToHost);
