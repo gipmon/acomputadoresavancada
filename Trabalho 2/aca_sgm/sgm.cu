@@ -307,7 +307,7 @@ void create_disparity_view( const int *accumulated_costs , int * disp_image,
 }
 
 
-__global__ void disparity_view(int *inImage, int *outImage, int *accumulated_costs, int nx, int ny, int disp_range){
+__global__ void disparity_view(int *outImage, int *accumulated_costs, int nx, int ny, int disp_range){
   int i = blockIdx.x * blockDim.x + threadIdx.x;
   int j = blockIdx.y * blockDim.y + threadIdx.y;
 
