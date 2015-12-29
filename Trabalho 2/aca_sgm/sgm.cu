@@ -234,6 +234,19 @@ void inplace_sum_views( int * im1, const int * im2,
     }
 }
 
+int find_min_index( const int *v, const int disp_range )
+{
+    int min = std::numeric_limits<int>::max();
+    int minind = -1;
+    for (int d=0; d < disp_range; d++) {
+         if(v[d]<min) {
+              min = v[d];
+              minind = d;
+         }
+    }
+    return minind;
+}
+
 __device__ int find_min_index( const int *v, const int disp_range )
 {
     int min = std::numeric_limits<int>::max();
