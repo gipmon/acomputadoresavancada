@@ -408,10 +408,6 @@ void sgmDevice( const int *h_leftIm, const int *h_rightIm,
   determine_costs(h_leftIm, h_rightIm, costs, nx, ny, disp_range);
 
   int *accumulated_costs = (int *) calloc(nx*ny*disp_range,sizeof(int));
-
-  cudaMalloc((void**)&devPtr_accumulatedCosts, nx*ny*disp_range*sizeof(int));
-  cudaMemcpy(devPtr_accumulatedCosts, accumulated_costs, nx*ny*disp_range*sizeof(int), cudaMemcpyHostToDevice);
-
   int *dir_accumulated_costs = (int *) calloc(nx*ny*disp_range,sizeof(int));
   if (accumulated_costs == NULL || dir_accumulated_costs == NULL) {
         fprintf(stderr, "sgm_cuda:"
@@ -440,6 +436,7 @@ void sgmDevice( const int *h_leftIm, const int *h_rightIm,
   // imagem de saida
   cudaMalloc((void**)&devPtr_inImage, imageSize);
   cudaMalloc((void**)&devPtr_outImage, imageSize);
+  cudaMalloc((void**)&devPtr_accumulatedCosts, nx*ny*disp_range*sizeof(int));
 
   // 1º destino, 2º origem, 3º bytes que quero transf, 4º sentido da transf
   cudaMemcpy(devPtr_inImage, h_dispImD, imageSize, cudaMemcpyHostToDevice);
@@ -454,6 +451,8 @@ void sgmDevice( const int *h_leftIm, const int *h_rightIm,
   // reservar memoria para o accumulated_costs, cudaMalloc com a dimensao q esta la
   // h e de host => d para ser device
   // d_dispIm e a saida
+  cudaMemcpy(devPtr_accumulatedCosts, accumulated_costs, nx*ny*disp_range*sizeof(int), cudaMemcpyHostToDevice);
+
   disparity_view <<<grid, block>>> (devPtr_inImage, devPtr_accumulatedCosts, nx, ny, disp_range);
 
   cudaMemcpy(h_dispImD, devPtr_inImage, imageSize, cudaMemcpyDeviceToHost);
