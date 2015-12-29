@@ -443,7 +443,7 @@ void sgmDevice( const int *h_leftIm, const int *h_rightIm,
   cudaMalloc((void**)&devPtr_outImage, imageSize);
 
   // 1º destino, 2º origem, 3º bytes que quero transf, 4º sentido da transf
-  cudaMemcpy(devPtr_inImage, h_leftIm, imageSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(devPtr_inImage, h_dispImD, imageSize, cudaMemcpyHostToDevice);
 
 
   // ./testDiffs d_bull.pgm h_bull.pgm
@@ -455,9 +455,9 @@ void sgmDevice( const int *h_leftIm, const int *h_rightIm,
   // reservar memoria para o accumulated_costs, cudaMalloc com a dimensao q esta la
   // h e de host => d para ser device
   // d_dispIm e a saida
-  disparity_view <<<grid, block>>> (devPtr_inImage, devPtr_outImage, devPtr_accumulatedCosts, nx, ny, disp_range);
+  disparity_view <<<grid, block>>> (devPtr_inImage, devPtr_accumulatedCosts, nx, ny, disp_range);
 
-  cudaMemcpy(h_dispImD, devPtr_outImage, imageSize, cudaMemcpyDeviceToHost);
+  cudaMemcpy(h_dispImD, devPtr_inImage, imageSize, cudaMemcpyDeviceToHost);
 
   cudaFree(devPtr_inImage);
   cudaFree(devPtr_outImage);
