@@ -98,7 +98,6 @@ void determine_costs(const int *left_image, const int *right_image, int *costs,
 __global__ void determine_costs_device(const int *left_image, const int *right_image, int *costs,
                                         const int nx, const int ny, const int disp_range)
 {
-  std::fill(costs, costs+nx*ny*disp_range, 255u);
   int i = blockIdx.x * blockDim.x + threadIdx.x;
   int j = blockIdx.y * blockDim.y + threadIdx.y;
 
@@ -399,7 +398,7 @@ void sgmDevice( const int *h_leftIm, const int *h_rightIm,
   cudaMalloc((void**)&devPtr_leftImage, imageSize);
   cudaMalloc((void**)&devPtr_rightImage, imageSize);
   cudaMalloc((void**)&devPtr_costs, nx*ny*disp_range*sizeof(int));
-
+  std::fill(costs, costs+nx*ny*disp_range, 255u);
   cudaMemcpy(devPtr_leftImage, h_leftIm, imageSize, cudaMemcpyHostToDevice);
   cudaMemcpy(devPtr_rightImage, h_rightIm, imageSize, cudaMemcpyHostToDevice);
   cudaMemcpy(devPtr_costs, costs, nx*ny*disp_range*sizeof(int), cudaMemcpyHostToDevice);
