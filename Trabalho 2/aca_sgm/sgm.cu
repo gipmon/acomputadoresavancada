@@ -233,7 +233,7 @@ void inplace_sum_views( int * im1, const int * im2,
     }
 }
 
-__device__ int find_min_index( const int *v, const int disp_range )
+__device__ __host__ int find_min_index( const int *v, const int disp_range )
 {
     int min = std::numeric_limits<int>::max();
     int minind = -1;
