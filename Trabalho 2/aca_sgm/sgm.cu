@@ -293,7 +293,18 @@ void create_disparity_view( const int *accumulated_costs , int * disp_image,
 }
 
 
+__global__ void disparity_view(int *inImage, int *outImage, int *accumulated_costs, int nx, int ny, int disp_range){
+  int i = blockIdx.x * blockDim.x + threadIdx.x;
+  int j = blockIdx.y * blockDim.y + threadIdx.y;
 
+  int id = i + (j * nx);  // j * nx = STRIDE
+
+  if (i < nx && j < ny)
+  {
+    outImage[id] = 4 * find_min_index(&accumulated_costs[id], disp_range);
+  }
+
+}
 
 /*
  * Links:
@@ -358,6 +369,19 @@ void sgmDevice( const int *h_leftIm, const int *h_rightIm,
 {
   const int nx = w;
   const int ny = h;
+  const int imageSize = nx*ny*sizeof(int);
+
+  int *devPtr_inImage;
+  int *devPtr_outImage;
+
+  int block_x = 32;
+  int block_y = 16;
+
+  int grid_x = ceil((float)nx / block_x);
+  int grid_y = ceil((float)ny / block_y);
+
+  dim3 block(block_x, block_y);
+  dim3 grid(grid_x, grid_y);
 
   // Processing all costs. W*H*D. D= disp_range
   int *costs = (int *) calloc(nx*ny*disp_range,sizeof(int));
@@ -396,16 +420,32 @@ void sgmDevice( const int *h_leftIm, const int *h_rightIm,
   free(dir_accumulated_costs);
 
   // imagem de saida
+  cudaMalloc((void**)&devPtr_inImage, imageSize);
+  cudaMalloc((void**)&devPtr_outImage, imageSize);
+
+  // 1º destino, 2º origem, 3º bytes que quero transf, 4º sentido da transf
+  cudaMemcpy(devPtr_inImage, h_leftIm, imageSize, cudaMemcpyHostToDevice);
+
+
+  // ./testDiffs d_bull.pgm h_bull.pgm
+  // ll d_bull.pgm
+  // ll d_bull.pgm
+  // factor de intensidade
   // geometria do kernel
   // alocar a memoria
   // reservar memoria para o accumulated_costs, cudaMalloc com a dimensao q esta la
   // h e de host => d para ser device
   // d_dispIm e a saida
+  disparity_view <<<grid, block>>> (devPtr_inImage, devPtr_outImage, accumulated_costs, nx, ny, disp_range);
 
-  // ll d_bull.pgm
-  // ll d_bull.pgm
-  // ./testDiffs d_bull.pgm h_bull.pgm
-  create_disparity_view( accumulated_costs, h_dispIm, nx, ny, disp_range ); // facil +
+
+
+  cudaMemcpy(h_dispImD, devPtr_outImage, imageSize, cudaMemcpyDeviceToHost);
+
+  cudaFree(devPtr_inImage);
+  cudaFree(devPtr_outImage);
+
+  //create_disparity_view( accumulated_costs, h_dispIm, nx, ny, disp_range ); // facil +
 
   free(accumulated_costs);
 }
