@@ -23,7 +23,7 @@
 #define PENALTY1 15
 #define PENALTY2 100
 
-#define NPP_MAX_32U 4294967295
+#define NPP_MAX_16U 65535
 #define COSTS(i,j,d)              costs[(i)*disp_range+(j)*nx*disp_range+(d)]
 #define ACCUMULATED_COSTS(i,j,d)  accumulated_costs[(i)*disp_range+(j)*nx*disp_range+(d)]
 #define LEFT_IMAGE(i,j)           left_image[(i)+(j)*nx]
@@ -249,7 +249,7 @@ int find_min_index( const int *v, const int disp_range )
 
 __device__ int find_min_index_device( const int *v, const int disp_range )
 {
-    int min = std::numeric_limits<int>::max();
+    int min = NPP_MAX_16U;
     int minind = -1;
     for (int d=0; d < disp_range; d++) {
          if(v[d]<min) {
