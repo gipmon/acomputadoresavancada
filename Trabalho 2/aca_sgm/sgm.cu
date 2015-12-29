@@ -234,7 +234,7 @@ void inplace_sum_views( int * im1, const int * im2,
     }
 }
 
-int find_min_index( const int *v, const int disp_range )
+__device__ int find_min_index( const int *v, const int disp_range )
 {
     int min = std::numeric_limits<int>::max();
     int minind = -1;
@@ -245,19 +245,6 @@ int find_min_index( const int *v, const int disp_range )
          }
     }
     return minind;
-}
-
-__device__ int find_min_index_device(int *v, int disp_range){
-  int min = NPP_MAX_32U;
-  int minind = -1;
-  for (int d=0; d < disp_range; d++) {
-       if(v[d]<min) {
-            min = v[d];
-            minind = d;
-       }
-  }
-  return minind;
-
 }
 
 void evaluate_path(const int *prior, const int *local,
@@ -315,7 +302,7 @@ __global__ void disparity_view(int *inImage, int *outImage, int *accumulated_cos
 
   if (i < nx && j < ny)
   {
-    outImage[id] = 4 * find_min_index_device(&accumulated_costs[id], disp_range);
+    outImage[id] = 4 * find_min_index(&accumulated_costs[id], disp_range);
   }
 
 }
@@ -451,8 +438,6 @@ void sgmDevice( const int *h_leftIm, const int *h_rightIm,
   // h e de host => d para ser device
   // d_dispIm e a saida
   disparity_view <<<grid, block>>> (devPtr_inImage, devPtr_outImage, accumulated_costs, nx, ny, disp_range);
-
-
 
   cudaMemcpy(h_dispImD, devPtr_outImage, imageSize, cudaMemcpyDeviceToHost);
 
