@@ -411,7 +411,7 @@ void sgmDevice( const int *h_leftIm, const int *h_rightIm,
   int *accumulated_costs = (int *) calloc(nx*ny*disp_range,sizeof(int));
 
   cudaMalloc((void**)&devPtr_accumulatedCosts, nx*ny*disp_range*sizeof(int));
-  cudaMemcpy(devPtr_accumulatedCosts, accumulated_costs, nx*ny*disp_range*sizeof(int),cudaMemcpyHostToDevice);
+  cudaMemcpy(devPtr_accumulatedCosts, accumulated_costs, nx*ny*disp_range*sizeof(int), cudaMemcpyHostToDevice);
 
   int *dir_accumulated_costs = (int *) calloc(nx*ny*disp_range,sizeof(int));
   if (accumulated_costs == NULL || dir_accumulated_costs == NULL) {
@@ -458,6 +458,7 @@ void sgmDevice( const int *h_leftIm, const int *h_rightIm,
   disparity_view <<<grid, block>>> (devPtr_inImage, devPtr_accumulatedCosts, nx, ny, disp_range);
 
   cudaMemcpy(h_dispImD, devPtr_inImage, imageSize, cudaMemcpyDeviceToHost);
+  cudaMemcpy(accumulated_costs, devPtr_accumulatedCosts, nx*ny*disp_range*sizeof(int), cudaMemcpyDeviceToHost);
 
   cudaFree(devPtr_inImage);
   cudaFree(devPtr_outImage);
