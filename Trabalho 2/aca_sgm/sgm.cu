@@ -311,7 +311,6 @@ __global__ void disparity_view(int *disp_image, int *accumulated_costs, int nx, 
   int i = blockIdx.x * blockDim.x + threadIdx.x;
   int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-  int id = i + (j * nx);  // j * nx = STRIDE
   if (i < nx && j < ny)
   {
     DISP_IMAGE(i,j) = 4 * find_min_index_device(&ACCUMULATED_COSTS(i,j,0), disp_range);
@@ -385,7 +384,6 @@ void sgmDevice( const int *h_leftIm, const int *h_rightIm,
   const int imageSize = nx*ny*sizeof(int);
 
   int *devPtr_inImage;
-  int *devPtr_outImage;
   int *devPtr_accumulatedCosts;
 
   int block_x = 32;
