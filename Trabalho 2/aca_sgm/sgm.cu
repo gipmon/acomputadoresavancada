@@ -390,6 +390,8 @@ void sgmDevice( const int *h_leftIm, const int *h_rightIm,
                 " Failed memory allocation(s).\n");
         exit(1);
   }
+  std::fill(costs, costs+nx*ny*disp_range, 255u);
+  
   int *devPtr_leftImage;
   int *devPtr_rightImage;
   int *devPtr_costs;
@@ -398,8 +400,6 @@ void sgmDevice( const int *h_leftIm, const int *h_rightIm,
   cudaMalloc((void**)&devPtr_rightImage, imageSize);
   cudaMalloc((void**)&devPtr_costs, nx*ny*disp_range*sizeof(int));
 
-  std::fill(costs, costs+nx*ny*disp_range, 255u);
-
   cudaMemcpy(devPtr_leftImage, h_leftIm, imageSize, cudaMemcpyHostToDevice);
   cudaMemcpy(devPtr_rightImage, h_rightIm, imageSize, cudaMemcpyHostToDevice);
   cudaMemcpy(devPtr_costs, costs, nx*ny*disp_range*sizeof(int), cudaMemcpyHostToDevice);
@@ -407,7 +407,7 @@ void sgmDevice( const int *h_leftIm, const int *h_rightIm,
   determine_costs_device<<<grid, block>>>(devPtr_leftImage, devPtr_rightImage, devPtr_costs, nx, ny, disp_range);
   //determine_costs(h_leftIm, h_rightIm, costs, nx, ny, disp_range);
   cudaMemcpy(costs, devPtr_costs, nx*ny*disp_range*sizeof(int), cudaMemcpyDeviceToHost);
-  
+
   int *accumulated_costs = (int *) calloc(nx*ny*disp_range,sizeof(int));
   int *dir_accumulated_costs = (int *) calloc(nx*ny*disp_range,sizeof(int));
   if (accumulated_costs == NULL || dir_accumulated_costs == NULL) {
