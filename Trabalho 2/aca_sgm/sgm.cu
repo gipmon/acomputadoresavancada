@@ -390,8 +390,7 @@ void sgmDevice( const int *h_leftIm, const int *h_rightIm,
                 " Failed memory allocation(s).\n");
         exit(1);
   }
-  std::fill(costs, costs+nx*ny*disp_range, 255u);
-  
+
   int *devPtr_leftImage;
   int *devPtr_rightImage;
   int *devPtr_costs;
@@ -403,6 +402,7 @@ void sgmDevice( const int *h_leftIm, const int *h_rightIm,
   cudaMemcpy(devPtr_leftImage, h_leftIm, imageSize, cudaMemcpyHostToDevice);
   cudaMemcpy(devPtr_rightImage, h_rightIm, imageSize, cudaMemcpyHostToDevice);
   cudaMemcpy(devPtr_costs, costs, nx*ny*disp_range*sizeof(int), cudaMemcpyHostToDevice);
+  std::fill(devPtr_costs, devPtr_costs+nx*ny*disp_range, 255u);
 
   determine_costs_device<<<grid, block>>>(devPtr_leftImage, devPtr_rightImage, devPtr_costs, nx, ny, disp_range);
   //determine_costs(h_leftIm, h_rightIm, costs, nx, ny, disp_range);
