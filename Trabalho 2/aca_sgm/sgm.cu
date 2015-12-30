@@ -435,7 +435,6 @@ void sgmDevice( const int *h_leftIm, const int *h_rightIm,
 
   // imagem de saida
   cudaMalloc((void**)&devPtr_inImage, imageSize);
-  cudaMalloc((void**)&devPtr_outImage, imageSize);
   cudaMalloc((void**)&devPtr_accumulatedCosts, nx*ny*disp_range*sizeof(int));
 
   // 1º destino, 2º origem, 3º bytes que quero transf, 4º sentido da transf
@@ -448,7 +447,6 @@ void sgmDevice( const int *h_leftIm, const int *h_rightIm,
   cudaMemcpy(accumulated_costs, devPtr_accumulatedCosts, nx*ny*disp_range*sizeof(int), cudaMemcpyDeviceToHost);
 
   cudaFree(devPtr_inImage);
-  cudaFree(devPtr_outImage);
   cudaFree(devPtr_accumulatedCosts);
 
   //create_disparity_view( accumulated_costs, h_dispIm, nx, ny, disp_range ); // facil +
