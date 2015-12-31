@@ -41,6 +41,9 @@ void determine_costs(const int *left_image, const int *right_image, int *costs,
 void evaluate_path( const int *prior, const int* local,
                     int path_intensity_gradient, int *curr_cost,
                     const int nx, const int ny, const int disp_range );
+__device__ void evaluate_path_dev(const int *prior, const int *local,
+                    int path_intensity_gradient, int *curr_cost ,
+                    const int nx, const int ny, const int disp_range);
 
 void iterate_direction_dirxpos(const int dirx, const int *left_image,
                                const int* costs, int *accumulated_costs,
