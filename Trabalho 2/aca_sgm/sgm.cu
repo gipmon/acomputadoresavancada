@@ -341,6 +341,14 @@ void evaluate_path(const int *prior, const int *local,
     }
     curr_cost[d] += e_smooth;
   }
+
+  int min = NPP_MAX_16U;
+  for ( int d = 0; d < disp_range; d++ ) {
+        if (prior[d]<min) min=prior[d];
+  }
+  for ( int d = 0; d < disp_range; d++ ) {
+        curr_cost[d]-=min;
+  }
 }
 
   __device__ void evaluate_path_dev(const int *prior, const int *local,
@@ -369,13 +377,13 @@ void evaluate_path(const int *prior, const int *local,
       curr_cost[d] += e_smooth;
     }
 
-  int min = NPP_MAX_16U;
-  for ( int d = 0; d < disp_range; d++ ) {
-        if (prior[d]<min) min=prior[d];
-  }
-  for ( int d = 0; d < disp_range; d++ ) {
-        curr_cost[d]-=min;
-  }
+    int min = NPP_MAX_16U;
+    for ( int d = 0; d < disp_range; d++ ) {
+          if (prior[d]<min) min=prior[d];
+    }
+    for ( int d = 0; d < disp_range; d++ ) {
+          curr_cost[d]-=min;
+    }
 }
 
 void create_disparity_view( const int *accumulated_costs , int * disp_image,
