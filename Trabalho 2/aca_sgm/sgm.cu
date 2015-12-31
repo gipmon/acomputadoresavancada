@@ -508,6 +508,7 @@ void sgmDevice( const int *h_leftIm, const int *h_rightIm,
       if(dirx==0 && diry==0) continue;
       std::fill(dir_accumulated_costs, dir_accumulated_costs+nx*ny*disp_range, 0);
       cudaMemcpy(devPtr_dirAccumulatedCosts, dir_accumulated_costs, nx*ny*disp_range*sizeof(int), cudaMemcpyHostToDevice);
+      cudaMemcpy(devPtr_costs, costs, nx*ny*disp_range*sizeof(int), cudaMemcpyHostToDevice);
       iterate_direction_dev( dirx,diry, h_leftIm, devPtr_leftImage, costs, devPtr_costs, dir_accumulated_costs, devPtr_dirAccumulatedCosts, nx, ny, disp_range, block, grid);
       cudaMemcpy(dir_accumulated_costs, devPtr_dirAccumulatedCosts, nx*ny*disp_range*sizeof(int), cudaMemcpyDeviceToHost);
       cudaMemcpy(costs, devPtr_costs, nx*ny*disp_range*sizeof(int), cudaMemcpyDeviceToHost);
@@ -518,6 +519,7 @@ void sgmDevice( const int *h_leftIm, const int *h_rightIm,
       if(dirx==0 && diry==0) continue;
       std::fill(dir_accumulated_costs, dir_accumulated_costs+nx*ny*disp_range, 0);
       cudaMemcpy(devPtr_dirAccumulatedCosts, dir_accumulated_costs, nx*ny*disp_range*sizeof(int), cudaMemcpyHostToDevice);
+      cudaMemcpy(devPtr_costs, costs, nx*ny*disp_range*sizeof(int), cudaMemcpyHostToDevice);
       iterate_direction_dev( dirx,diry, h_leftIm, devPtr_leftImage, costs, devPtr_costs, dir_accumulated_costs, devPtr_dirAccumulatedCosts, nx, ny, disp_range,block, grid);
       cudaMemcpy(dir_accumulated_costs, devPtr_dirAccumulatedCosts, nx*ny*disp_range*sizeof(int), cudaMemcpyDeviceToHost);
       cudaMemcpy(costs, devPtr_costs, nx*ny*disp_range*sizeof(int), cudaMemcpyDeviceToHost);
