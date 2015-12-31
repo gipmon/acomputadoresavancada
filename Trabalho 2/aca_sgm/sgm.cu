@@ -344,7 +344,7 @@ void evaluate_path(const int *prior, const int *local,
                      int path_intensity_gradient, int *curr_cost ,
                      const int nx, const int ny, const int disp_range)
   {
-    cudaMemcpy(curr_cost, local, sizeof(int)*disp_range);
+    cudaMemcpy(curr_cost, local, sizeof(int)*disp_range, cudaMemcpyDeviceToDevice);
 
     for ( int d = 0; d < disp_range; d++ ) {
       int e_smooth = NPP_MAX_16U;
