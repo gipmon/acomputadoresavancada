@@ -342,7 +342,7 @@ void evaluate_path(const int *prior, const int *local,
     curr_cost[d] += e_smooth;
   }
 
-  int min = NPP_MAX_16U;
+  int min = std::numeric_limits<int>::max();
   for ( int d = 0; d < disp_range; d++ ) {
         if (prior[d]<min) min=prior[d];
   }
