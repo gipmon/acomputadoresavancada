@@ -151,8 +151,6 @@ __global__ void iterate_direction_dirxpos_dev(const int dirx, const int *left_im
             ACCUMULATED_COSTS(0,j,d) += COSTS(0,j,d);
         }
       }else{
-        cudaMemcpy(ACCUMULATED_COSTS(i,j,0), COSTS(i,j,0), sizeof(int)*disp_range, cudaMemcpyDeviceToDevice);
-
         evaluate_path_dev( &ACCUMULATED_COSTS(i-dirx,j,0),
                        &COSTS(i,j,0),
                        abs(LEFT_IMAGE(i,j)-LEFT_IMAGE(i-dirx,j)) ,
@@ -349,6 +347,8 @@ void evaluate_path(const int *prior, const int *local,
                      int path_intensity_gradient, int *curr_cost ,
                      const int nx, const int ny, const int disp_range)
   {
+    memcpy(curr_cost, local, sizeof(int)*disp_range);
+
     for ( int d = 0; d < disp_range; d++ ) {
       int e_smooth = NPP_MAX_16U;
       for ( int d_p = 0; d_p < disp_range; d_p++ ) {
