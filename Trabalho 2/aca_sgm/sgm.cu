@@ -145,7 +145,7 @@ __global__ void iterate_direction_dirxpos_dev(const int dirx, const int *left_im
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (i < nx * ny && j < 2){
+    if (i < nx && j < ny){
       if(i == 0){
         for ( int d = 0; d < disp_range; d++ ) {
             ACCUMULATED_COSTS(0,j,d) += COSTS(0,j,d);
@@ -341,7 +341,7 @@ void iterate_direction_dev( const int dirx, const int diry, const int *left_imag
       int grid_y = ceil((float)ny / block_y);
 
       dim3 block(block_x, block_y);
-      dim3 grid(grid_x*grid_y, 1);
+      dim3 grid(grid_x, grid_y);
       // Process every pixel along this edge
       printf("dirx: %d, nx: %d, ny: %d", dirx, nx, ny);
 
