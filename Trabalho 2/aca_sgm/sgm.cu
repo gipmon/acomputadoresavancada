@@ -41,7 +41,7 @@ void determine_costs(const int *left_image, const int *right_image, int *costs,
 void evaluate_path( const int *prior, const int* local,
                     int path_intensity_gradient, int *curr_cost,
                     const int nx, const int ny, const int disp_range );
-__global__ void evaluate_path_dev(const int *prior, const int *local,
+__device__ void evaluate_path_dev(const int *prior, const int *local,
                     int path_intensity_gradient, int *curr_cost ,
                     const int nx, const int ny, const int disp_range);
 
@@ -415,7 +415,7 @@ void evaluate_path(const int *prior, const int *local,
   }
 }
 
-__global__ void evaluate_path_dev(const int *prior, const int *local,
+__device__ void evaluate_path_dev(const int *prior, const int *local,
                      int path_intensity_gradient, int *curr_cost ,
                      const int nx, const int ny, const int disp_range)
   {
