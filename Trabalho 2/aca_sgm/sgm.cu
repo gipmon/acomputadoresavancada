@@ -236,7 +236,7 @@ __global__ void iterate_direction_dirxneg_dev(const int dirx, const int *left_im
       int i = blockIdx.x * blockDim.x + threadIdx.x;
       int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-      if(i >= 0 && j < ny){
+      if(i >= 0 && j < ny && i < nx){
         if(i == nx-1){
           for ( int d = 0; d < disp_range; d++ ) {
               ACCUMULATED_COSTS(nx-1,j,d) += COSTS(nx-1,j,d);
@@ -282,7 +282,7 @@ __global__ void iterate_direction_diryneg_dev(const int diry, const int *left_im
       int i = blockIdx.x * blockDim.x + threadIdx.x;
       int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-      if(i < nx && j >= 0){
+      if(i < nx && j >= 0 && j < ny){
         if(j == ny-1){
           for ( int d = 0; d < disp_range; d++ ) {
               ACCUMULATED_COSTS(i,ny-1,d) += COSTS(i,ny-1,d);
@@ -563,7 +563,7 @@ void sgmDevice( const int *h_leftIm, const int *h_rightIm,
 
   determine_costs_device<<<grid, block>>>(devPtr_leftImage, devPtr_rightImage, devPtr_costs, nx, ny, disp_range);
   //determine_costs(h_leftIm, h_rightIm, costs, nx, ny, disp_range);
-  cudaMemcpy(costs, devPtr_costs, nx*ny*disp_range*sizeof(int), cudaMemcpyDeviceToHost);
+  //cudaMemcpy(costs, devPtr_costs, nx*ny*disp_range*sizeof(int), cudaMemcpyDeviceToHost);
 
   int *accumulated_costs = (int *) calloc(nx*ny*disp_range,sizeof(int));
   int *dir_accumulated_costs = (int *) calloc(nx*ny*disp_range,sizeof(int));
@@ -580,10 +580,8 @@ void sgmDevice( const int *h_leftIm, const int *h_rightIm,
       if(dirx==0 && diry==0) continue;
       std::fill(dir_accumulated_costs, dir_accumulated_costs+nx*ny*disp_range, 0);
       cudaMemcpy(devPtr_dirAccumulatedCosts, dir_accumulated_costs, nx*ny*disp_range*sizeof(int), cudaMemcpyHostToDevice);
-      cudaMemcpy(devPtr_costs, costs, nx*ny*disp_range*sizeof(int), cudaMemcpyHostToDevice);
       iterate_direction_dev( dirx,diry, devPtr_leftImage, devPtr_costs, devPtr_dirAccumulatedCosts, nx, ny, disp_range, block, grid);
       cudaMemcpy(dir_accumulated_costs, devPtr_dirAccumulatedCosts, nx*ny*disp_range*sizeof(int), cudaMemcpyDeviceToHost);
-      cudaMemcpy(costs, devPtr_costs, nx*ny*disp_range*sizeof(int), cudaMemcpyDeviceToHost);
       inplace_sum_views( accumulated_costs, dir_accumulated_costs, nx, ny, disp_range);
   }
   dirx=0;
