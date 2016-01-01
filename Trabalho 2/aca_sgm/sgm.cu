@@ -95,6 +95,22 @@ void determine_costs(const int *left_image, const int *right_image, int *costs,
   }
 }
 
+__global__ void determine_costs_device(const int *left_image, const int *right_image, int *costs,
+                                        const int nx, const int ny, const int disp_range)
+{
+  int i = blockIdx.x * blockDim.x + threadIdx.x;
+  int j = blockIdx.y * blockDim.y + threadIdx.y;
+
+  if (i < nx && j < ny)
+  {
+    for ( int d = 0; d < disp_range; d++ ) {
+      if(i >= d){
+        COSTS(i,j,d) = abs( LEFT_IMAGE(i,j) - RIGHT_IMAGE(i-d,j));
+      }
+    }
+  }
+}
+
 void iterate_direction_dirxpos(const int dirx, const int *left_image,
                         const int* costs, int *accumulated_costs,
                         const int nx, const int ny, const int disp_range )
@@ -233,6 +249,17 @@ void inplace_sum_views( int * im1, const int * im2,
     }
 }
 
+__global__ void inplace_sum_views_dev( int * im1, const int * im2,
+                        const int nx, const int ny, const int disp_range )
+{
+    int *im1_init = im1;
+    while ( im1 != (im1_init + (nx*ny*disp_range)) ) {
+      *im1 += *im2;
+      im1++;
+      im2++;
+    }
+}
+
 int find_min_index( const int *v, const int disp_range )
 {
     int min = std::numeric_limits<int>::max();
@@ -358,6 +385,16 @@ void sgmDevice( const int *h_leftIm, const int *h_rightIm,
 {
   const int nx = w;
   const int ny = h;
+  int imageSize = nx * ny * sizeof(int);
+
+  int block_x = 32;
+  int block_y = 16;
+
+  int grid_x = ceil((float)nx / block_x);
+  int grid_y = ceil((float)ny / block_y);
+
+  dim3 block(block_x, block_y);
+  dim3 grid(grid_x, grid_y);
 
   // Processing all costs. W*H*D. D= disp_range
   int *costs = (int *) calloc(nx*ny*disp_range,sizeof(int));
@@ -367,7 +404,27 @@ void sgmDevice( const int *h_leftIm, const int *h_rightIm,
         exit(1);
   }
 
-  determine_costs(h_leftIm, h_rightIm, costs, nx, ny, disp_range);
+  int *devPtr_leftImage;
+  int *devPtr_rightImage;
+  int *devPtr_costs;
+  int *devPtr_accumulatedCosts;
+  int *devPtr_dirAccumulatedCosts;
+
+  std::fill(costs, costs+nx*ny*disp_range, 255u);
+
+  cudaMalloc((void**)&devPtr_leftImage, imageSize);
+  cudaMalloc((void**)&devPtr_rightImage, imageSize);
+  cudaMalloc((void**)&devPtr_costs, nx*ny*disp_range*sizeof(int));
+  cudaMalloc((void**)&devPtr_accumulatedCosts, nx*ny*disp_range*sizeof(int));
+  cudaMalloc((void**)&devPtr_dirAccumulatedCosts, nx*ny*disp_range*sizeof(int));
+
+  cudaMemcpy(devPtr_leftImage, h_leftIm, imageSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(devPtr_rightImage, h_rightIm, imageSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(devPtr_costs, costs, nx*ny*disp_range*sizeof(int), cudaMemcpyHostToDevice);
+
+  determine_costs_device<<<grid, block>>>(devPtr_leftImage, devPtr_rightImage, devPtr_costs, nx, ny, disp_range);
+  //determine_costs(h_leftIm, h_rightIm, costs, nx, ny, disp_range);
+  cudaMemcpy(costs, devPtr_costs, nx*ny*disp_range*sizeof(int), cudaMemcpyDeviceToHost);
 
   int *accumulated_costs = (int *) calloc(nx*ny*disp_range,sizeof(int));
   int *dir_accumulated_costs = (int *) calloc(nx*ny*disp_range,sizeof(int));
@@ -377,37 +434,50 @@ void sgmDevice( const int *h_leftIm, const int *h_rightIm,
         exit(1);
   }
 
+
   int dirx=0,diry=0;
   for(dirx=-1; dirx<2; dirx++) {
       if(dirx==0 && diry==0) continue;
       std::fill(dir_accumulated_costs, dir_accumulated_costs+nx*ny*disp_range, 0);
       iterate_direction( dirx,diry, h_leftIm, costs, dir_accumulated_costs, nx, ny, disp_range);
-      inplace_sum_views( accumulated_costs, dir_accumulated_costs, nx, ny, disp_range);
+
+      cudaMemcpy(devPtr_dirAccumulatedCosts, dir_accumulated_costs, nx*ny*disp_range*sizeof(int), cudaMemcpyHostToDevice);
+      cudaMemcpy(devPtr_accumulatedCosts, accumulated_costs, nx*ny*disp_range*sizeof(int), cudaMemcpyHostToDevice);
+
+      inplace_sum_views_dev<<<grid, block>>>(devPtr_accumulatedCosts, devPtr_dirAccumulatedCosts, nx, ny, disp_range);
+
+      cudaMemcpy(dir_accumulated_costs, devPtr_dirAccumulatedCosts, nx*ny*disp_range*sizeof(int), cudaMemcpyDeviceToHost);
+      cudaMemcpy(accumulated_costs, devPtr_accumulatedCosts, nx*ny*disp_range*sizeof(int), cudaMemcpyDeviceToHost);
+
   }
   dirx=0;
   for(diry=-1; diry<2; diry++) {
       if(dirx==0 && diry==0) continue;
       std::fill(dir_accumulated_costs, dir_accumulated_costs+nx*ny*disp_range, 0);
       iterate_direction( dirx,diry, h_leftIm, costs, dir_accumulated_costs, nx, ny, disp_range);
-      inplace_sum_views( accumulated_costs, dir_accumulated_costs, nx, ny, disp_range);
+
+      cudaMemcpy(devPtr_dirAccumulatedCosts, dir_accumulated_costs, nx*ny*disp_range*sizeof(int), cudaMemcpyHostToDevice);
+      cudaMemcpy(devPtr_accumulatedCosts, accumulated_costs, nx*ny*disp_range*sizeof(int), cudaMemcpyHostToDevice);
+
+      inplace_sum_views_dev<<<grid, block>>>(devPtr_accumulatedCosts, devPtr_dirAccumulatedCosts, nx, ny, disp_range);
+
+      cudaMemcpy(dir_accumulated_costs, devPtr_dirAccumulatedCosts, nx*ny*disp_range*sizeof(int), cudaMemcpyDeviceToHost);
+      cudaMemcpy(accumulated_costs, devPtr_accumulatedCosts, nx*ny*disp_range*sizeof(int), cudaMemcpyDeviceToHost);
+
   }
+
 
   free(costs);
   free(dir_accumulated_costs);
 
-  // imagem de saida
-  // geometria do kernel
-  // alocar a memoria
-  // reservar memoria para o accumulated_costs, cudaMalloc com a dimensao q esta la
-  // h e de host => d para ser device
-  // d_dispIm e a saida
-
-  // ll d_bull.pgm
-  // ll d_bull.pgm
-  // ./testDiffs d_bull.pgm h_bull.pgm
-  create_disparity_view( accumulated_costs, h_dispIm, nx, ny, disp_range ); // facil +
+  create_disparity_view( accumulated_costs, h_dispImD, nx, ny, disp_range ); // facil +
 
   free(accumulated_costs);
+  cudaFree(devPtr_leftImage);
+  cudaFree(devPtr_rightImage);
+  cudaFree(devPtr_costs);
+  cudaFree(devPtr_accumulatedCosts);
+  cudaFree(devPtr_dirAccumulatedCosts);
 }
 
 // print command line format
