@@ -351,7 +351,7 @@ void evaluate_path(const int *prior, const int *local,
   }
 }
 
-  __device__ void evaluate_path_dev(const int *prior, const int *local,
+__device__ void evaluate_path_dev(const int *prior, const int *local,
                      int path_intensity_gradient, int *curr_cost ,
                      const int nx, const int ny, const int disp_range)
   {
@@ -500,6 +500,8 @@ void sgmDevice( const int *h_leftIm, const int *h_rightIm,
   determine_costs_device<<<grid, block>>>(devPtr_leftImage, devPtr_rightImage, devPtr_costs, nx, ny, disp_range);
   //determine_costs(h_leftIm, h_rightIm, costs, nx, ny, disp_range);
   cudaMemcpy(costs, devPtr_costs, nx*ny*disp_range*sizeof(int), cudaMemcpyDeviceToHost);
+  cudaMemcpy(h_leftIm, devPtr_leftImage, imageSize, cudaMemcpyDeviceToHost);
+  cudaMemcpy(h_rightIm, devPtr_rightImage, imageSize, cudaMemcpyDeviceToHost);
 
   int *accumulated_costs = (int *) calloc(nx*ny*disp_range,sizeof(int));
   int *dir_accumulated_costs = (int *) calloc(nx*ny*disp_range,sizeof(int));
