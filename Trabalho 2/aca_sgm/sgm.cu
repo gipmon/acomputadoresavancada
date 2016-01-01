@@ -145,7 +145,7 @@ __global__ void iterate_direction_dirxpos_dev(const int dirx, const int *left_im
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    printf("i: " + i + " j: " + j);
+    printf("i: %d, j: %d", i, j);
     if (i < nx && j < ny){
       if(i == 0){
         for ( int d = 0; d < disp_range; d++ ) {
