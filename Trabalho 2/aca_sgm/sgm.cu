@@ -152,7 +152,7 @@ __global__ void iterate_direction_dirxpos_dev(const int dirx, const int *left_im
             }
         }
         else {
-            evaluate_path( &ACCUMULATED_COSTS(i-dirx,j,0),
+            evaluate_path_dev( &ACCUMULATED_COSTS(i-dirx,j,0),
                            &COSTS(i,j,0),
                            abs(LEFT_IMAGE(i,j)-LEFT_IMAGE(i-dirx,j)) ,
                            &ACCUMULATED_COSTS(i,j,0), nx, ny, disp_range);
