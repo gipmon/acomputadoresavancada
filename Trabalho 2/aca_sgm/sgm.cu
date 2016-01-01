@@ -145,7 +145,6 @@ __global__ void iterate_direction_dirxpos_dev(const int dirx, const int *left_im
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    printf("i: %d, j: %d", i, j);
     if (i < nx && j < ny){
       if(i == 0){
         for ( int d = 0; d < disp_range; d++ ) {
@@ -305,6 +304,8 @@ void iterate_direction( const int dirx, const int diry, const int *left_image,
     if ( dirx > 0 ) {
       // LEFT MOST EDGE
       // Process every pixel along this edge
+      printf("dirx: %d, nx: %d, ny: %d", dirx, nx, ny);
+
       iterate_direction_dirxpos(dirx,left_image,costs,accumulated_costs, nx, ny, disp_range);
     }
     else if ( diry > 0 ) {
