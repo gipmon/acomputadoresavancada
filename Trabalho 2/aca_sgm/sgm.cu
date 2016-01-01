@@ -130,7 +130,7 @@ void iterate_direction_dirxpos(const int dirx, const int *left_image,
                   }
               }
               else {
-                  evaluate_path_dev( &ACCUMULATED_COSTS(i-dirx,j,0),
+                  evaluate_path( &ACCUMULATED_COSTS(i-dirx,j,0),
                                  &COSTS(i,j,0),
                                  abs(LEFT_IMAGE(i,j)-LEFT_IMAGE(i-dirx,j)) ,
                                  &ACCUMULATED_COSTS(i,j,0), nx, ny, disp_range);
