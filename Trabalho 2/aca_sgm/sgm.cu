@@ -334,8 +334,8 @@ void iterate_direction_dev( const int dirx, const int diry, const int *left_imag
     // Walk along the edges in a clockwise fashion
     if ( dirx > 0 ) {
       // LEFT MOST EDGE
-      int block_x = 512;
-      int block_y = 1;
+      int block_x = 1;
+      int block_y = 512;
 
       int grid_x = ceil((float)nx / block_x);
       int grid_y = ceil((float)ny / block_y);
