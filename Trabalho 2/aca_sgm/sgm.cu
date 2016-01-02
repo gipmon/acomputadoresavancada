@@ -144,24 +144,23 @@ __global__ void iterate_direction_dirxpos_dev(const int dirx, const int *left_im
                         const int nx, const int ny, const int disp_range ){
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
-    for ( j; j < ny; j++ ) {
-        for ( i; i < nx; i++ ) {
-          if(i==0) {
-            for ( int d = 0; d < disp_range; d++ ) {
-              ACCUMULATED_COSTS(0,j,d) += COSTS(0,j,d);
-            }
 
-            }
-            else {
-                evaluate_path_dev( &ACCUMULATED_COSTS(i-dirx,j,0),
-                               &COSTS(i,j,0),
-                               abs(LEFT_IMAGE(i,j)-LEFT_IMAGE(i-dirx,j)) ,
-                               &ACCUMULATED_COSTS(i,j,0), nx, ny, disp_range);
-
-            }
+    for ( i; i < nx; i++ ) {
+      if(i==0) {
+        for ( int d = 0; d < disp_range; d++ ) {
+          ACCUMULATED_COSTS(0,j,d) += COSTS(0,j,d);
         }
 
+        }
+        else {
+            evaluate_path_dev( &ACCUMULATED_COSTS(i-dirx,j,0),
+                           &COSTS(i,j,0),
+                           abs(LEFT_IMAGE(i,j)-LEFT_IMAGE(i-dirx,j)) ,
+                           &ACCUMULATED_COSTS(i,j,0), nx, ny, disp_range);
+
+        }
     }
+
 }
 
 void iterate_direction_dirypos(const int diry, const int *left_image,
