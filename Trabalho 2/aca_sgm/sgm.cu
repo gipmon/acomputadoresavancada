@@ -146,7 +146,7 @@ __global__ void iterate_direction_dirxpos_dev(const int dirx, const int *left_im
       int i = blockIdx.x * blockDim.x + threadIdx.x;
       int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-        for (; j < ny; j++ ) {
+        for (; i < nx; i++ ) {
 
           if(i==0) {
             for ( int d = 0; d < disp_range; d++ ) {
