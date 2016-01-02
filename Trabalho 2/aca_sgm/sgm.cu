@@ -143,11 +143,9 @@ __global__ void iterate_direction_dirxpos_dev(const int dirx, const int *left_im
                         const int* costs, int *accumulated_costs,
                         const int nx, const int ny, const int disp_range ){
 
+      int i = blockIdx.x * blockDim.x + threadIdx.x;
+      int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-      const int WIDTH = nx;
-      const int HEIGHT = ny;
-
-      for ( int j = 0; j < HEIGHT; j++ ) {
         for ( int i = 0; i < WIDTH; i++ ) {
 
           if(i==0) {
