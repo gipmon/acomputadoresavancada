@@ -393,7 +393,7 @@ void iterate_direction_dev( const int dirx, const int diry, const int *left_imag
       int grid_y = ceil((float)ny / block_y);
 
       dim3 block(block_x, block_y);
-      dim3 grid(1, grid_y);
+      dim3 grid(grid_x, grid_y);
       // Process every pixel along this edge only if diry ==
       // 0. Otherwise skip the top right most pixel
       //iterate_direction_dirxneg_dev<<<grid, block>>>(dirx,left_image,costs,accumulated_costs, nx, ny, disp_range);
@@ -407,7 +407,7 @@ void iterate_direction_dev( const int dirx, const int diry, const int *left_imag
       int grid_y = ceil((float)ny / block_y);
 
       dim3 block(block_x, block_y);
-      dim3 grid(grid_x, 1);
+      dim3 grid(grid_x, grid_y);
       // Process every pixel along this edge only if dirx ==
       // 0. Otherwise skip the bottom left and bottom right pixel
       iterate_direction_diryneg_dev<<<grid, block>>>(diry,left_image,costs,accumulated_costs, nx, ny, disp_range);
