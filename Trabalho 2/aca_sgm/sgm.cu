@@ -162,7 +162,7 @@ __global__ void iterate_direction_dirxpos_dev(const int dirx, const int *left_im
 
             }
           }
-        }
+        
 
 
 }
