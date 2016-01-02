@@ -247,7 +247,7 @@ __global__ void iterate_direction_dirxneg_dev(const int dirx, const int *left_im
       if(i < nx-1){
         return;
       }else if(i == nx-1){
-        if(j<ny){
+        if(j < ny){
           for(; i >= 0; i--){
             if(i==nx-1){
               for ( int d = 0; d < disp_range; d++ ) {
@@ -332,7 +332,7 @@ void iterate_direction( const int dirx, const int diry, const int *left_image,
       // RIGHT MOST EDGE
       // Process every pixel along this edge only if diry ==
       // 0. Otherwise skip the top right most pixel
-      //iterate_direction_dirxneg(dirx,left_image,costs,accumulated_costs, nx, ny, disp_range);
+      iterate_direction_dirxneg(dirx,left_image,costs,accumulated_costs, nx, ny, disp_range);
     }
     else if ( diry < 0 ) {
       // BOTTOM MOST EDGE
