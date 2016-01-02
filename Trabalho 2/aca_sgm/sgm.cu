@@ -379,13 +379,13 @@ void iterate_direction_dev( const int dirx, const int diry, const int *left_imag
     else if ( dirx < 0 ) {
       // RIGHT MOST EDGE
       int block_x = 1;
-      int block_y = ny;
+      int block_y = 128;
 
       int grid_x = ceil((float)nx / block_x);
       int grid_y = ceil((float)ny / block_y);
 
       dim3 block(block_x, block_y);
-      dim3 grid(grid_x, 1);
+      dim3 grid(1, grid_y);
       // Process every pixel along this edge only if diry ==
       // 0. Otherwise skip the top right most pixel
       iterate_direction_dirxneg_dev<<<grid, block>>>(dirx,left_image,costs,accumulated_costs, nx, ny, disp_range);
