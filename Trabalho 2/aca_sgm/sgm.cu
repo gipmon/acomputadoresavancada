@@ -161,7 +161,7 @@ __global__ void iterate_direction_dirxpos_dev(const int dirx, const int *left_im
 
           }
         }
-      }
+
 
 
 
@@ -351,7 +351,7 @@ void iterate_direction_dev( const int dirx, const int diry, const int *left_imag
       dim3 grid(grid_x, grid_y);
       // Process every pixel along this edge
       printf("dirx: %d, nx: %d, ny: %d", dirx, nx, ny);
-      
+
       iterate_direction_dirxpos_dev<<<grid, block>>>(dirx,left_image,costs,accumulated_costs, nx, ny, disp_range);
 
 
