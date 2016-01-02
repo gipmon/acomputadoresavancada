@@ -249,7 +249,7 @@ __global__ void iterate_direction_dirxneg_dev(const int dirx, const int *left_im
       }else if(i == nx-1){
         if(j<ny){
           for(; i >= 0; i--){
-            if(i==ny-1){
+            if(i==nx-1){
               for ( int d = 0; d < disp_range; d++ ) {
                   ACCUMULATED_COSTS(nx-1,j,d) += COSTS(nx-1,j,d);
               }
