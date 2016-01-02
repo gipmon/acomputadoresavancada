@@ -164,9 +164,6 @@ __global__ void iterate_direction_dirxpos_dev(const int dirx, const int *left_im
           }
         }
 
-
-
-
 }
 
 void iterate_direction_dirypos(const int diry, const int *left_image,
