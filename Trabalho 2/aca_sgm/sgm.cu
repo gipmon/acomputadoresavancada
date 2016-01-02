@@ -146,19 +146,21 @@ __global__ void iterate_direction_dirxpos_dev(const int dirx, const int *left_im
       int i = blockIdx.x * blockDim.x + threadIdx.x;
       int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-      for(int i = 0; i<nx; i++){
-        if(i==0) {
-          for ( int d = 0; d < disp_range; d++ ) {
-            ACCUMULATED_COSTS(0,j,d) += COSTS(0,j,d);
-          }
+      for(; i<nx; i++){
+        if(j < ny){
+          if(i==0) {
+            for ( int d = 0; d < disp_range; d++ ) {
+              ACCUMULATED_COSTS(0,j,d) += COSTS(0,j,d);
+            }
 
-          }
-          else {
-              evaluate_path_dev( &ACCUMULATED_COSTS(i-dirx,j,0),
-                             &COSTS(i,j,0),
-                             abs(LEFT_IMAGE(i,j)-LEFT_IMAGE(i-dirx,j)) ,
-                             &ACCUMULATED_COSTS(i,j,0), nx, ny, disp_range);
+            }
+            else {
+                evaluate_path_dev( &ACCUMULATED_COSTS(i-dirx,j,0),
+                               &COSTS(i,j,0),
+                               abs(LEFT_IMAGE(i,j)-LEFT_IMAGE(i-dirx,j)) ,
+                               &ACCUMULATED_COSTS(i,j,0), nx, ny, disp_range);
 
+            }
           }
         }
 
@@ -342,13 +344,13 @@ void iterate_direction_dev( const int dirx, const int diry, const int *left_imag
     if ( dirx > 0 ) {
       // LEFT MOST EDGE
       int block_x = 1;
-      int block_y = ny;
+      int block_y = 128;
 
       int grid_x = ceil((float)nx / block_x);
       int grid_y = ceil((float)ny / block_y);
 
       dim3 block(block_x, block_y);
-      dim3 grid(1, 1);
+      dim3 grid(1, grid_y);
       // Process every pixel along this edge
       printf("dirx: %d, nx: %d, ny: %d", dirx, nx, ny);
 
