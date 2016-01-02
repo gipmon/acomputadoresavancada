@@ -379,7 +379,7 @@ void iterate_direction_dev( const int dirx, const int diry, const int *left_imag
     else if ( dirx < 0 ) {
       // RIGHT MOST EDGE
       int block_x = 1;
-      int block_y = 128;
+      int block_y = ny;
 
       int grid_x = ceil((float)nx / block_x);
       int grid_y = ceil((float)ny / block_y);
