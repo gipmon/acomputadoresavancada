@@ -151,17 +151,11 @@ __global__ void iterate_direction_dirxpos_dev(const int dirx, const int *left_im
           ACCUMULATED_COSTS(0,j,d) += COSTS(0,j,d);
         }
 
-
-
         for(i = 1; i<nx; i++){
-
-
           evaluate_path_dev( &ACCUMULATED_COSTS(i-dirx,j,0),
                            &COSTS(i,j,0),
                            abs(LEFT_IMAGE(i,j)-LEFT_IMAGE(i-dirx,j)) ,
                            &ACCUMULATED_COSTS(i,j,0), nx, ny, disp_range);
-
-
         }
       }
 
@@ -196,19 +190,18 @@ __global__ void iterate_direction_dirypos_dev(const int diry, const int *left_im
                         const int nx, const int ny, const int disp_range )
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
-    int j = blockIdx.y * blockDim.y + threadIdx.y;
+    int j = 0;
     if(i < nx){
-      for(; j<ny; j++){
-          if(j == 0){
-            for ( int d = 0; d < disp_range; d++ ) {
-                ACCUMULATED_COSTS(i,0,d) += COSTS(i,0,d);
-            }
-          }else {
-              evaluate_path_dev( &ACCUMULATED_COSTS(i,j-diry,0),
-                             &COSTS(i,j,0),
-                             abs(LEFT_IMAGE(i,j)-LEFT_IMAGE(i,j-diry)),
-                             &ACCUMULATED_COSTS(i,j,0), nx, ny, disp_range );
-          }
+        for ( int d = 0; d < disp_range; d++ ) {
+            ACCUMULATED_COSTS(i,0,d) += COSTS(i,0,d);
+        }
+        for(j = 1; j<ny; j++){
+
+          evaluate_path_dev( &ACCUMULATED_COSTS(i,j-diry,0),
+                         &COSTS(i,j,0),
+                         abs(LEFT_IMAGE(i,j)-LEFT_IMAGE(i,j-diry)),
+                         &ACCUMULATED_COSTS(i,j,0), nx, ny, disp_range );
+
       }
     }
 }
@@ -245,20 +238,20 @@ __global__ void iterate_direction_dirxneg_dev(const int dirx, const int *left_im
       int j = blockIdx.y * blockDim.y + threadIdx.y;
 
       if(j < ny){
-        for(; i >= 0; i--){
-          if(i==nx-1){
-            for ( int d = 0; d < disp_range; d++ ) {
-                ACCUMULATED_COSTS(nx-1,j,d) += COSTS(nx-1,j,d);
-            }
-          }else{
+
+        for ( int d = 0; d < disp_range; d++ ) {
+            ACCUMULATED_COSTS(nx-1,j,d) += COSTS(nx-1,j,d);
+        }
+
+        for(i = nx-2; i >= 0; i--){
             evaluate_path_dev( &ACCUMULATED_COSTS(i-dirx,j,0),
                            &COSTS(i,j,0),
                            abs(LEFT_IMAGE(i,j)-LEFT_IMAGE(i-dirx,j)),
                            &ACCUMULATED_COSTS(i,j,0), nx, ny, disp_range );
-          }
-
-
         }
+
+
+
       }
 }
 
@@ -294,21 +287,18 @@ __global__ void iterate_direction_diryneg_dev(const int diry, const int *left_im
       int i = blockIdx.x * blockDim.x + threadIdx.x;
       int j = ny-1;
       if(i < nx){
-        for(; j >= 0; j--){
-          if(j == ny-1){
-            for ( int d = 0; d < disp_range; d++ ) {
-                ACCUMULATED_COSTS(i,ny-1,d) += COSTS(i,ny-1,d);
-            }
-          }else {
-              evaluate_path_dev( &ACCUMULATED_COSTS(i,j-diry,0),
+        for ( int d = 0; d < disp_range; d++ ) {
+            ACCUMULATED_COSTS(i,ny-1,d) += COSTS(i,ny-1,d);
+        }
+
+        for(j = ny-2; j >= 0; j--){
+
+            evaluate_path_dev( &ACCUMULATED_COSTS(i,j-diry,0),
                        &COSTS(i,j,0),
                        abs(LEFT_IMAGE(i,j)-LEFT_IMAGE(i,j-diry)),
                        &ACCUMULATED_COSTS(i,j,0) , nx, ny, disp_range);
          }
-        }
-
       }
-
 }
 
 void iterate_direction( const int dirx, const int diry, const int *left_image,
