@@ -410,9 +410,11 @@ void inplace_sum_views( int * im1, const int * im2,
 
 __global__ void inplace_sum_views_dev(int * im1, const int * im2,
                                       const int nx, const int ny, const int disp_range){
-      int *im1_init = im1;
+      int i1 = blockIdx.x * blockDim.x + threadIdx.x;
+      int j = blockIdx.y * blockDim.y + threadIdx.y;
+      int *im1_init = im1[0];
       while ( im1 != (im1_init + (nx*ny*disp_range)) ) {
-        *im1 += *im2;
+        im1[i] += im2[i];
         im1++;
         im2++;
       }
@@ -589,8 +591,8 @@ void sgmDevice( const int *h_leftIm, const int *h_rightIm,
 
   dim3 block(block_x, block_y);
   dim3 grid(grid_x, grid_y);
-  dim3 block1(1, 1);
-  dim3 grid1(1, 1);
+  dim3 block1(block_x, block_y);
+  dim3 grid1(grid_x, grid_y);
 
   // Processing all costs. W*H*D. D= disp_range
   int *costs = (int *) calloc(nx*ny*disp_range,sizeof(int));
