@@ -603,6 +603,7 @@ void sgmDevice( const int *h_leftIm, const int *h_rightIm,
   int *devPtr_rightImage;
   int *devPtr_costs;
   int *devPtr_dirAccumulatedCosts;
+  int *devPtr_accumulatedCosts;
 
   std::fill(costs, costs+nx*ny*disp_range, 255u);
 
