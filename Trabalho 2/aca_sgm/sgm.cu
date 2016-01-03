@@ -414,7 +414,7 @@ __global__ void inplace_sum_views_dev(int * im1, const int * im2,
       int j = blockIdx.y * blockDim.y + threadIdx.y;
       if(j<ny && i < nx){
         int id = i + (j * nx);
-        int *im1_init = im1+id;
+        int *im1_init = im1;
         if(im1+id != (im1_init + (nx*ny*disp_range))  ){
           im1[id] += im2[id];
 
@@ -642,7 +642,7 @@ void sgmDevice( const int *h_leftIm, const int *h_rightIm,
       std::fill(dir_accumulated_costs, dir_accumulated_costs+nx*ny*disp_range, 0);
       cudaMemcpy(devPtr_dirAccumulatedCosts, dir_accumulated_costs, nx*ny*disp_range*sizeof(int), cudaMemcpyHostToDevice);
       iterate_direction_dev( dirx,diry, devPtr_leftImage, devPtr_costs, devPtr_dirAccumulatedCosts, nx, ny, disp_range);
-      inplace_sum_views_dev<<<grid1, block1>>>( dir_accumulated_costs, devPtr_dirAccumulatedCosts, nx, ny, disp_range);
+      inplace_sum_views_dev<<<grid1, block1>>>( devPtr_accumulatedCosts, devPtr_dirAccumulatedCosts, nx, ny, disp_range);
 
   }
   dirx=0;
