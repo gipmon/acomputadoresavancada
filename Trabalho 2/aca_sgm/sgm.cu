@@ -145,13 +145,14 @@ __global__ void iterate_direction_dirxpos_dev(const int dirx, const int *left_im
 
       int i = 0;
       int j = blockIdx.y * blockDim.y + threadIdx.y;
-      if(i==0){
+      if(j < ny){
+
         for ( int d = 0; d < disp_range; d++ ) {
           ACCUMULATED_COSTS(0,j,d) += COSTS(0,j,d);
         }
-      }
-  
-      if(j < ny){
+
+
+
         for(i = 1; i<nx; i++){
 
 
