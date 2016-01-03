@@ -416,7 +416,7 @@ __global__ void inplace_sum_views_dev(int * im1, const int * im2,
         int id = i + (j * nx);
         int *im1_init = im1+id;
         if(im1+id != (im1_init + (nx*ny*disp_range))  ){
-          (im1+id) += (im2+id);
+          im1[id] += im2[id];
 
         }
 
