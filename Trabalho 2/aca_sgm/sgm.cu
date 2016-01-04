@@ -412,7 +412,7 @@ __global__ void inplace_sum_views_dev(int * im1, const int * im2,
                                       const int nx, const int ny, const int disp_range){
       int i = blockIdx.x * blockDim.x + threadIdx.x;
       int j = blockIdx.y * blockDim.y + threadIdx.y;
-      int id = i + (j * nx);
+      int id = i + (j * (nx*disp_range));
       int *im1_init = im1;
       im1 += id;
       im2 += id;
