@@ -413,12 +413,15 @@ __global__ void inplace_sum_views_dev(int * im1, const int * im2,
       int i = blockIdx.x * blockDim.x + threadIdx.x;
       int j = blockIdx.y * blockDim.y + threadIdx.y;
       int id = i + (j * (nx*disp_range));
-      int *im1_init = im1;
-      im1 += id;
-      im2 += id;
-      if(im1 != (im1_init + (nx*ny*disp_range))  ){
-        *im1 += *im2;
+      if(i < nx*disp_range && j < ny){
+        int *im1_init = im1;
+        im1 += id;
+        im2 += id;
+        if(im1 != (im1_init + (nx*ny*disp_range))  ){
+          *im1 += *im2;
+        }
       }
+
 }
 
 int find_min_index( const int *v, const int disp_range )
