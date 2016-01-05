@@ -43,7 +43,7 @@ void evaluate_path( const int *prior, const int* local,
                     const int nx, const int ny, const int disp_range );
 __device__ void evaluate_path_dev(const int *prior, const int *local,
                     int path_intensity_gradient, int *curr_cost ,
-                    const int nx, const int ny, const int disp_range, const int d, int l);
+                    const int nx, const int ny, const int disp_range, const int d);
 
 void iterate_direction_dirxpos(const int dirx, const int *left_image,
                                const int* costs, int *accumulated_costs,
@@ -143,7 +143,7 @@ __global__ void iterate_direction_dirxpos_dev(const int dirx, const int *left_im
                         const int* costs, int *accumulated_costs,
                         const int nx, const int ny, const int disp_range ){
 
-      int i = blockIdx.x * blockDim.x + threadIdx.x;
+      int i = threadIdx.x;
       int j = blockIdx.y * blockDim.y + threadIdx.y;
       if(i < disp_range){
         ACCUMULATED_COSTS(0,j,i) += COSTS(0,j,i);
@@ -155,7 +155,7 @@ __global__ void iterate_direction_dirxpos_dev(const int dirx, const int *left_im
         evaluate_path_dev( &ACCUMULATED_COSTS(l-dirx,j,0),
                          &COSTS(l,j,0),
                          abs(LEFT_IMAGE(l,j)-LEFT_IMAGE(l-dirx,j)) ,
-                         &ACCUMULATED_COSTS(l,j,0), nx, ny, disp_range, i, l);
+                         &ACCUMULATED_COSTS(l,j,0), nx, ny, disp_range, i);
         __syncthreads();
 
       }
@@ -202,7 +202,7 @@ __global__ void iterate_direction_dirypos_dev(const int diry, const int *left_im
           evaluate_path_dev( &ACCUMULATED_COSTS(i,j-diry,0),
                          &COSTS(i,j,0),
                          abs(LEFT_IMAGE(i,j)-LEFT_IMAGE(i,j-diry)),
-                         &ACCUMULATED_COSTS(i,j,0), nx, ny, disp_range, i , j);
+                         &ACCUMULATED_COSTS(i,j,0), nx, ny, disp_range, i);
 
       }
     }
@@ -249,7 +249,7 @@ __global__ void iterate_direction_dirxneg_dev(const int dirx, const int *left_im
             evaluate_path_dev( &ACCUMULATED_COSTS(i-dirx,j,0),
                            &COSTS(i,j,0),
                            abs(LEFT_IMAGE(i,j)-LEFT_IMAGE(i-dirx,j)),
-                           &ACCUMULATED_COSTS(i,j,0), nx, ny, disp_range, i, j );
+                           &ACCUMULATED_COSTS(i,j,0), nx, ny, disp_range, i);
         }
 
 
@@ -298,7 +298,7 @@ __global__ void iterate_direction_diryneg_dev(const int diry, const int *left_im
             evaluate_path_dev( &ACCUMULATED_COSTS(i,j-diry,0),
                        &COSTS(i,j,0),
                        abs(LEFT_IMAGE(i,j)-LEFT_IMAGE(i,j-diry)),
-                       &ACCUMULATED_COSTS(i,j,0) , nx, ny, disp_range, i, j);
+                       &ACCUMULATED_COSTS(i,j,0) , nx, ny, disp_range, i);
          }
       }
 }
@@ -461,12 +461,12 @@ void evaluate_path(const int *prior, const int *local,
 
 __device__ void evaluate_path_dev(const int *prior, const int *local,
                      int path_intensity_gradient, int *curr_cost ,
-                     const int nx, const int ny, const int disp_range, const int d, int l)
+                     const int nx, const int ny, const int disp_range, const int d)
   {
     memcpy(curr_cost, local, sizeof(int)*disp_range);
 
     int e_smooth = NPP_MAX_16U;
-    for ( int d_p = 0; d_p < l; d_p++ ) {
+    for ( int d_p = 0; d_p < disp_range; d_p++ ) {
       if ( d_p - d == 0 ) {
         // No penality
         e_smooth = MMIN(e_smooth,prior[d_p]);
@@ -485,11 +485,12 @@ __device__ void evaluate_path_dev(const int *prior, const int *local,
     }
 
     int min = NPP_MAX_16U;
-
-    if (prior[d]<min) min=prior[d];
-
-
-    curr_cost[d]-=min;
+    for ( int d = 0; d < disp_range; d++ ) {
+      if (prior[d]<min) min=prior[d];
+    }
+    for ( int d = 0; d < disp_range; d++ ) {
+          curr_cost[d]-=min;
+    }
 
 }
 
