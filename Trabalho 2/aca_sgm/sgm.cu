@@ -146,16 +146,16 @@ __global__ void iterate_direction_dirxpos_dev(const int dirx, const int *left_im
       int i = blockIdx.x * blockDim.x + threadIdx.x;
       int j = blockIdx.y * blockDim.y + threadIdx.y;
       if(i < disp_range){
-        ACCUMULATED_COSTS(0,j,d) += COSTS(0,j,d);
+        ACCUMULATED_COSTS(0,j,i) += COSTS(0,j,i);
       }
 
-        for(int l = 1; i<nx; i++){
+        for(int l = 1; l<nx; l++){
           evaluate_path_dev( &ACCUMULATED_COSTS(l-dirx,j,0),
                            &COSTS(l,j,0),
                            abs(LEFT_IMAGE(l,j)-LEFT_IMAGE(l-dirx,j)) ,
                            &ACCUMULATED_COSTS(l,j,0), nx, ny, disp_range, i);
         }
-      
+
 
 }
 
