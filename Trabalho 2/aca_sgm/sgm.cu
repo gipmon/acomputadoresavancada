@@ -43,7 +43,7 @@ void evaluate_path( const int *prior, const int* local,
                     const int nx, const int ny, const int disp_range );
 __device__ void evaluate_path_dev(const int *prior, const int *local,
                     int path_intensity_gradient, int *curr_cost ,
-                    const int nx, const int ny, const int disp_range, const int di);
+                    const int nx, const int ny, const int disp_range, const int d);
 
 void iterate_direction_dirxpos(const int dirx, const int *left_image,
                                const int* costs, int *accumulated_costs,
@@ -152,10 +152,10 @@ __global__ void iterate_direction_dirxpos_dev(const int dirx, const int *left_im
 
 
       for(int l = 1; l<nx;l++){
-        evaluate_path_dev( &ACCUMULATED_COSTS(l-dirx,j,0),
+        evaluate_path_dev( &ACCUMULATED_COSTS(l-dirx,j,i),
                          &COSTS(l,j,0),
                          abs(LEFT_IMAGE(l,j)-LEFT_IMAGE(l-dirx,j)) ,
-                         &ACCUMULATED_COSTS(l,j,0), nx, ny, disp_range, i);
+                         &ACCUMULATED_COSTS(l,j,i), nx, ny, disp_range, i);
         __syncthreads();
 
       }
@@ -461,10 +461,9 @@ void evaluate_path(const int *prior, const int *local,
 
 __device__ void evaluate_path_dev(const int *prior, const int *local,
                      int path_intensity_gradient, int *curr_cost ,
-                     const int nx, const int ny, const int disp_range, const int di)
+                     const int nx, const int ny, const int disp_range, const int d)
   {
     memcpy(curr_cost, local, sizeof(int)*disp_range);
-    for(int d = 0; d < disp_range; d++){
     int e_smooth = NPP_MAX_16U;
     for ( int d_p = 0; d_p < disp_range; d_p++ ) {
       if ( d_p - d == 0 ) {
@@ -483,7 +482,7 @@ __device__ void evaluate_path_dev(const int *prior, const int *local,
 
       curr_cost[d] += e_smooth;
     }
-  }
+
 
     __syncthreads();
 
@@ -491,9 +490,8 @@ __device__ void evaluate_path_dev(const int *prior, const int *local,
     for ( int d_s = 0; d_s < disp_range; d_s++ ) {
       if (prior[d_s]<min) min=prior[d_s];
     }
-    for(int d= 0; d < disp_range;d++){
     curr_cost[d]-=min;
-  }
+
 
 
 }
