@@ -43,7 +43,7 @@ void evaluate_path( const int *prior, const int* local,
                     const int nx, const int ny, const int disp_range );
 __device__ void evaluate_path_dev(const int *prior, const int *local,
                     int path_intensity_gradient, int *curr_cost ,
-                    const int nx, const int ny, const int disp_range);
+                    const int nx, const int ny, const int disp_range, const int d);
 
 void iterate_direction_dirxpos(const int dirx, const int *left_image,
                                const int* costs, int *accumulated_costs,
@@ -148,7 +148,7 @@ __global__ void iterate_direction_dirxpos_dev(const int dirx, const int *left_im
       if(i < disp_range){
         ACCUMULATED_COSTS(0,j,i) += COSTS(0,j,i);
       }
-
+      __syncthreads();
         for(int l = 1; l<nx; l++){
           evaluate_path_dev( &ACCUMULATED_COSTS(l-dirx,j,0),
                            &COSTS(l,j,0),
