@@ -152,10 +152,10 @@ __global__ void iterate_direction_dirxpos_dev(const int dirx, const int *left_im
 
 
       for(int l = 1; l<nx;l++){
-        evaluate_path_dev( &ACCUMULATED_COSTS(l-dirx,j,i),
-                         &COSTS(l,j,i),
+        evaluate_path_dev( &ACCUMULATED_COSTS(l-dirx,j,0),
+                         &COSTS(l,j,0),
                          abs(LEFT_IMAGE(l,j)-LEFT_IMAGE(l-dirx,j)) ,
-                         &ACCUMULATED_COSTS(l,j,i), nx, ny, disp_range, i);
+                         &ACCUMULATED_COSTS(l,j,0), nx, ny, disp_range, i);
         __syncthreads();
 
       }
@@ -483,10 +483,11 @@ __device__ void evaluate_path_dev(const int *prior, const int *local,
       }
 
       curr_cost[d] += e_smooth;
+      __syncthreads();
+
     }
 
 
-    __syncthreads();
 
     int min = NPP_MAX_16U;
     for ( int d_s = 0; d_s < disp_range; d_s++ ) {
