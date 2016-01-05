@@ -339,7 +339,7 @@ void iterate_direction_dev( const int dirx, const int diry, const int *left_imag
     if ( dirx > 0 ) {
       // LEFT MOST EDGE
       int block_x = 1;
-      int block_y = 128;
+      int block_y = 32;
 
       int grid_x = ceil((float)nx / block_x);
       int grid_y = ceil((float)ny / block_y);
@@ -354,7 +354,7 @@ void iterate_direction_dev( const int dirx, const int diry, const int *left_imag
     }
     else if ( diry > 0 ) {
       // TOP MOST EDGE
-      int block_x = 128;
+      int block_x = 32;
       int block_y = 1;
 
       int grid_x = ceil((float)nx / block_x);
@@ -369,7 +369,7 @@ void iterate_direction_dev( const int dirx, const int diry, const int *left_imag
     else if ( dirx < 0 ) {
       // RIGHT MOST EDGE
       int block_x = 1;
-      int block_y = 128;
+      int block_y = 32;
 
       int grid_x = ceil((float)nx / block_x);
       int grid_y = ceil((float)ny / block_y);
@@ -382,7 +382,7 @@ void iterate_direction_dev( const int dirx, const int diry, const int *left_imag
     }
     else if ( diry < 0 ) {
       // BOTTOM MOST EDGE
-      int block_x = 128;
+      int block_x = 32;
       int block_y = 1;
 
       int grid_x = ceil((float)nx / block_x);
@@ -623,12 +623,9 @@ void sgmDevice( const int *h_leftIm, const int *h_rightIm,
   cudaMemcpy(devPtr_costs, costs, nx*ny*disp_range*sizeof(int), cudaMemcpyHostToDevice);
 
   determine_costs_device<<<grid, block>>>(devPtr_leftImage, devPtr_rightImage, devPtr_costs, nx, ny, disp_range);
-  //determine_costs(h_leftIm, h_rightIm, costs, nx, ny, disp_range);
-  cudaMemcpy(costs, devPtr_costs, nx*ny*disp_range*sizeof(int), cudaMemcpyDeviceToHost);
 
   int *accumulated_costs = (int *) calloc(nx*ny*disp_range,sizeof(int));
-  int *dir_accumulated_costs = (int *) calloc(nx*ny*disp_range,sizeof(int));
-  if (accumulated_costs == NULL || dir_accumulated_costs == NULL) {
+  if (accumulated_costs == NULL) {
         fprintf(stderr, "sgm_cuda:"
                 " Failed memory allocation(s).\n");
         exit(1);
@@ -636,13 +633,12 @@ void sgmDevice( const int *h_leftIm, const int *h_rightIm,
 
   cudaMalloc((void**)&devPtr_dirAccumulatedCosts, nx*ny*disp_range*sizeof(int));
   cudaMalloc((void**)&devPtr_accumulatedCosts, nx*ny*disp_range*sizeof(int));
-  cudaMemcpy(devPtr_accumulatedCosts, accumulated_costs, nx*ny*disp_range*sizeof(int), cudaMemcpyHostToDevice);
+  cudaMemset(devPtr_accumulatedCosts, 0, nx*ny*disp_range*sizeof(int));
 
   int dirx=0,diry=0;
   for(dirx=-1; dirx<2; dirx++) {
       if(dirx==0 && diry==0) continue;
-      std::fill(dir_accumulated_costs, dir_accumulated_costs+nx*ny*disp_range, 0);
-      cudaMemcpy(devPtr_dirAccumulatedCosts, dir_accumulated_costs, nx*ny*disp_range*sizeof(int), cudaMemcpyHostToDevice);
+      cudaMemset(devPtr_dirAccumulatedCosts, 0, nx*ny*disp_range*sizeof(int));
       iterate_direction_dev( dirx,diry, devPtr_leftImage, devPtr_costs, devPtr_dirAccumulatedCosts, nx, ny, disp_range);
       inplace_sum_views_dev<<<grid1, block>>>( devPtr_accumulatedCosts, devPtr_dirAccumulatedCosts, nx, ny, disp_range);
 
@@ -650,15 +646,12 @@ void sgmDevice( const int *h_leftIm, const int *h_rightIm,
   dirx=0;
   for(diry=-1; diry<2; diry++) {
       if(dirx==0 && diry==0) continue;
-      std::fill(dir_accumulated_costs, dir_accumulated_costs+nx*ny*disp_range, 0);
-      cudaMemcpy(devPtr_dirAccumulatedCosts, dir_accumulated_costs, nx*ny*disp_range*sizeof(int), cudaMemcpyHostToDevice);
+      cudaMemset(devPtr_dirAccumulatedCosts, 0, nx*ny*disp_range*sizeof(int));
       iterate_direction_dev( dirx,diry, devPtr_leftImage, devPtr_costs, devPtr_dirAccumulatedCosts, nx, ny, disp_range);
-      //cudaMemcpy(dir_accumulated_costs, devPtr_dirAccumulatedCosts, nx*ny*disp_range*sizeof(int), cudaMemcpyDeviceToHost);
       inplace_sum_views_dev<<<grid1, block>>>( devPtr_accumulatedCosts, devPtr_dirAccumulatedCosts, nx, ny, disp_range);
   }
 
   free(costs);
-  free(dir_accumulated_costs);
   cudaMemcpy(accumulated_costs, devPtr_accumulatedCosts, nx*ny*disp_range*sizeof(int), cudaMemcpyDeviceToHost);
   create_disparity_view( accumulated_costs, h_dispImD, nx, ny, disp_range ); // facil +
 
