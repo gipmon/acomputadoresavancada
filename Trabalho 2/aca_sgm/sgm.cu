@@ -408,7 +408,7 @@ void sgmDevice( const int *h_leftIm, const int *h_rightIm,
   cudaMemcpy(devPtr_costs, costs, nx*ny*disp_range*sizeof(int), cudaMemcpyHostToDevice);
 
   determine_costs_device<<<grid, block>>>(devPtr_leftImage, devPtr_rightImage, devPtr_costs, nx, ny, disp_range);
-  //determine_costs(h_leftIm, h_rightIm, costs, nx, ny, disp_range);
+
   cudaMemcpy(costs, devPtr_costs, nx*ny*disp_range*sizeof(int), cudaMemcpyDeviceToHost);
 
   int *accumulated_costs = (int *) calloc(nx*ny*disp_range,sizeof(int));
@@ -438,16 +438,6 @@ void sgmDevice( const int *h_leftIm, const int *h_rightIm,
   free(costs);
   free(dir_accumulated_costs);
 
-  // imagem de saida
-  // geometria do kernel
-  // alocar a memoria
-  // reservar memoria para o accumulated_costs, cudaMalloc com a dimensao q esta la
-  // h e de host => d para ser device
-  // d_dispIm e a saida
-
-  // ll d_bull.pgm
-  // ll d_bull.pgm
-  // ./testDiffs d_bull.pgm h_bull.pgm
   create_disparity_view( accumulated_costs, h_dispImD, nx, ny, disp_range ); // facil +
 
   free(accumulated_costs);
