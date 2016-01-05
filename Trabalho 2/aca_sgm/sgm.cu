@@ -145,28 +145,22 @@ __global__ void iterate_direction_dirxpos_dev(const int dirx, const int *left_im
 
       int i = blockIdx.x * blockDim.x + threadIdx.x;
       int j = blockIdx.y * blockDim.y + threadIdx.y;
-      extern __shared__ int shmem[];
       if(i<disp_range && j < ny){
         if(i < disp_range){
-          shmem[0*disp_range+(j)*nx*disp_range+(i)] += COSTS(0,j,i);
-          //ACCUMULATED_COSTS(0,j,i) += COSTS(0,j,i);
+          ACCUMULATED_COSTS(0,j,i) += COSTS(0,j,i);
 
         }
         __syncthreads();
 
         for(int l = 1; l<nx; l++){
-          /*evaluate_path_dev( &ACCUMULATED_COSTS(l-dirx,j,0),
-                           &COSTS(l,j,0),
-                           abs(LEFT_IMAGE(l,j)-LEFT_IMAGE(l-dirx,j)) ,
-                           &ACCUMULATED_COSTS(l,j,0), nx, ny, disp_range);*/
-          evaluate_path_dev( &shmem[l-dirx*disp_range+(j)*nx*disp_range+(0)],
+          evaluate_path_dev( &ACCUMULATED_COSTS(l-dirx,j,0),
                            &COSTS(l,j,0),
                            abs(LEFT_IMAGE(l,j)-LEFT_IMAGE(l-dirx,j)) ,
                            &ACCUMULATED_COSTS(l,j,0), nx, ny, disp_range);
 
         }
       }
-      
+
 }
 
 void iterate_direction_dirypos(const int diry, const int *left_image,
