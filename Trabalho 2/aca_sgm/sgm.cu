@@ -43,7 +43,7 @@ void evaluate_path( const int *prior, const int* local,
                     const int nx, const int ny, const int disp_range );
 __device__ void evaluate_path_dev(const int *prior, const int *local,
                     int path_intensity_gradient, int *curr_cost ,
-                    const int nx, const int ny, const int disp_range, const int d);
+                    const int nx, const int ny, const int disp_range, const int di);
 
 void iterate_direction_dirxpos(const int dirx, const int *left_image,
                                const int* costs, int *accumulated_costs,
@@ -461,7 +461,7 @@ void evaluate_path(const int *prior, const int *local,
 
 __device__ void evaluate_path_dev(const int *prior, const int *local,
                      int path_intensity_gradient, int *curr_cost ,
-                     const int nx, const int ny, const int disp_range, const int d)
+                     const int nx, const int ny, const int disp_range, const int di)
   {
     memcpy(curr_cost, local, sizeof(int)*disp_range);
     for(int d = 0; d < disp_range; d++){
