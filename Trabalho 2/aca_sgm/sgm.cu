@@ -481,13 +481,9 @@ __device__ void evaluate_path_dev(const int *prior, const int *local,
                    MMAX(PENALTY1,
                             path_intensity_gradient ? PENALTY2/path_intensity_gradient : PENALTY2));
       }
-
-      curr_cost[d] += e_smooth;
-      __syncthreads();
-
     }
 
-
+    curr_cost[d] += e_smooth;
 
     int min = NPP_MAX_16U;
     for ( int d_s = 0; d_s < disp_range; d_s++ ) {
