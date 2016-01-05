@@ -154,6 +154,8 @@ __global__ void iterate_direction_dirxpos_dev(const int dirx, const int *left_im
                            &COSTS(l,j,0),
                            abs(LEFT_IMAGE(l,j)-LEFT_IMAGE(l-dirx,j)) ,
                            &ACCUMULATED_COSTS(l,j,0), nx, ny, disp_range, i);
+          __syncthreads();
+
         }
 
 
