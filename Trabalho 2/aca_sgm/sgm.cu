@@ -464,7 +464,7 @@ __device__ void evaluate_path_dev(const int *prior, const int *local,
                      const int nx, const int ny, const int disp_range, const int d)
   {
     memcpy(curr_cost, local, sizeof(int)*disp_range);
-
+    for(int d = 0; d < disp_range; d++){
     int e_smooth = NPP_MAX_16U;
     for ( int d_p = 0; d_p < disp_range; d_p++ ) {
       if ( d_p - d == 0 ) {
@@ -483,6 +483,7 @@ __device__ void evaluate_path_dev(const int *prior, const int *local,
 
       curr_cost[d] += e_smooth;
     }
+  }
 
     __syncthreads();
 
@@ -490,7 +491,9 @@ __device__ void evaluate_path_dev(const int *prior, const int *local,
     for ( int d_s = 0; d_s < disp_range; d_s++ ) {
       if (prior[d_s]<min) min=prior[d_s];
     }
+    for(int d= 0; d < disp_range;d++){
     curr_cost[d]-=min;
+  }
 
 
 }
