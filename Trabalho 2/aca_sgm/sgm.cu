@@ -194,17 +194,17 @@ __global__ void iterate_direction_dirypos_dev(const int diry, const int *left_im
                         const int nx, const int ny, const int disp_range )
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
-    int j = 0;
-    if(i < nx){
-        for ( int d = 0; d < disp_range; d++ ) {
-            ACCUMULATED_COSTS(i,0,d) += COSTS(i,0,d);
-        }
-        for(j = 1; j<ny; j++){
+    int j = threadIdx.y;
+    if(j < disp_range && i < nx){
 
-          evaluate_path_dev( &ACCUMULATED_COSTS(i,j-diry,0),
-                         &COSTS(i,j,0),
-                         abs(LEFT_IMAGE(i,j)-LEFT_IMAGE(i,j-diry)),
-                         &ACCUMULATED_COSTS(i,j,0), nx, ny, disp_range, i);
+        ACCUMULATED_COSTS(i,0,j) += COSTS(i,0,j);
+
+        for(int l = 1; l<ny; l++){
+
+          evaluate_path_dev( &ACCUMULATED_COSTS(i,l-diry,0),
+                         &COSTS(i,l,0),
+                         abs(LEFT_IMAGE(i,l)-LEFT_IMAGE(i,l-diry)),
+                         &ACCUMULATED_COSTS(i,l,0), nx, ny, disp_range, j);
 
       }
     }
@@ -314,13 +314,13 @@ void iterate_direction( const int dirx, const int diry, const int *left_image,
       // LEFT MOST EDGE
       // Process every pixel along this edge
 
-      iterate_direction_dirxpos(dirx,left_image,costs,accumulated_costs, nx, ny, disp_range);
+      //iterate_direction_dirxpos(dirx,left_image,costs,accumulated_costs, nx, ny, disp_range);
     }
     else if ( diry > 0 ) {
       // TOP MOST EDGE
       // Process every pixel along this edge only if dirx ==
       // 0. Otherwise skip the top left most pixel
-      //iterate_direction_dirypos(diry,left_image,costs,accumulated_costs, nx, ny, disp_range);
+      iterate_direction_dirypos(diry,left_image,costs,accumulated_costs, nx, ny, disp_range);
     }
     else if ( dirx < 0 ) {
       // RIGHT MOST EDGE
@@ -353,14 +353,14 @@ void iterate_direction_dev( const int dirx, const int diry, const int *left_imag
       int shmemsize = (block_x*sizeof(int));
       // Process every pixel along this edge
 
-      iterate_direction_dirxpos_dev<<<grid, block>>>(dirx,left_image,costs,accumulated_costs, nx, ny, disp_range);
+      //iterate_direction_dirxpos_dev<<<grid, block>>>(dirx,left_image,costs,accumulated_costs, nx, ny, disp_range);
 
 
     }
     else if ( diry > 0 ) {
       // TOP MOST EDGE
-      int block_x = 32;
-      int block_y = 1;
+      int block_x = 1;
+      int block_y = disp_range;
 
       int grid_x = ceil((float)nx / block_x);
       int grid_y = ceil((float)ny / block_y);
@@ -369,7 +369,7 @@ void iterate_direction_dev( const int dirx, const int diry, const int *left_imag
       dim3 grid(grid_x, 1);
       // Process every pixel along this edge only if dirx ==
       // 0. Otherwise skip the top left most pixel
-      //iterate_direction_dirypos_dev<<<grid, block>>>(diry,left_image,costs,accumulated_costs, nx, ny, disp_range);
+      iterate_direction_dirypos_dev<<<grid, block>>>(diry,left_image,costs,accumulated_costs, nx, ny, disp_range);
     }
     else if ( dirx < 0 ) {
       // RIGHT MOST EDGE
