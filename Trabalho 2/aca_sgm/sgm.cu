@@ -485,11 +485,11 @@ __device__ void evaluate_path_dev(const int *prior, const int *local,
     }
 
     int min = NPP_MAX_16U;
-    for ( int d = 0; d < disp_range; d++ ) {
-      if (prior[d]<min) min=prior[d];
+    for ( int d_s = 0; d_s < disp_range; d_s++ ) {
+      if (prior[d_s]<min) min=prior[d_s];
     }
-    for ( int d = 0; d < disp_range; d++ ) {
-          curr_cost[d]-=min;
+    for ( int d_s = 0; d_s < disp_range; d_s++ ) {
+          curr_cost[d_s]-=min;
     }
 
 }
