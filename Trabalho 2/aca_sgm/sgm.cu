@@ -145,19 +145,15 @@ __global__ void iterate_direction_dirxpos_dev(const int dirx, const int *left_im
 
       int i = blockIdx.x * blockDim.x + threadIdx.x;
       int j = blockIdx.y * blockDim.y + threadIdx.y;
-      if(i<disp_range && j < ny){
-        if(i < disp_range){
-          ACCUMULATED_COSTS(0,j,i) += COSTS(0,j,i);
+      if(i < disp_range){
+        ACCUMULATED_COSTS(0,j,d) += COSTS(0,j,d);
+      }
 
-        }
-        __syncthreads();
-
-        for(int l = 1; l<nx; l++){
+        for(int l = 1; i<nx; i++){
           evaluate_path_dev( &ACCUMULATED_COSTS(l-dirx,j,0),
                            &COSTS(l,j,0),
                            abs(LEFT_IMAGE(l,j)-LEFT_IMAGE(l-dirx,j)) ,
-                           &ACCUMULATED_COSTS(l,j,0), nx, ny, disp_range);
-
+                           &ACCUMULATED_COSTS(l,j,0), nx, ny, disp_range, i);
         }
       }
 
@@ -351,7 +347,7 @@ void iterate_direction_dev( const int dirx, const int diry, const int *left_imag
       int shmemsize = (block_x*sizeof(int));
       // Process every pixel along this edge
 
-      iterate_direction_dirxpos_dev<<<grid, block, shmemsize>>>(dirx,left_image,costs,accumulated_costs, nx, ny, disp_range);
+      iterate_direction_dirxpos_dev<<<grid, block>>>(dirx,left_image,costs,accumulated_costs, nx, ny, disp_range);
 
 
     }
@@ -461,37 +457,36 @@ void evaluate_path(const int *prior, const int *local,
 
 __device__ void evaluate_path_dev(const int *prior, const int *local,
                      int path_intensity_gradient, int *curr_cost ,
-                     const int nx, const int ny, const int disp_range)
+                     const int nx, const int ny, const int disp_range, const int d)
   {
     memcpy(curr_cost, local, sizeof(int)*disp_range);
 
-    for ( int d = 0; d < disp_range; d++ ) {
-      int e_smooth = NPP_MAX_16U;
-      for ( int d_p = 0; d_p < disp_range; d_p++ ) {
-        if ( d_p - d == 0 ) {
-          // No penality
-          e_smooth = MMIN(e_smooth,prior[d_p]);
-        } else if ( abs(d_p - d) == 1 ) {
-          // Small penality
-          e_smooth = MMIN(e_smooth,prior[d_p]+PENALTY1);
-        } else {
-          // Large penality
-          e_smooth =
-            MMIN(e_smooth,prior[d_p] +
-                     MMAX(PENALTY1,
-                              path_intensity_gradient ? PENALTY2/path_intensity_gradient : PENALTY2));
-        }
+    int e_smooth = NPP_MAX_16U;
+    for ( int d_p = 0; d_p < disp_range; d_p++ ) {
+      if ( d_p - d == 0 ) {
+        // No penality
+        e_smooth = MMIN(e_smooth,prior[d_p]);
+      } else if ( abs(d_p - d) == 1 ) {
+        // Small penality
+        e_smooth = MMIN(e_smooth,prior[d_p]+PENALTY1);
+      } else {
+        // Large penality
+        e_smooth =
+          MMIN(e_smooth,prior[d_p] +
+                   MMAX(PENALTY1,
+                            path_intensity_gradient ? PENALTY2/path_intensity_gradient : PENALTY2));
       }
+
       curr_cost[d] += e_smooth;
     }
 
     int min = NPP_MAX_16U;
-    for ( int d = 0; d < disp_range; d++ ) {
-          if (prior[d]<min) min=prior[d];
-    }
-    for ( int d = 0; d < disp_range; d++ ) {
-          curr_cost[d]-=min;
-    }
+
+    if (prior[d]<min) min=prior[d];
+
+
+    curr_cost[d]-=min;
+
 }
 
 void create_disparity_view( const int *accumulated_costs , int * disp_image,
