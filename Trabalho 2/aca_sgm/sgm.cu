@@ -200,7 +200,7 @@ __global__ void iterate_direction_dirypos_dev(const int diry, const int *left_im
           evaluate_path_dev( &ACCUMULATED_COSTS(i,j-diry,0),
                          &COSTS(i,j,0),
                          abs(LEFT_IMAGE(i,j)-LEFT_IMAGE(i,j-diry)),
-                         &ACCUMULATED_COSTS(i,j,0), nx, ny, disp_range );
+                         &ACCUMULATED_COSTS(i,j,0), nx, ny, disp_range, i );
 
       }
     }
@@ -247,7 +247,7 @@ __global__ void iterate_direction_dirxneg_dev(const int dirx, const int *left_im
             evaluate_path_dev( &ACCUMULATED_COSTS(i-dirx,j,0),
                            &COSTS(i,j,0),
                            abs(LEFT_IMAGE(i,j)-LEFT_IMAGE(i-dirx,j)),
-                           &ACCUMULATED_COSTS(i,j,0), nx, ny, disp_range );
+                           &ACCUMULATED_COSTS(i,j,0), nx, ny, disp_range, i );
         }
 
 
@@ -296,7 +296,7 @@ __global__ void iterate_direction_diryneg_dev(const int diry, const int *left_im
             evaluate_path_dev( &ACCUMULATED_COSTS(i,j-diry,0),
                        &COSTS(i,j,0),
                        abs(LEFT_IMAGE(i,j)-LEFT_IMAGE(i,j-diry)),
-                       &ACCUMULATED_COSTS(i,j,0) , nx, ny, disp_range);
+                       &ACCUMULATED_COSTS(i,j,0) , nx, ny, disp_range, i);
          }
       }
 }
