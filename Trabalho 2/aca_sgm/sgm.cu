@@ -145,17 +145,23 @@ __global__ void iterate_direction_dirxpos_dev(const int dirx, const int *left_im
 
       int i = blockIdx.x * blockDim.x + threadIdx.x;
       int j = blockIdx.y * blockDim.y + threadIdx.y;
+      extern __shared__ int shmem[];
       if(i < disp_range){
-
-        ACCUMULATED_COSTS(0,j,i) += COSTS(0,j,i);
+        shmem[0*disp_range+(j)*nx*disp_range+(i)] += COSTS(0,j,i);
+        //ACCUMULATED_COSTS(0,j,i) += COSTS(0,j,i);
 
       }
+      __syncthreads();
+
       for(int l = 1; l<nx; l++){
-        evaluate_path_dev( &ACCUMULATED_COSTS(l-dirx,j,0),
+        /*evaluate_path_dev( &ACCUMULATED_COSTS(l-dirx,j,0),
+                         &COSTS(l,j,0),
+                         abs(LEFT_IMAGE(l,j)-LEFT_IMAGE(l-dirx,j)) ,
+                         &ACCUMULATED_COSTS(l,j,0), nx, ny, disp_range);*/
+        evaluate_path_dev( &shmem[l-dirx*disp_range+(j)*nx*disp_range+(0)],
                          &COSTS(l,j,0),
                          abs(LEFT_IMAGE(l,j)-LEFT_IMAGE(l-dirx,j)) ,
                          &ACCUMULATED_COSTS(l,j,0), nx, ny, disp_range);
-        __syncthreads();
 
       }
 
@@ -349,7 +355,7 @@ void iterate_direction_dev( const int dirx, const int diry, const int *left_imag
       int shmemsize = (block_x*sizeof(int));
       // Process every pixel along this edge
 
-      iterate_direction_dirxpos_dev<<<grid, block>>>(dirx,left_image,costs,accumulated_costs, nx, ny, disp_range);
+      iterate_direction_dirxpos_dev<<<grid, block, shmemsize>>>(dirx,left_image,costs,accumulated_costs, nx, ny, disp_range);
 
 
     }
