@@ -147,7 +147,7 @@ __global__ void iterate_direction_dirxpos_dev(const int dirx, const int *left_im
       int j = blockIdx.y * blockDim.y + threadIdx.y;
       if(i < disp_range && j<ny){
         ACCUMULATED_COSTS(0,j,i) += COSTS(0,j,i);
-      }
+
       __syncthreads();
 
 
@@ -160,6 +160,7 @@ __global__ void iterate_direction_dirxpos_dev(const int dirx, const int *left_im
 
       }
     }
+
 
 
 }
