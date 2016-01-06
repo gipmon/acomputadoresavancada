@@ -199,7 +199,7 @@ __global__ void iterate_direction_dirypos_dev(const int diry, const int *left_im
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = threadIdx.y;
-    extern __shared__ shmem[];
+    extern __shared__ int shmem[];
     if(j < disp_range && i < nx){
 
         ACCUMULATED_COSTS(i,0,j) += COSTS(i,0,j);
@@ -247,7 +247,7 @@ __global__ void iterate_direction_dirxneg_dev(const int dirx, const int *left_im
 {
       int i = threadIdx.x;
       int j = blockIdx.y * blockDim.y + threadIdx.y;
-      extern __shared__ shmem[];
+      extern __shared__ int shmem[];
 
       if(i < disp_range && j < ny){
 
@@ -301,7 +301,7 @@ __global__ void iterate_direction_diryneg_dev(const int diry, const int *left_im
 
       int i = blockIdx.x * blockDim.x + threadIdx.x;
       int j = threadIdx.y;
-      extern __shared__ shmem[];
+      extern __shared__ int shmem[];
 
       if(j < disp_range && i < nx){
 
@@ -528,6 +528,12 @@ __device__ void evaluate_path_dev(const int *prior, const int *local,
     }
 
     curr_cost[d] += e_smooth;
+
+    int min = NPP_MAX_16U;
+    for ( int d_s = 0; d_s < disp_range; d_s++ ) {
+      if (prior[d_s]<min) min=prior[d_s];
+    }
+    curr_cost[d]-=min;
 
 }
 
