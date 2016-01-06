@@ -160,7 +160,6 @@ __global__ void iterate_direction_dirxpos_dev(const int dirx, const int *left_im
 
         __syncthreads();
 
-        shmem[i] = ACCUMULATED_COSTS(l,j,0);
 
       }
     }
@@ -535,6 +534,9 @@ __device__ void evaluate_path_dev(const int *prior, const int *local,
       if (shmem[d_s]<min) min=shmem[d_s];
     }
     curr_cost[d]-=min;
+    __syncthreads();
+    shmem[d] = curr_cost[d];
+
 
 
 }
