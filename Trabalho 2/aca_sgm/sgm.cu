@@ -145,7 +145,7 @@ __global__ void iterate_direction_dirxpos_dev(const int dirx, const int *left_im
 
       int i = threadIdx.x;
       int j = blockIdx.y * blockDim.y + threadIdx.y;
-      extern __shared__ int shmem[];
+      __shared__ int shmem[disp_range*sizeof(int)];
       if(i < disp_range && j<ny){
         ACCUMULATED_COSTS(0,j,i) += COSTS(0,j,i);
         shmem[threadIdx] += COSTS(0,j,i);
