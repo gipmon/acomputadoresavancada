@@ -145,7 +145,7 @@ __global__ void iterate_direction_dirxpos_dev(const int dirx, const int *left_im
 
       int i = threadIdx.x;
       int j = blockIdx.y * blockDim.y + threadIdx.y;
-      extern __shared__ int *shmem;
+      extern __shared__ int shmem;
       if(i < disp_range && j<ny){
         ACCUMULATED_COSTS(0,j,i) += COSTS(0,j,i);
         shmem[threadIdx.x] += COSTS(0,j,i);
@@ -199,7 +199,7 @@ __global__ void iterate_direction_dirypos_dev(const int diry, const int *left_im
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = threadIdx.y;
-    extern __shared__ int *shmem;
+    extern __shared__ int shmem;
 
     if(j < disp_range && i < nx){
 
@@ -248,7 +248,7 @@ __global__ void iterate_direction_dirxneg_dev(const int dirx, const int *left_im
 {
       int i = threadIdx.x;
       int j = blockIdx.y * blockDim.y + threadIdx.y;
-      extern __shared__ int *shmem;
+      extern __shared__ int shmem;
 
       if(i < disp_range && j < ny){
 
@@ -302,7 +302,7 @@ __global__ void iterate_direction_diryneg_dev(const int diry, const int *left_im
 
       int i = blockIdx.x * blockDim.x + threadIdx.x;
       int j = threadIdx.y;
-      extern __shared__ int *shmem;
+      extern __shared__ int shmem;
       if(j < disp_range && i < nx){
 
         ACCUMULATED_COSTS(i,ny-1,j) += COSTS(i,ny-1,j);
