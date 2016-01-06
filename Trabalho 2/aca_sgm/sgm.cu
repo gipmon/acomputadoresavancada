@@ -41,7 +41,7 @@ void determine_costs(const int *left_image, const int *right_image, int *costs,
 void evaluate_path( const int *prior, const int* local,
                     int path_intensity_gradient, int *curr_cost,
                     const int nx, const int ny, const int disp_range );
-__device__ void evaluate_path_dev(const int *prior, const int *local,
+__device__ void evaluate_path_dev(const int *shmem, const int *local,
                     int path_intensity_gradient, int *curr_cost ,
                     const int nx, const int ny, const int disp_range, const int d);
 
@@ -145,7 +145,7 @@ __global__ void iterate_direction_dirxpos_dev(const int dirx, const int *left_im
 
       int i = threadIdx.x;
       int j = blockIdx.y * blockDim.y + threadIdx.y;
-      extern __shared__ shmem[];
+      extern __shared__ int shmem[];
       if(i < disp_range && j<ny){
         ACCUMULATED_COSTS(0,j,i) += COSTS(0,j,i);
         shmem[threadIdx] += COSTS(0,j,i);
@@ -305,12 +305,12 @@ __global__ void iterate_direction_diryneg_dev(const int diry, const int *left_im
 
         for(int l = ny-2; l >= 0; l--){
 
-            evaluate_path_dev( &ACCUMULATED_COSTS(i,l-diry,0),
+            evaluate_path_dev( &shmem,
                        &COSTS(i,l,0),
                        abs(LEFT_IMAGE(i,l)-LEFT_IMAGE(i,l-diry)),
                        &ACCUMULATED_COSTS(i,l,0) , nx, ny, disp_range, j);
             __syncthreads();
-            ACCUMULATED_COSTS(i,l,0) = shmem[i]; 
+            ACCUMULATED_COSTS(i,l,0) = shmem[i];
          }
       }
 }
@@ -361,7 +361,7 @@ void iterate_direction_dev( const int dirx, const int diry, const int *left_imag
       dim3 block(block_x, block_y);
       dim3 grid(1, grid_y);
       // Process every pixel along this edge
-      int shmemsize = sizeof(int)
+      int shmemsize = disp_range*sizeof(int);
 
       iterate_direction_dirxpos_dev<<<grid, block, shmemsize>>>(dirx,left_image,costs,accumulated_costs, nx, ny, disp_range);
 
@@ -501,7 +501,7 @@ void evaluate_path(const int *prior, const int *local,
   }
 }
 
-__device__ void evaluate_path_dev(const int *prior, const int *local,
+__device__ void evaluate_path_dev(const int *shmem, const int *local,
                      int path_intensity_gradient, int *curr_cost ,
                      const int nx, const int ny, const int disp_range, const int d)
   {
