@@ -41,7 +41,7 @@ void determine_costs(const int *left_image, const int *right_image, int *costs,
 void evaluate_path( const int *prior, const int* local,
                     int path_intensity_gradient, int *curr_cost,
                     const int nx, const int ny, const int disp_range );
-__device__ void evaluate_path_dev(int *shmem, const int *local,
+__device__ void evaluate_path_dev( int [] shmem, const int *local,
                     int path_intensity_gradient, int *curr_cost ,
                     const int nx, const int ny, const int disp_range, const int d);
 
@@ -199,6 +199,8 @@ __global__ void iterate_direction_dirypos_dev(const int diry, const int *left_im
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = threadIdx.y;
+    int tmp[32];
+
     if(j < disp_range && i < nx){
 
         ACCUMULATED_COSTS(i,0,j) += COSTS(i,0,j);
@@ -206,7 +208,7 @@ __global__ void iterate_direction_dirypos_dev(const int diry, const int *left_im
 
         for(int l = 1; l<ny; l++){
 
-          evaluate_path_dev( &ACCUMULATED_COSTS(i,l-diry,0),
+          evaluate_path_dev( tmp,
                          &COSTS(i,l,0),
                          abs(LEFT_IMAGE(i,l)-LEFT_IMAGE(i,l-diry)),
                          &ACCUMULATED_COSTS(i,l,0), nx, ny, disp_range, j);
@@ -246,6 +248,7 @@ __global__ void iterate_direction_dirxneg_dev(const int dirx, const int *left_im
 {
       int i = threadIdx.x;
       int j = blockIdx.y * blockDim.y + threadIdx.y;
+      int tmp[32];
 
       if(i < disp_range && j < ny){
 
@@ -255,7 +258,7 @@ __global__ void iterate_direction_dirxneg_dev(const int dirx, const int *left_im
 
 
         for(int l = nx-2; l >= 0; l--){
-            evaluate_path_dev( &ACCUMULATED_COSTS(l-dirx,j,0),
+            evaluate_path_dev( tmp,
                            &COSTS(l,j,0),
                            abs(LEFT_IMAGE(l,j)-LEFT_IMAGE(l-dirx,j)),
                            &ACCUMULATED_COSTS(l,j,0), nx, ny, disp_range, i);
@@ -299,6 +302,7 @@ __global__ void iterate_direction_diryneg_dev(const int diry, const int *left_im
 
       int i = blockIdx.x * blockDim.x + threadIdx.x;
       int j = threadIdx.y;
+      int tmp[32];
       if(j < disp_range && i < nx){
 
         ACCUMULATED_COSTS(i,ny-1,j) += COSTS(i,ny-1,j);
@@ -307,7 +311,7 @@ __global__ void iterate_direction_diryneg_dev(const int diry, const int *left_im
 
         for(int l = ny-2; l >= 0; l--){
 
-            evaluate_path_dev( &ACCUMULATED_COSTS(i,l,0),
+            evaluate_path_dev( tmp,
                        &COSTS(i,l,0),
                        abs(LEFT_IMAGE(i,l)-LEFT_IMAGE(i,l-diry)),
                        &ACCUMULATED_COSTS(i,l,0) , nx, ny, disp_range, j);
@@ -502,7 +506,7 @@ void evaluate_path(int *prior, const int *local,
   }
 }
 
-__device__ void evaluate_path_dev(const int *shmem, const int *local,
+__device__ void evaluate_path_dev( int [] shmem, const int *local,
                      int path_intensity_gradient, int *curr_cost ,
                      const int nx, const int ny, const int disp_range, const int d)
   {
