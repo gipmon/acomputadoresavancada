@@ -43,8 +43,7 @@ void evaluate_path( const int *prior, const int* local,
                     const int nx, const int ny, const int disp_range );
 __device__ void evaluate_path_dev(const int *prior, const int *local,
                     int path_intensity_gradient, int *curr_cost ,
-                    const int nx, const int ny, const int disp_range);
-
+                    const int nx, const int ny, const int disp_range, const int d);
 void iterate_direction_dirxpos(const int dirx, const int *left_image,
                                const int* costs, int *accumulated_costs,
                                const int nx, const int ny, const int disp_range );
@@ -143,21 +142,25 @@ __global__ void iterate_direction_dirxpos_dev(const int dirx, const int *left_im
                         const int* costs, int *accumulated_costs,
                         const int nx, const int ny, const int disp_range ){
 
-      int i = 0;
+      int i = threadIdx.x;
       int j = blockIdx.y * blockDim.y + threadIdx.y;
-      if(j < ny){
+      if(i < disp_range && j<ny){
+        ACCUMULATED_COSTS(0,j,i) += COSTS(0,j,i);
 
-        for ( int d = 0; d < disp_range; d++ ) {
-          ACCUMULATED_COSTS(0,j,d) += COSTS(0,j,d);
-        }
+      __syncthreads();
 
-        for(i = 1; i<nx; i++){
-          evaluate_path_dev( &ACCUMULATED_COSTS(i-dirx,j,0),
-                           &COSTS(i,j,0),
-                           abs(LEFT_IMAGE(i,j)-LEFT_IMAGE(i-dirx,j)) ,
-                           &ACCUMULATED_COSTS(i,j,0), nx, ny, disp_range);
-        }
+
+      for(int l = 1; l<nx;l++){
+        evaluate_path_dev( &ACCUMULATED_COSTS(l-dirx,j,0),
+                         &COSTS(l,j,0),
+                         abs(LEFT_IMAGE(l,j)-LEFT_IMAGE(l-dirx,j)) ,
+                         &ACCUMULATED_COSTS(l,j,0), nx, ny, disp_range, i);
+        __syncthreads();
+
       }
+    }
+
+
 
 }
 
@@ -190,17 +193,19 @@ __global__ void iterate_direction_dirypos_dev(const int diry, const int *left_im
                         const int nx, const int ny, const int disp_range )
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
-    int j = 0;
-    if(i < nx){
-        for ( int d = 0; d < disp_range; d++ ) {
-            ACCUMULATED_COSTS(i,0,d) += COSTS(i,0,d);
-        }
-        for(j = 1; j<ny; j++){
+    int j = threadIdx.y;
+    if(j < disp_range && i < nx){
 
-          evaluate_path_dev( &ACCUMULATED_COSTS(i,j-diry,0),
-                         &COSTS(i,j,0),
-                         abs(LEFT_IMAGE(i,j)-LEFT_IMAGE(i,j-diry)),
-                         &ACCUMULATED_COSTS(i,j,0), nx, ny, disp_range );
+        ACCUMULATED_COSTS(i,0,j) += COSTS(i,0,j);
+        __syncthreads();
+
+        for(int l = 1; l<ny; l++){
+
+          evaluate_path_dev( &ACCUMULATED_COSTS(i,l-diry,0),
+                         &COSTS(i,l,0),
+                         abs(LEFT_IMAGE(i,l)-LEFT_IMAGE(i,l-diry)),
+                         &ACCUMULATED_COSTS(i,l,0), nx, ny, disp_range, j);
+          __syncthreads();
 
       }
     }
@@ -234,20 +239,23 @@ __global__ void iterate_direction_dirxneg_dev(const int dirx, const int *left_im
                         const int* costs, int *accumulated_costs,
                         const int nx, const int ny, const int disp_range )
 {
-      int i = nx-1;
+      int i = threadIdx.x;
       int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-      if(j < ny){
+      if(i < disp_range && j < ny){
 
-        for ( int d = 0; d < disp_range; d++ ) {
-            ACCUMULATED_COSTS(nx-1,j,d) += COSTS(nx-1,j,d);
-        }
+        ACCUMULATED_COSTS(nx-1,j,i) += COSTS(nx-1,j,i);
 
-        for(i = nx-2; i >= 0; i--){
-            evaluate_path_dev( &ACCUMULATED_COSTS(i-dirx,j,0),
-                           &COSTS(i,j,0),
-                           abs(LEFT_IMAGE(i,j)-LEFT_IMAGE(i-dirx,j)),
-                           &ACCUMULATED_COSTS(i,j,0), nx, ny, disp_range );
+        __syncthreads();
+
+
+        for(int l = nx-2; l >= 0; l--){
+            evaluate_path_dev( &ACCUMULATED_COSTS(l-dirx,j,0),
+                           &COSTS(l,j,0),
+                           abs(LEFT_IMAGE(l,j)-LEFT_IMAGE(l-dirx,j)),
+                           &ACCUMULATED_COSTS(l,j,0), nx, ny, disp_range, i);
+            __syncthreads();
+
         }
 
 
@@ -285,18 +293,21 @@ __global__ void iterate_direction_diryneg_dev(const int diry, const int *left_im
 {
 
       int i = blockIdx.x * blockDim.x + threadIdx.x;
-      int j = ny-1;
-      if(i < nx){
-        for ( int d = 0; d < disp_range; d++ ) {
-            ACCUMULATED_COSTS(i,ny-1,d) += COSTS(i,ny-1,d);
-        }
+      int j = threadIdx.y;
+      if(j < disp_range && i < nx){
 
-        for(j = ny-2; j >= 0; j--){
+        ACCUMULATED_COSTS(i,ny-1,j) += COSTS(i,ny-1,j);
+        __syncthreads();
 
-            evaluate_path_dev( &ACCUMULATED_COSTS(i,j-diry,0),
-                       &COSTS(i,j,0),
-                       abs(LEFT_IMAGE(i,j)-LEFT_IMAGE(i,j-diry)),
-                       &ACCUMULATED_COSTS(i,j,0) , nx, ny, disp_range);
+
+        for(int l = ny-2; l >= 0; l--){
+
+            evaluate_path_dev( &ACCUMULATED_COSTS(i,l-diry,0),
+                       &COSTS(i,l,0),
+                       abs(LEFT_IMAGE(i,l)-LEFT_IMAGE(i,l-diry)),
+                       &ACCUMULATED_COSTS(i,l,0) , nx, ny, disp_range, j);
+            __syncthreads();
+
          }
       }
 }
@@ -338,8 +349,8 @@ void iterate_direction_dev( const int dirx, const int diry, const int *left_imag
     // Walk along the edges in a clockwise fashion
     if ( dirx > 0 ) {
       // LEFT MOST EDGE
-      int block_x = 1;
-      int block_y = 32;
+      int block_x = disp_range;
+      int block_y = 1;
 
       int grid_x = ceil((float)nx / block_x);
       int grid_y = ceil((float)ny / block_y);
@@ -354,8 +365,8 @@ void iterate_direction_dev( const int dirx, const int diry, const int *left_imag
     }
     else if ( diry > 0 ) {
       // TOP MOST EDGE
-      int block_x = 32;
-      int block_y = 1;
+      int block_x = 1;
+      int block_y = disp_range;
 
       int grid_x = ceil((float)nx / block_x);
       int grid_y = ceil((float)ny / block_y);
@@ -368,8 +379,8 @@ void iterate_direction_dev( const int dirx, const int diry, const int *left_imag
     }
     else if ( dirx < 0 ) {
       // RIGHT MOST EDGE
-      int block_x = 1;
-      int block_y = 32;
+      int block_x = disp_range;
+      int block_y = 1;
 
       int grid_x = ceil((float)nx / block_x);
       int grid_y = ceil((float)ny / block_y);
@@ -382,8 +393,8 @@ void iterate_direction_dev( const int dirx, const int diry, const int *left_imag
     }
     else if ( diry < 0 ) {
       // BOTTOM MOST EDGE
-      int block_x = 32;
-      int block_y = 1;
+      int block_x = 1;
+      int block_y = disp_range;
 
       int grid_x = ceil((float)nx / block_x);
       int grid_y = ceil((float)ny / block_y);
@@ -474,37 +485,36 @@ void evaluate_path(const int *prior, const int *local,
 
 __device__ void evaluate_path_dev(const int *prior, const int *local,
                      int path_intensity_gradient, int *curr_cost ,
-                     const int nx, const int ny, const int disp_range)
+                     const int nx, const int ny, const int disp_range, const int d)
   {
     memcpy(curr_cost, local, sizeof(int)*disp_range);
-
-    for ( int d = 0; d < disp_range; d++ ) {
-      int e_smooth = NPP_MAX_16U;
-      for ( int d_p = 0; d_p < disp_range; d_p++ ) {
-        if ( d_p - d == 0 ) {
-          // No penality
-          e_smooth = MMIN(e_smooth,prior[d_p]);
-        } else if ( abs(d_p - d) == 1 ) {
-          // Small penality
-          e_smooth = MMIN(e_smooth,prior[d_p]+PENALTY1);
-        } else {
-          // Large penality
-          e_smooth =
-            MMIN(e_smooth,prior[d_p] +
-                     MMAX(PENALTY1,
-                              path_intensity_gradient ? PENALTY2/path_intensity_gradient : PENALTY2));
-        }
+    int e_smooth = NPP_MAX_16U;
+    for ( int d_p = 0; d_p < disp_range; d_p++ ) {
+      if ( d_p - d == 0 ) {
+        // No penality
+        e_smooth = MMIN(e_smooth,prior[d_p]);
+      } else if ( abs(d_p - d) == 1 ) {
+        // Small penality
+        e_smooth = MMIN(e_smooth,prior[d_p]+PENALTY1);
+      } else {
+        // Large penality
+        e_smooth =
+          MMIN(e_smooth,prior[d_p] +
+                   MMAX(PENALTY1,
+                            path_intensity_gradient ? PENALTY2/path_intensity_gradient : PENALTY2));
       }
-      curr_cost[d] += e_smooth;
     }
+
+    curr_cost[d] += e_smooth;
 
     int min = NPP_MAX_16U;
-    for ( int d = 0; d < disp_range; d++ ) {
-          if (prior[d]<min) min=prior[d];
+    for ( int d_s = 0; d_s < disp_range; d_s++ ) {
+      if (prior[d_s]<min) min=prior[d_s];
     }
-    for ( int d = 0; d < disp_range; d++ ) {
-          curr_cost[d]-=min;
-    }
+    curr_cost[d]-=min;
+
+
+
 }
 
 void create_disparity_view( const int *accumulated_costs , int * disp_image,
