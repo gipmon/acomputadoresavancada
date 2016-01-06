@@ -305,7 +305,7 @@ __global__ void iterate_direction_diryneg_dev(const int diry, const int *left_im
             evaluate_path_dev( &ACCUMULATED_COSTS(i,l-diry,0),
                        &COSTS(i,l,0),
                        abs(LEFT_IMAGE(i,l)-LEFT_IMAGE(i,l-diry)),
-                       &ACCUMULATED_COSTS(i,l,0) , nx, ny, disp_range, i);
+                       &ACCUMULATED_COSTS(i,l,0) , nx, ny, disp_range, j);
          }
       }
 }
