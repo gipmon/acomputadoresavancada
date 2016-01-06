@@ -327,7 +327,7 @@ void iterate_direction( const int dirx, const int diry, const int *left_image,
       // LEFT MOST EDGE
       // Process every pixel along this edge
 
-      //iterate_direction_dirxpos(dirx,left_image,costs,accumulated_costs, nx, ny, disp_range);
+      iterate_direction_dirxpos(dirx,left_image,costs,accumulated_costs, nx, ny, disp_range);
     }
     else if ( diry > 0 ) {
       // TOP MOST EDGE
@@ -345,7 +345,7 @@ void iterate_direction( const int dirx, const int diry, const int *left_image,
       // BOTTOM MOST EDGE
       // Process every pixel along this edge only if dirx ==
       // 0. Otherwise skip the bottom left and bottom right pixel
-      iterate_direction_diryneg(diry,left_image,costs,accumulated_costs, nx, ny, disp_range);
+      //iterate_direction_diryneg(diry,left_image,costs,accumulated_costs, nx, ny, disp_range);
     }
 }
 void iterate_direction_dev( const int dirx, const int diry, const int *left_image,
@@ -365,7 +365,7 @@ void iterate_direction_dev( const int dirx, const int diry, const int *left_imag
       dim3 grid(1, grid_y);
       // Process every pixel along this edge
 
-      //iterate_direction_dirxpos_dev<<<grid, block, disp_range*sizeof(int)>>>(dirx,left_image,costs,accumulated_costs, nx, ny, disp_range);
+      iterate_direction_dirxpos_dev<<<grid, block, disp_range*sizeof(int)>>>(dirx,left_image,costs,accumulated_costs, nx, ny, disp_range);
 
 
     }
@@ -409,7 +409,7 @@ void iterate_direction_dev( const int dirx, const int diry, const int *left_imag
       dim3 grid(grid_x, 1);
       // Process every pixel along this edge only if dirx ==
       // 0. Otherwise skip the bottom left and bottom right pixel
-      iterate_direction_diryneg_dev<<<grid, block, disp_range*sizeof(int)>>>(diry,left_image,costs,accumulated_costs, nx, ny, disp_range);
+      //iterate_direction_diryneg_dev<<<grid, block, disp_range*sizeof(int)>>>(diry,left_image,costs,accumulated_costs, nx, ny, disp_range);
     }
 }
 
@@ -508,6 +508,8 @@ __device__ void evaluate_path_dev(const int *prior, const int *local,
   {
     memcpy(curr_cost, local, sizeof(int)*disp_range);
     int e_smooth = NPP_MAX_16U;
+    __syncthreads();
+
     for ( int d_p = 0; d_p < disp_range; d_p++ ) {
       if ( d_p - d == 0 ) {
         // No penality
@@ -523,6 +525,7 @@ __device__ void evaluate_path_dev(const int *prior, const int *local,
                             path_intensity_gradient ? PENALTY2/path_intensity_gradient : PENALTY2));
       }
     }
+    __syncthreads();
 
     curr_cost[d] += e_smooth;
 
@@ -531,7 +534,11 @@ __device__ void evaluate_path_dev(const int *prior, const int *local,
       if (shmem[d_s]<min) min=shmem[d_s];
     }
     curr_cost[d]-=min;
+    __syncthreads();
+
     shmem[d] = curr_cost[d];
+    __syncthreads();
+
 
 }
 
