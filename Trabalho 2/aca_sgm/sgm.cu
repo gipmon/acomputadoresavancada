@@ -499,37 +499,36 @@ void evaluate_path(const int *prior, const int *local,
 
 __device__ void evaluate_path_dev(const int *prior, const int *local,
                      int path_intensity_gradient, int *curr_cost ,
-                     const int nx, const int ny, const int disp_range)
+                     const int nx, const int ny, const int disp_range, const int d)
   {
     memcpy(curr_cost, local, sizeof(int)*disp_range);
-
-    for ( int d = 0; d < disp_range; d++ ) {
-      int e_smooth = NPP_MAX_16U;
-      for ( int d_p = 0; d_p < disp_range; d_p++ ) {
-        if ( d_p - d == 0 ) {
-          // No penality
-          e_smooth = MMIN(e_smooth,prior[d_p]);
-        } else if ( abs(d_p - d) == 1 ) {
-          // Small penality
-          e_smooth = MMIN(e_smooth,prior[d_p]+PENALTY1);
-        } else {
-          // Large penality
-          e_smooth =
-            MMIN(e_smooth,prior[d_p] +
-                     MMAX(PENALTY1,
-                              path_intensity_gradient ? PENALTY2/path_intensity_gradient : PENALTY2));
-        }
+    int e_smooth = NPP_MAX_16U;
+    for ( int d_p = 0; d_p < disp_range; d_p++ ) {
+      if ( d_p - d == 0 ) {
+        // No penality
+        e_smooth = MMIN(e_smooth,prior[d_p]);
+      } else if ( abs(d_p - d) == 1 ) {
+        // Small penality
+        e_smooth = MMIN(e_smooth,prior[d_p]+PENALTY1);
+      } else {
+        // Large penality
+        e_smooth =
+          MMIN(e_smooth,prior[d_p] +
+                   MMAX(PENALTY1,
+                            path_intensity_gradient ? PENALTY2/path_intensity_gradient : PENALTY2));
       }
-      curr_cost[d] += e_smooth;
     }
+
+    curr_cost[d] += e_smooth;
 
     int min = NPP_MAX_16U;
-    for ( int d = 0; d < disp_range; d++ ) {
-          if (prior[d]<min) min=prior[d];
+    for ( int d_s = 0; d_s < disp_range; d_s++ ) {
+      if (prior[d_s]<min) min=prior[d_s];
     }
-    for ( int d = 0; d < disp_range; d++ ) {
-          curr_cost[d]-=min;
-    }
+    curr_cost[d]-=min;
+
+
+
 }
 
 void create_disparity_view( const int *accumulated_costs , int * disp_image,
