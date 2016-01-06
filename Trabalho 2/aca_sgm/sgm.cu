@@ -145,8 +145,10 @@ __global__ void iterate_direction_dirxpos_dev(const int dirx, const int *left_im
 
       int i = threadIdx.x;
       int j = blockIdx.y * blockDim.y + threadIdx.y;
+      extern __shared__ shmem[];
       if(i < disp_range && j<ny){
         ACCUMULATED_COSTS(0,j,i) += COSTS(0,j,i);
+        shmem[threadIdx] += COSTS(0,j,i);
 
       __syncthreads();
 
@@ -308,7 +310,7 @@ __global__ void iterate_direction_diryneg_dev(const int diry, const int *left_im
                        abs(LEFT_IMAGE(i,l)-LEFT_IMAGE(i,l-diry)),
                        &ACCUMULATED_COSTS(i,l,0) , nx, ny, disp_range, j);
             __syncthreads();
-
+            ACCUMULATED_COSTS(i,l,0) = shmem[i]; 
          }
       }
 }
@@ -328,19 +330,19 @@ void iterate_direction( const int dirx, const int diry, const int *left_image,
       // TOP MOST EDGE
       // Process every pixel along this edge only if dirx ==
       // 0. Otherwise skip the top left most pixel
-      iterate_direction_dirypos(diry,left_image,costs,accumulated_costs, nx, ny, disp_range);
+      //iterate_direction_dirypos(diry,left_image,costs,accumulated_costs, nx, ny, disp_range);
     }
     else if ( dirx < 0 ) {
       // RIGHT MOST EDGE
       // Process every pixel along this edge only if diry ==
       // 0. Otherwise skip the top right most pixel
-      iterate_direction_dirxneg(dirx,left_image,costs,accumulated_costs, nx, ny, disp_range);
+      //iterate_direction_dirxneg(dirx,left_image,costs,accumulated_costs, nx, ny, disp_range);
     }
     else if ( diry < 0 ) {
       // BOTTOM MOST EDGE
       // Process every pixel along this edge only if dirx ==
       // 0. Otherwise skip the bottom left and bottom right pixel
-      iterate_direction_diryneg(diry,left_image,costs,accumulated_costs, nx, ny, disp_range);
+      //iterate_direction_diryneg(diry,left_image,costs,accumulated_costs, nx, ny, disp_range);
     }
 }
 void iterate_direction_dev( const int dirx, const int diry, const int *left_image,
@@ -359,8 +361,9 @@ void iterate_direction_dev( const int dirx, const int diry, const int *left_imag
       dim3 block(block_x, block_y);
       dim3 grid(1, grid_y);
       // Process every pixel along this edge
+      int shmemsize = sizeof(int)
 
-      iterate_direction_dirxpos_dev<<<grid, block>>>(dirx,left_image,costs,accumulated_costs, nx, ny, disp_range);
+      iterate_direction_dirxpos_dev<<<grid, block, shmemsize>>>(dirx,left_image,costs,accumulated_costs, nx, ny, disp_range);
 
 
     }
@@ -374,9 +377,10 @@ void iterate_direction_dev( const int dirx, const int diry, const int *left_imag
 
       dim3 block(block_x, block_y);
       dim3 grid(grid_x, 1);
+
       // Process every pixel along this edge only if dirx ==
       // 0. Otherwise skip the top left most pixel
-      iterate_direction_dirypos_dev<<<grid, block>>>(diry,left_image,costs,accumulated_costs, nx, ny, disp_range);
+      //iterate_direction_dirypos_dev<<<grid, block>>>(diry,left_image,costs,accumulated_costs, nx, ny, disp_range);
     }
     else if ( dirx < 0 ) {
       // RIGHT MOST EDGE
@@ -390,7 +394,7 @@ void iterate_direction_dev( const int dirx, const int diry, const int *left_imag
       dim3 grid(1, grid_y);
       // Process every pixel along this edge only if diry ==
       // 0. Otherwise skip the top right most pixel
-      iterate_direction_dirxneg_dev<<<grid, block>>>(dirx,left_image,costs,accumulated_costs, nx, ny, disp_range);
+      //iterate_direction_dirxneg_dev<<<grid, block>>>(dirx,left_image,costs,accumulated_costs, nx, ny, disp_range);
     }
     else if ( diry < 0 ) {
       // BOTTOM MOST EDGE
@@ -404,7 +408,7 @@ void iterate_direction_dev( const int dirx, const int diry, const int *left_imag
       dim3 grid(grid_x, 1);
       // Process every pixel along this edge only if dirx ==
       // 0. Otherwise skip the bottom left and bottom right pixel
-      iterate_direction_diryneg_dev<<<grid, block>>>(diry,left_image,costs,accumulated_costs, nx, ny, disp_range);
+      //iterate_direction_diryneg_dev<<<grid, block>>>(diry,left_image,costs,accumulated_costs, nx, ny, disp_range);
     }
 }
 
@@ -506,26 +510,28 @@ __device__ void evaluate_path_dev(const int *prior, const int *local,
     for ( int d_p = 0; d_p < disp_range; d_p++ ) {
       if ( d_p - d == 0 ) {
         // No penality
-        e_smooth = MMIN(e_smooth,prior[d_p]);
+        e_smooth = MMIN(e_smooth,shmem[d_p]);
       } else if ( abs(d_p - d) == 1 ) {
         // Small penality
-        e_smooth = MMIN(e_smooth,prior[d_p]+PENALTY1);
+        e_smooth = MMIN(e_smooth,shmem[d_p]+PENALTY1);
       } else {
         // Large penality
         e_smooth =
-          MMIN(e_smooth,prior[d_p] +
+          MMIN(e_smooth,shmem[d_p] +
                    MMAX(PENALTY1,
                             path_intensity_gradient ? PENALTY2/path_intensity_gradient : PENALTY2));
       }
     }
 
-    curr_cost[d] += e_smooth;
+    //curr_cost[d] += e_smooth;
+    shmem[d] += e_smooth;
 
     int min = NPP_MAX_16U;
     for ( int d_s = 0; d_s < disp_range; d_s++ ) {
-      if (prior[d_s]<min) min=prior[d_s];
+      if (shmem[d_s]<min) min=shmem[d_s];
     }
-    curr_cost[d]-=min;
+    //curr_cost[d]-=min;
+    shmem[d]-=min;
 
 
 
