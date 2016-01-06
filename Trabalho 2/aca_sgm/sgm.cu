@@ -160,6 +160,8 @@ __global__ void iterate_direction_dirxpos_dev(const int dirx, const int *left_im
                          &ACCUMULATED_COSTS(l,j,0), nx, ny, disp_range, i);
         __syncthreads();
 
+        &ACCUMULATED_COSTS(l,j,0) = shmem[i];
+
       }
     }
 
@@ -305,12 +307,12 @@ __global__ void iterate_direction_diryneg_dev(const int diry, const int *left_im
 
         for(int l = ny-2; l >= 0; l--){
 
-            evaluate_path_dev( &shmem,
+            evaluate_path_dev( &ACCUMULATED_COSTS(i,l,0),
                        &COSTS(i,l,0),
                        abs(LEFT_IMAGE(i,l)-LEFT_IMAGE(i,l-diry)),
                        &ACCUMULATED_COSTS(i,l,0) , nx, ny, disp_range, j);
             __syncthreads();
-            ACCUMULATED_COSTS(i,l,0) = shmem[i];
+
          }
       }
 }
