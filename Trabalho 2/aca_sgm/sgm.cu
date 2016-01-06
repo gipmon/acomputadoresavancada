@@ -154,7 +154,7 @@ __global__ void iterate_direction_dirxpos_dev(const int dirx, const int *left_im
 
 
       for(int l = 1; l<nx;l++){
-        evaluate_path_dev( &ACCUMULATED_COSTS(l-dirx,j,0),
+        evaluate_path_dev( &shmem,
                          &COSTS(l,j,0),
                          abs(LEFT_IMAGE(l,j)-LEFT_IMAGE(l-dirx,j)) ,
                          &ACCUMULATED_COSTS(l,j,0), nx, ny, disp_range, i);
