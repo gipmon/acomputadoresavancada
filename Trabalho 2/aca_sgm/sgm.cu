@@ -263,9 +263,6 @@ __global__ void iterate_direction_dirxneg_dev(const int dirx, const int *left_im
             __syncthreads();
 
         }
-
-
-
       }
 }
 
