@@ -298,6 +298,7 @@ __global__ void iterate_direction_diryneg_dev(const int diry, const int *left_im
       if(j < disp_range && i < nx){
 
         ACCUMULATED_COSTS(i,ny-1,j) += COSTS(i,ny-1,j);
+        __syncthreads();
 
 
         for(int l = ny-2; l >= 0; l--){
@@ -306,6 +307,8 @@ __global__ void iterate_direction_diryneg_dev(const int diry, const int *left_im
                        &COSTS(i,l,0),
                        abs(LEFT_IMAGE(i,l)-LEFT_IMAGE(i,l-diry)),
                        &ACCUMULATED_COSTS(i,l,0) , nx, ny, disp_range, j);
+            __syncthreads();
+
          }
       }
 }
@@ -323,8 +326,6 @@ void iterate_direction( const int dirx, const int diry, const int *left_image,
     }
     else if ( diry > 0 ) {
       // TOP MOST EDGE
-      printf("host: %d\n", disp_range);
-
       // Process every pixel along this edge only if dirx ==
       // 0. Otherwise skip the top left most pixel
       iterate_direction_dirypos(diry,left_image,costs,accumulated_costs, nx, ny, disp_range);
@@ -368,7 +369,6 @@ void iterate_direction_dev( const int dirx, const int diry, const int *left_imag
       // TOP MOST EDGE
       int block_x = 1;
       int block_y = disp_range;
-      printf("dev: %d\n", disp_range);
 
       int grid_x = ceil((float)nx / block_x);
       int grid_y = ceil((float)ny / block_y);
