@@ -323,6 +323,8 @@ void iterate_direction( const int dirx, const int diry, const int *left_image,
     }
     else if ( diry > 0 ) {
       // TOP MOST EDGE
+      printf("host: %d\n", disp_range);
+
       // Process every pixel along this edge only if dirx ==
       // 0. Otherwise skip the top left most pixel
       iterate_direction_dirypos(diry,left_image,costs,accumulated_costs, nx, ny, disp_range);
@@ -366,6 +368,7 @@ void iterate_direction_dev( const int dirx, const int diry, const int *left_imag
       // TOP MOST EDGE
       int block_x = 1;
       int block_y = disp_range;
+      printf("dev: %d\n", disp_range);
 
       int grid_x = ceil((float)nx / block_x);
       int grid_y = ceil((float)ny / block_y);
