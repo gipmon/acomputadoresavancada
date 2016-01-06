@@ -145,7 +145,7 @@ __global__ void iterate_direction_dirxpos_dev(const int dirx, const int *left_im
 
       int i = threadIdx.x;
       int j = blockIdx.y * blockDim.y + threadIdx.y;
-      __shared__ int shmem[disp_range*sizeof(int)];
+      __shared__ int shmem[];
       if(i < disp_range && j<ny){
         ACCUMULATED_COSTS(0,j,i) += COSTS(0,j,i);
         shmem[threadIdx] += COSTS(0,j,i);
@@ -361,7 +361,7 @@ void iterate_direction_dev( const int dirx, const int diry, const int *left_imag
       dim3 block(block_x, block_y);
       dim3 grid(1, grid_y);
       // Process every pixel along this edge
-      int shmemsize = disp_range*sizeof(int);
+      int shmemsize = disp_range;
 
       iterate_direction_dirxpos_dev<<<grid, block, shmemsize>>>(dirx,left_image,costs,accumulated_costs, nx, ny, disp_range);
 
