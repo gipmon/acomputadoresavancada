@@ -160,8 +160,6 @@ __global__ void iterate_direction_dirxpos_dev(const int dirx, const int *left_im
 
         __syncthreads();
 
-
-
       }
     }
 
@@ -514,14 +512,14 @@ __device__ void evaluate_path_dev(const int *prior, const int *local,
     for ( int d_p = 0; d_p < disp_range; d_p++ ) {
       if ( d_p - d == 0 ) {
         // No penality
-        e_smooth = MMIN(e_smooth,prior[d_p]);
+        e_smooth = MMIN(e_smooth,shmem[d_p]);
       } else if ( abs(d_p - d) == 1 ) {
         // Small penality
-        e_smooth = MMIN(e_smooth,prior[d_p]+PENALTY1);
+        e_smooth = MMIN(e_smooth,shmem[d_p]+PENALTY1);
       } else {
         // Large penality
         e_smooth =
-          MMIN(e_smooth,prior[d_p] +
+          MMIN(e_smooth,shmem[d_p] +
                    MMAX(PENALTY1,
                             path_intensity_gradient ? PENALTY2/path_intensity_gradient : PENALTY2));
       }
@@ -531,9 +529,10 @@ __device__ void evaluate_path_dev(const int *prior, const int *local,
 
     int min = NPP_MAX_16U;
     for ( int d_s = 0; d_s < disp_range; d_s++ ) {
-      if (prior[d_s]<min) min=prior[d_s];
+      if (shmem[d_s]<min) min=shmem[d_s];
     }
     curr_cost[d]-=min;
+    shmem[d] = curr_cost[d];
 
 }
 
