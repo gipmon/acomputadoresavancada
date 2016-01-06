@@ -41,7 +41,7 @@ void determine_costs(const int *left_image, const int *right_image, int *costs,
 void evaluate_path( const int *prior, const int* local,
                     int path_intensity_gradient, int *curr_cost,
                     const int nx, const int ny, const int disp_range );
-__device__ void evaluate_path_dev(const int *shmem, const int *local,
+__device__ void evaluate_path_dev(int *shmem, const int *local,
                     int path_intensity_gradient, int *curr_cost ,
                     const int nx, const int ny, const int disp_range, const int d);
 
@@ -467,7 +467,7 @@ __device__ int find_min_index_device( const int *v, const int disp_range )
     return minind;
 }
 
-void evaluate_path(const int *prior, const int *local,
+void evaluate_path(int *prior, const int *local,
                    int path_intensity_gradient, int *curr_cost ,
                    const int nx, const int ny, const int disp_range)
 {
