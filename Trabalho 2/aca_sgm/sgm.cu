@@ -41,7 +41,7 @@ void determine_costs(const int *left_image, const int *right_image, int *costs,
 void evaluate_path( const int *prior, const int* local,
                     int path_intensity_gradient, int *curr_cost,
                     const int nx, const int ny, const int disp_range );
-__device__ void evaluate_path_dev( int *shmem, const int *local,
+__device__ void evaluate_path_dev(const int *prior, const int *local,
                     int path_intensity_gradient, int *curr_cost ,
                     const int nx, const int ny, const int disp_range, const int d);
 
@@ -145,22 +145,31 @@ __global__ void iterate_direction_dirxpos_dev(const int dirx, const int *left_im
 
       int i = threadIdx.x;
       int j = blockIdx.y * blockDim.y + threadIdx.y;
-      extern __shared__ int shmem;
+      extern __shared__ int shmem[];
       if(i < disp_range && j<ny){
-        ACCUMULATED_COSTS(0,j,i) += COSTS(0,j,i);
-        shmem[threadIdx.x] += COSTS(0,j,i);
-
+        //ACCUMULATED_COSTS(0,j,i) += COSTS(0,j,i);
+        shmem[i] += COSTS(0,j,i);
       __syncthreads();
 
 
       for(int l = 1; l<nx;l++){
-        evaluate_path_dev( &shmem,
+        evaluate_path_dev( &ACCUMULATED_COSTS(l-dirx,j,0),
                          &COSTS(l,j,0),
                          abs(LEFT_IMAGE(l,j)-LEFT_IMAGE(l-dirx,j)) ,
                          &ACCUMULATED_COSTS(l,j,0), nx, ny, disp_range, i);
+
+         shmem[i] = ACCUMULATED_COSTS(l,j,0);
+         int min = NPP_MAX_16U;
+         for ( int d_s = 0; d_s < disp_range; d_s++ ) {
+           if (shmem[d_s]<min) min=shmem[d_s];
+         }
+         shmem[i]-=min;
+
+         ACCUMULATED_COSTS(l,j,0) = shmem[i];
+
         __syncthreads();
 
-        &ACCUMULATED_COSTS(l,j,0) = shmem[i];
+
 
       }
     }
@@ -199,8 +208,6 @@ __global__ void iterate_direction_dirypos_dev(const int diry, const int *left_im
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = threadIdx.y;
-    extern __shared__ int shmem;
-
     if(j < disp_range && i < nx){
 
         ACCUMULATED_COSTS(i,0,j) += COSTS(i,0,j);
@@ -208,7 +215,7 @@ __global__ void iterate_direction_dirypos_dev(const int diry, const int *left_im
 
         for(int l = 1; l<ny; l++){
 
-          evaluate_path_dev( &shmem,
+          evaluate_path_dev( &ACCUMULATED_COSTS(i,l-diry,0),
                          &COSTS(i,l,0),
                          abs(LEFT_IMAGE(i,l)-LEFT_IMAGE(i,l-diry)),
                          &ACCUMULATED_COSTS(i,l,0), nx, ny, disp_range, j);
@@ -248,7 +255,6 @@ __global__ void iterate_direction_dirxneg_dev(const int dirx, const int *left_im
 {
       int i = threadIdx.x;
       int j = blockIdx.y * blockDim.y + threadIdx.y;
-      extern __shared__ int shmem;
 
       if(i < disp_range && j < ny){
 
@@ -258,7 +264,7 @@ __global__ void iterate_direction_dirxneg_dev(const int dirx, const int *left_im
 
 
         for(int l = nx-2; l >= 0; l--){
-            evaluate_path_dev( &shmem,
+            evaluate_path_dev( &ACCUMULATED_COSTS(l-dirx,j,0),
                            &COSTS(l,j,0),
                            abs(LEFT_IMAGE(l,j)-LEFT_IMAGE(l-dirx,j)),
                            &ACCUMULATED_COSTS(l,j,0), nx, ny, disp_range, i);
@@ -302,7 +308,6 @@ __global__ void iterate_direction_diryneg_dev(const int diry, const int *left_im
 
       int i = blockIdx.x * blockDim.x + threadIdx.x;
       int j = threadIdx.y;
-      extern __shared__ int shmem;
       if(j < disp_range && i < nx){
 
         ACCUMULATED_COSTS(i,ny-1,j) += COSTS(i,ny-1,j);
@@ -311,7 +316,7 @@ __global__ void iterate_direction_diryneg_dev(const int diry, const int *left_im
 
         for(int l = ny-2; l >= 0; l--){
 
-            evaluate_path_dev( &shmem,
+            evaluate_path_dev( &ACCUMULATED_COSTS(i,l-diry,0),
                        &COSTS(i,l,0),
                        abs(LEFT_IMAGE(i,l)-LEFT_IMAGE(i,l-diry)),
                        &ACCUMULATED_COSTS(i,l,0) , nx, ny, disp_range, j);
@@ -382,7 +387,6 @@ void iterate_direction_dev( const int dirx, const int diry, const int *left_imag
 
       dim3 block(block_x, block_y);
       dim3 grid(grid_x, 1);
-
       // Process every pixel along this edge only if dirx ==
       // 0. Otherwise skip the top left most pixel
       //iterate_direction_dirypos_dev<<<grid, block>>>(diry,left_image,costs,accumulated_costs, nx, ny, disp_range);
@@ -471,7 +475,7 @@ __device__ int find_min_index_device( const int *v, const int disp_range )
     return minind;
 }
 
-void evaluate_path(int *prior, const int *local,
+void evaluate_path(const int *prior, const int *local,
                    int path_intensity_gradient, int *curr_cost ,
                    const int nx, const int ny, const int disp_range)
 {
@@ -506,7 +510,7 @@ void evaluate_path(int *prior, const int *local,
   }
 }
 
-__device__ void evaluate_path_dev( int  *shmem, const int *local,
+__device__ void evaluate_path_dev(const int *prior, const int *local,
                      int path_intensity_gradient, int *curr_cost ,
                      const int nx, const int ny, const int disp_range, const int d)
   {
@@ -515,28 +519,22 @@ __device__ void evaluate_path_dev( int  *shmem, const int *local,
     for ( int d_p = 0; d_p < disp_range; d_p++ ) {
       if ( d_p - d == 0 ) {
         // No penality
-        e_smooth = MMIN(e_smooth,shmem[d_p]);
+        e_smooth = MMIN(e_smooth,prior[d_p]);
       } else if ( abs(d_p - d) == 1 ) {
         // Small penality
-        e_smooth = MMIN(e_smooth,shmem[d_p]+PENALTY1);
+        e_smooth = MMIN(e_smooth,prior[d_p]+PENALTY1);
       } else {
         // Large penality
         e_smooth =
-          MMIN(e_smooth,shmem[d_p] +
+          MMIN(e_smooth,prior[d_p] +
                    MMAX(PENALTY1,
                             path_intensity_gradient ? PENALTY2/path_intensity_gradient : PENALTY2));
       }
     }
 
-    //curr_cost[d] += e_smooth;
-    shmem[d] += e_smooth;
+    curr_cost[d] += e_smooth;
 
-    int min = NPP_MAX_16U;
-    for ( int d_s = 0; d_s < disp_range; d_s++ ) {
-      if (shmem[d_s]<min) min=shmem[d_s];
-    }
-    //curr_cost[d]-=min;
-    shmem[d]-=min;
+
 
 
 
