@@ -43,7 +43,7 @@ void evaluate_path( const int *prior, const int* local,
                     const int nx, const int ny, const int disp_range );
 __device__ void evaluate_path_dev(const int *prior, const int *local,
                     int path_intensity_gradient, int *curr_cost ,
-                    const int nx, const int ny, const int disp_range, const int d);
+                    const int nx, const int ny, const int disp_range, const int d, int shmem[]);
 
 void iterate_direction_dirxpos(const int dirx, const int *left_image,
                                const int* costs, int *accumulated_costs,
@@ -148,7 +148,7 @@ __global__ void iterate_direction_dirxpos_dev(const int dirx, const int *left_im
       extern __shared__ int shmem[];
       if(i < disp_range && j<ny){
         //ACCUMULATED_COSTS(0,j,i) += COSTS(0,j,i);
-        shmem[i] += COSTS(0,j,i);
+        shmem[i] = COSTS(0,j,i);
       __syncthreads();
 
 
@@ -156,16 +156,7 @@ __global__ void iterate_direction_dirxpos_dev(const int dirx, const int *left_im
         evaluate_path_dev( &ACCUMULATED_COSTS(l-dirx,j,0),
                          &COSTS(l,j,0),
                          abs(LEFT_IMAGE(l,j)-LEFT_IMAGE(l-dirx,j)) ,
-                         &ACCUMULATED_COSTS(l,j,0), nx, ny, disp_range, i);
-
-         shmem[i] = ACCUMULATED_COSTS(l,j,0);
-         int min = NPP_MAX_16U;
-         for ( int d_s = 0; d_s < disp_range; d_s++ ) {
-           if (shmem[d_s]<min) min=shmem[d_s];
-         }
-         shmem[i]-=min;
-
-         ACCUMULATED_COSTS(l,j,0) = shmem[i];
+                         &ACCUMULATED_COSTS(l,j,0), nx, ny, disp_range, i, shmem);
 
         __syncthreads();
 
@@ -208,6 +199,7 @@ __global__ void iterate_direction_dirypos_dev(const int diry, const int *left_im
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = threadIdx.y;
+    extern __shared__ shmem[];
     if(j < disp_range && i < nx){
 
         ACCUMULATED_COSTS(i,0,j) += COSTS(i,0,j);
@@ -218,7 +210,7 @@ __global__ void iterate_direction_dirypos_dev(const int diry, const int *left_im
           evaluate_path_dev( &ACCUMULATED_COSTS(i,l-diry,0),
                          &COSTS(i,l,0),
                          abs(LEFT_IMAGE(i,l)-LEFT_IMAGE(i,l-diry)),
-                         &ACCUMULATED_COSTS(i,l,0), nx, ny, disp_range, j);
+                         &ACCUMULATED_COSTS(i,l,0), nx, ny, disp_range, j,shmem);
           __syncthreads();
 
       }
@@ -255,6 +247,7 @@ __global__ void iterate_direction_dirxneg_dev(const int dirx, const int *left_im
 {
       int i = threadIdx.x;
       int j = blockIdx.y * blockDim.y + threadIdx.y;
+      extern __shared__ shmem[];
 
       if(i < disp_range && j < ny){
 
@@ -267,7 +260,7 @@ __global__ void iterate_direction_dirxneg_dev(const int dirx, const int *left_im
             evaluate_path_dev( &ACCUMULATED_COSTS(l-dirx,j,0),
                            &COSTS(l,j,0),
                            abs(LEFT_IMAGE(l,j)-LEFT_IMAGE(l-dirx,j)),
-                           &ACCUMULATED_COSTS(l,j,0), nx, ny, disp_range, i);
+                           &ACCUMULATED_COSTS(l,j,0), nx, ny, disp_range, i, shmem);
             __syncthreads();
 
         }
@@ -308,6 +301,8 @@ __global__ void iterate_direction_diryneg_dev(const int diry, const int *left_im
 
       int i = blockIdx.x * blockDim.x + threadIdx.x;
       int j = threadIdx.y;
+      extern __shared__ shmem[];
+
       if(j < disp_range && i < nx){
 
         ACCUMULATED_COSTS(i,ny-1,j) += COSTS(i,ny-1,j);
@@ -319,7 +314,7 @@ __global__ void iterate_direction_diryneg_dev(const int diry, const int *left_im
             evaluate_path_dev( &ACCUMULATED_COSTS(i,l-diry,0),
                        &COSTS(i,l,0),
                        abs(LEFT_IMAGE(i,l)-LEFT_IMAGE(i,l-diry)),
-                       &ACCUMULATED_COSTS(i,l,0) , nx, ny, disp_range, j);
+                       &ACCUMULATED_COSTS(i,l,0) , nx, ny, disp_range, j, shmem);
             __syncthreads();
 
          }
@@ -512,7 +507,7 @@ void evaluate_path(const int *prior, const int *local,
 
 __device__ void evaluate_path_dev(const int *prior, const int *local,
                      int path_intensity_gradient, int *curr_cost ,
-                     const int nx, const int ny, const int disp_range, const int d)
+                     const int nx, const int ny, const int disp_range, const int d, int shmem[])
   {
     memcpy(curr_cost, local, sizeof(int)*disp_range);
     int e_smooth = NPP_MAX_16U;
@@ -533,10 +528,6 @@ __device__ void evaluate_path_dev(const int *prior, const int *local,
     }
 
     curr_cost[d] += e_smooth;
-
-
-
-
 
 }
 
