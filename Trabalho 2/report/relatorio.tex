@@ -435,6 +435,105 @@ Para melhorar ainda mais estes resultados passou-se a utilizar a \textit{shared 
 \newpage
 \subsubsection{Shared Memory}
 
+Visto que as threads na versão 2 eram executadas em paralelo, e que existiam valores que todas partilhavam e necessitavam umas das outras para o cálculo dos mínimos, então decidiu-se que seria mais produtivo que as pesquisas fossem feitas na \textit{shared memory}. Para isso, foi necessário criar um array de \textit{shared memory} com shared memory size igual a disparity\_range*sizeof(int), onde cada índice do array corresponde a um valor de disparidade.
+
+A maioria das alterações foi feita na função \textit{evaluate\_path()}, visto ser nesta que se efetuam todas as pesquisas necessárias para determinar o current cost e o minimo. Com isto a função ficou da seguinte forma:
+
+  \begin{lstlisting}[language=c++, basicstyle=\scriptsize]
+__device__ void evaluate_path_dev(const int *prior, const int *local,
+                     int path_intensity_gradient, int *curr_cost ,
+                     const int nx, const int ny, const int disp_range, const int d, int shmem[])
+  {
+    memcpy(curr_cost, local, sizeof(int)*disp_range);
+    
+    int e_smooth = NPP_MAX_16U;
+
+    for ( int d_p = 0; d_p < disp_range; d_p++ ) {
+      if ( d_p - d == 0 ) {
+        // No penality
+        e_smooth = MMIN(e_smooth,shmem[d_p]);
+        
+      } else if ( abs(d_p - d) == 1 ) {
+        // Small penality
+        e_smooth = MMIN(e_smooth,shmem[d_p]+PENALTY1);
+        
+      } else {
+        // Large penality
+        e_smooth =
+          MMIN(e_smooth,shmem[d_p] +
+                   MMAX(PENALTY1,
+                   path_intensity_gradient ? PENALTY2/path_intensity_gradient : PENALTY2));
+      }
+    }
+
+    curr_cost[d] += e_smooth;
+
+    int min = NPP_MAX_16U;
+    
+    for ( int d_s = 0; d_s < disp_range; d_s++ ) {
+      if (shmem[d_s]<min) min=shmem[d_s];
+    }
+    
+    curr_cost[d]-=min;
+    
+    __syncthreads();
+    
+    shmem[d] = curr_cost[d];
+
+}
+
+\end{lstlisting} 
+
+Aqui foi também necessário colocar outra vez o comando \textit{\_\_syncthreads()}, para que todas as threads apenas escrevessem na memória partilhada quando todas tivessem calculado o mínimo valor nesta.
+
+Mais uma vez com esta nova implementação, os resultados voltaram a melhorar muito em relação à memória global:
+
+\begin{figure}[!htb]
+\center
+ \includegraphics[width=100mm,scale=1]{IteratePositionShared.png}
+ \caption{\\ Resultados obtidos utilizando shared memory}
+ \label{fig:IteratePositionShared}
+\end{figure}
+
+\newpage
+\section{Exercício 3}
+
+\subsection{Cuda Kernel da função "inplace\_sum\_views()"}
+
+A função \textit{inplace\_sum\_views}, tem como objectivo a soma de pixeis de duas imagens. Para esta a geometria utilizada foi idêntica à da determinação de custos (Exercício 1), contudo possui uma pequena alteração, pois o número de colunas é agora correspondente a ceil((nx*disp_range)/32):
+
+\begin{figure}[!htb]
+\center
+ \includegraphics[width=100mm,scale=1]{InplaceSumViews_v1_kernel.pdf}
+ \caption{\\ Geometria do Kernel para a função inplace\_sum\_views()}
+ \label{fig:InplaceSumViews_v1_kernel}
+\end{figure}
+
+Para a implementação deste kernel criou-se o seguinte algoritmo:
+
+  \begin{lstlisting}[language=c++, basicstyle=\scriptsize]
+__global__ void inplace_sum_views_dev(int * im1, const int * im2,
+                                      const int nx, const int ny, const int disp_range){
+    
+      int i = blockIdx.x * blockDim.x + threadIdx.x;
+      int j = blockIdx.y * blockDim.y + threadIdx.y;
+      int id = i + (j * (nx*disp_range));
+      
+      if(i < nx*disp_range && j < ny){
+        int *im1_init = im1;
+        im1 += id;
+        im2 += id;
+        if(im1 != (im1_init + (nx*ny*disp_range))  ){
+          *im1 += *im2;
+        }
+      }
+}
+
+\end{lstlisting} 
+
+Posteriormente a esta implementação obtiveram-se os seguintes resultados com a utilização do exercício 2 em memória global e em memória partilhada:
+
+ 
 
 \newpage
 \section{Conclusão}
