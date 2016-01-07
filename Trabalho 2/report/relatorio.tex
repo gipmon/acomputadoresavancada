@@ -551,6 +551,24 @@ Posteriormente a esta implementação obtiveram-se os seguintes resultados com a
 Mais uma vez, é possível verificar-se as melhorias nos resultados tanto a nível de memória global como de memória partilhada.
 
 \newpage
+\section{Exercício 4}
+
+\subsection{Cuda Kernel da função "create\_disparity\_view()"}
+
+No 4º e último exercício era proposto a implementação de um kernel para a função \textit{create\_disparity\_view}, que tem como objectivo a criação da imagem de disparidade originada pelo programa.
+
+Para este kernel pensou-se numa geometria idêntica à da determinação de custos:
+
+\begin{figure}[!htb]
+\center
+ \includegraphics[width=100mm,scale=1]{DetermineCosts_v1_kernel.pdf}
+ \caption{\\ Geometria do Kernel para a função create\_disparity\_view()}
+ \label{fig:create_v1_kernel}
+\end{figure}
+
+Constituída por uma grid de ceil(nx/32) por ceil(ny/16) blocos, cada um constituído por 32x16 threads, onde cada uma corresponde a um pixel da imagem final e calcula o índice do array de custos daquele pixel, multiplicando-o por 4.
+
+\newpage
 \section{Conclusão}
 
 Este trabalho foi útil para assentar todos os conhecimentos que se foi obtendo ao longo destes anos, tanto em Arquitectura de Computadores Avançada como em Arquitetura de Computadores I e II. Ambas as entregas foram primeiro planeadas em papel antes de se avançar para a implementação o que resultou em bons resultados a nível de tempo despendido, para ambos as entregas fez-se uso de dois dias de trabalho.
