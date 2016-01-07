@@ -534,7 +534,7 @@ __device__ void evaluate_path_dev(const int *prior, const int *local,
       if (shmem[d_s]<min) min=shmem[d_s];
     }
     curr_cost[d]-=min;
-
+    __syncthreads();
     shmem[d] = curr_cost[d];
 
 }
