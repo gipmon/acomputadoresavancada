@@ -119,7 +119,7 @@ TEXTURE MEMORY CODIGO E RESULTADOS
 
 Para este exercicío foram implementadas duas versões para a utilização de \textit{global memory}, sendo a versão 2 (otimizada) utilizada na utilização da \textit{shared memory}.
 
-\subsubsection{Versão 1}
+\subsubsection{Global Memory - Versão 1}
 
 Nesta versão, foram criadas duas geometrias apenas, sendo que uma diz respeito às iterações nas direções em x, e outra em y, visto que tanto para o lado positivo como para o negativo a geometria era idêntica.
 
@@ -132,7 +132,7 @@ Nesta versão, foram criadas duas geometrias apenas, sendo que uma diz respeito 
 
 Como podemos ver na figura \ref{fig:IteratePositionDirxposneg_v1_kernel}, a grid é composta por ceil(ny/32) blocos, cada bloco composto por 32 threads, sendo cada uma responsável pela linha em x onde está inserida para cálculo dos respetivos paths.
 
-Esta operação tem de ser efetuada sequencialmente pois o pixel seguinte depende sempre do anterior, pelo que se recorreu à seguinte implementação para a função \textit{iterate\_direction\_dirxpos()} e para a função \textit{iterate\_direction\_dirxneg()}:
+Esta operação tem de ser efetuada sequencialmente pois o pixel seguinte depende sempre do anterior, pelo que se recorreu à seguinte implementação para o kernel \textit{iterate\_direction\_dirxpos()} e para o kernel \textit{iterate\_direction\_dirxneg()}:
 
 \begin{lstlisting}[language=c++, basicstyle=\scriptsize]
 __global__ void iterate_direction_dirxpos_dev(const int dirx, const int *left_image,
@@ -192,7 +192,7 @@ Tal como apresentado na figura, neste caso a geometria é composta por uma grid 
 
 Esta geometria volta a aplicar-se às direções positivas e negativa da mesma maneira tal como em x.
 
-Foi então desenvolvido o seguinte código para as funções \textit{iterate\_direction\_dirypos()} e \textit{iterate\_direction\_diryneg()}:
+Foi então desenvolvido o seguinte código para os kernels \textit{iterate\_direction\_dirypos()} e \textit{iterate\_direction\_diryneg()}:
 
 \begin{lstlisting}[language=c++, basicstyle=\scriptsize]
 __global__ void iterate_direction_dirypos_dev(const int diry, const int *left_image,
@@ -239,6 +239,201 @@ __global__ void iterate_direction_diryneg_dev(const int diry, const int *left_im
 \end{lstlisting} 
 
 Nesta primeira versão, os resultados obtidos foram os seguintes:
+
+\begin{figure}[!htb]
+\center
+ \includegraphics[width=100mm,scale=1]{IteratePositionsV1.png}
+ \caption{\\ Resultados obtidos utilizando a versão 1 com global memory}
+ \label{fig:IteratePositionsV1}
+\end{figure}
+
+Notaram-se algumas melhorias, contudo é possível melhorar o speedup, e para isso recorreu-se a uma segunda versão, desenvolvida com o apoio da leitura do artigo  \footnote{\label{url1} \href{http://elearning.ua.pt/mod/resource/view.php?id=217488}{Real-time Stereo Vision: Optimizing Semi-Global Matching, Matthias Michael, Jan Salmen, Johannes Stallkamp, and Marc Schlipsing, IEEE Intelligent Vehicles Symposium pp 1197-1202, 2013 }} fornecido pelos professores.
+
+\newpage
+\subsubsection{Global Memory - Versão 2}
+
+Nesta segunda versão, decidiu-se alterar a geometria do kernel, de forma a que agora cada thread fosse responsável por um único valor de disparidade num path. Para isso a geometria criada para x foi a seguinte:
+
+\begin{figure}[!htb]
+\center
+ \includegraphics[width=50mm,height=100mm,scale=1]{IteratePositionDirxposneg_v2_kernel.pdf}
+ \caption{\\ Geometria do Kernel para as funções iterate\_direction\_dirxpos() e iterate\_direction\_dirxneg()}
+ \label{fig:IteratePositionDirxposneg_v2_kernel}
+\end{figure}
+
+A grid passa a ser composta por ny blocos, cada um com um número de threads igual ao \textit{disparity range}. Passa então a existir um bloco para cada linha em x, composto por threads, onde cada uma corresponde a um valor de disparidade diferente.
+
+A implementação destes dois kernels foi efetuada através do seguinte algoritmo:
+
+ \begin{lstlisting}[language=c++, basicstyle=\scriptsize]
+__global__ void iterate_direction_dirxpos_dev(const int dirx, const int *left_image,
+                        const int* costs, int *accumulated_costs,
+                        const int nx, const int ny, const int disp_range ){
+
+      int i = threadIdx.x;
+      int j = blockIdx.y * blockDim.y + threadIdx.y;
+      if(i < disp_range && j<ny){
+        ACCUMULATED_COSTS(0,j,i) += COSTS(0,j,i);
+
+      __syncthreads();
+
+
+      for(int l = 1; l<nx;l++){
+        evaluate_path_dev( &ACCUMULATED_COSTS(l-dirx,j,0),
+                         &COSTS(l,j,0),
+                         abs(LEFT_IMAGE(l,j)-LEFT_IMAGE(l-dirx,j)) ,
+                         &ACCUMULATED_COSTS(l,j,0), nx, ny, disp_range, i);
+        __syncthreads();
+
+      }
+    }
+}
+
+__global__ void iterate_direction_dirxneg_dev(const int dirx, const int *left_image,
+                        const int* costs, int *accumulated_costs,
+                        const int nx, const int ny, const int disp_range )
+{
+      int i = threadIdx.x;
+      int j = blockIdx.y * blockDim.y + threadIdx.y;
+
+      if(i < disp_range && j < ny){
+
+        ACCUMULATED_COSTS(nx-1,j,i) += COSTS(nx-1,j,i);
+
+        __syncthreads();
+
+
+        for(int l = nx-2; l >= 0; l--){
+            evaluate_path_dev( &ACCUMULATED_COSTS(l-dirx,j,0),
+                           &COSTS(l,j,0),
+                           abs(LEFT_IMAGE(l,j)-LEFT_IMAGE(l-dirx,j)),
+                           &ACCUMULATED_COSTS(l,j,0), nx, ny, disp_range, i);
+            __syncthreads();
+        }
+      }
+}
+\end{lstlisting} 
+
+\newpage
+No caso da direção ser em y, a geometria utilizada foi a seguinte:
+
+\begin{figure}[!htb]
+\center
+ \includegraphics[width=100mm,scale=1]{IteratePositionDiryposneg_v2_kernel.pdf}
+ \caption{\\ Geometria do Kernel para as funções iterate\_direction\_dirypos() e iterate\_direction\_diryneg()}
+ \label{fig:IteratePositionDiryposneg_v2_kernel}
+\end{figure}
+
+Nesta situação, a grid é composta por nx blocos, cada um um número de threads igual ao disparity range, onde cada thread, tal como em x, é responsável por um valor de disparidade diferente.
+
+A implementação dos kernels correspondestes a esta geometria é a seguinte:
+
+ \begin{lstlisting}[language=c++, basicstyle=\scriptsize]
+__global__ void iterate_direction_dirypos_dev(const int diry, const int *left_image,
+                        const int* costs, int *accumulated_costs,
+                        const int nx, const int ny, const int disp_range )
+{
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    int j = threadIdx.y;
+    if(j < disp_range && i < nx){
+
+        ACCUMULATED_COSTS(i,0,j) += COSTS(i,0,j);
+        __syncthreads();
+
+        for(int l = 1; l<ny; l++){
+
+          evaluate_path_dev( &ACCUMULATED_COSTS(i,l-diry,0),
+                         &COSTS(i,l,0),
+                         abs(LEFT_IMAGE(i,l)-LEFT_IMAGE(i,l-diry)),
+                         &ACCUMULATED_COSTS(i,l,0), nx, ny, disp_range, j);
+          __syncthreads();
+
+      }
+    }
+}
+
+__global__ void iterate_direction_diryneg_dev(const int diry, const int *left_image,
+                        const int* costs, int *accumulated_costs,
+                        const int nx, const int ny, const int disp_range )
+{
+
+      int i = blockIdx.x * blockDim.x + threadIdx.x;
+      int j = threadIdx.y;
+      if(j < disp_range && i < nx){
+
+        ACCUMULATED_COSTS(i,ny-1,j) += COSTS(i,ny-1,j);
+        __syncthreads();
+
+
+        for(int l = ny-2; l >= 0; l--){
+
+            evaluate_path_dev( &ACCUMULATED_COSTS(i,l-diry,0),
+                       &COSTS(i,l,0),
+                       abs(LEFT_IMAGE(i,l)-LEFT_IMAGE(i,l-diry)),
+                       &ACCUMULATED_COSTS(i,l,0) , nx, ny, disp_range, j);
+            __syncthreads();
+
+         }
+      }
+}
+
+\end{lstlisting} 
+
+Para que a implementação desta segunda versão funcionasse foi necessário recorrer ao comando \textit{\_\_syncthreads()}, de forma a que todas as threads esperassem umas pelas outras quando chegavam ao ponto onde este comando se encontra colocado, garantindo assim que tudo era feito sequencialmente, e posteriormente utilizado de maneira correta quando se recorresse à shared memory. Foi ainda necessário efetuar alterações no código da função \textit{evaluate\_path()} para que agora dentro deste apenas calculasse o valor necessário para aquele valor de disparidade, ficando assim:
+
+  \begin{lstlisting}[language=c++, basicstyle=\scriptsize]
+__device__ void evaluate_path_dev(const int *prior, const int *local,
+                     int path_intensity_gradient, int *curr_cost ,
+                     const int nx, const int ny, const int disp_range, const int d)
+  {
+    memcpy(curr_cost, local, sizeof(int)*disp_range);
+    
+    int e_smooth = NPP_MAX_16U;
+    
+    for ( int d_p = 0; d_p < disp_range; d_p++ ) {
+      if ( d_p - d == 0 ) {
+        // No penality
+        e_smooth = MMIN(e_smooth,prior[d_p]);
+        
+      } else if ( abs(d_p - d) == 1 ) {
+        // Small penality
+        e_smooth = MMIN(e_smooth,prior[d_p]+PENALTY1);
+        
+      } else {
+        // Large penality
+        e_smooth =
+          MMIN(e_smooth,prior[d_p] +
+                   MMAX(PENALTY1,
+                   path_intensity_gradient ? PENALTY2/path_intensity_gradient : PENALTY2));
+      }
+    }
+
+    curr_cost[d] += e_smooth;
+
+    int min = NPP_MAX_16U;
+    
+    for ( int d_s = 0; d_s < disp_range; d_s++ ) {
+      if (prior[d_s]<min) min=prior[d_s];
+    }
+    
+    curr_cost[d]-=min;
+}
+
+\end{lstlisting} 
+
+Com esta nova implementação, a melhoria no speedup foi brutal, melhorando bastante os resultados:
+
+\begin{figure}[!htb]
+\center
+ \includegraphics[width=100mm,scale=1]{IteratePositionsV2.png}
+ \caption{\\ Resultados obtidos utilizando a versão 2 com global memory}
+ \label{fig:IteratePositionsV2}
+\end{figure}
+
+Para melhorar ainda mais estes resultados passou-se a utilizar a \textit{shared memory} para o cálculo do path.
+
+\newpage
+\subsubsection{Shared Memory}
 
 
 \newpage
