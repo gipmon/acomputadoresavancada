@@ -500,7 +500,7 @@ Mais uma vez com esta nova implementação, os resultados voltaram a melhorar mu
 
 \subsection{Cuda Kernel da função "inplace\_sum\_views()"}
 
-A função \textit{inplace\_sum\_views}, tem como objectivo a soma de pixeis de duas imagens. Para esta a geometria utilizada foi idêntica à da determinação de custos (Exercício 1), contudo possui uma pequena alteração, pois o número de colunas é agora correspondente a ceil((nx*disp_range)/32):
+A função \textit{inplace\_sum\_views}, tem como objectivo a soma de pixeis de duas imagens. Para esta a geometria utilizada foi idêntica à da determinação de custos (Exercício 1), contudo possui uma pequena alteração, pois o número de colunas é agora correspondente a ceil((nx*disp\_range)/32):
 
 \begin{figure}[!htb]
 \center
@@ -533,7 +533,22 @@ __global__ void inplace_sum_views_dev(int * im1, const int * im2,
 
 Posteriormente a esta implementação obtiveram-se os seguintes resultados com a utilização do exercício 2 em memória global e em memória partilhada:
 
+\begin{figure}[!htb]
+\center
+ \includegraphics[width=100mm,scale=1]{inplaceglobal.png}
+ \caption{\\ Resultados obtidos utilizando global memory}
+ \label{fig:inplaceglobal}
+\end{figure}
+
+\begin{figure}[!htb]
+\center
+ \includegraphics[width=100mm,scale=1]{inplaceshared.png}
+ \caption{\\ Resultados obtidos utilizando shared memory}
+ \label{fig:inplaceshared}
+\end{figure}
  
+ 
+Mais uma vez, é possível verificar-se as melhorias nos resultados tanto a nível de memória global como de memória partilhada.
 
 \newpage
 \section{Conclusão}
