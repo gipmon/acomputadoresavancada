@@ -367,7 +367,6 @@ void iterate_direction_dev( const int dirx, const int diry, const int *left_imag
       dim3 block(block_x, block_y);
       dim3 grid(1, grid_y);
       // Process every pixel along this edge
-      printf("%d", disp_range*sizeof(int));
       iterate_direction_dirxpos_dev<<<grid, block, disp_range*sizeof(int)>>>(dirx,left_image,costs,accumulated_costs, nx, ny, disp_range);
 
 
