@@ -125,12 +125,121 @@ Nesta versão, foram criadas duas geometrias apenas, sendo que uma diz respeito 
 
  \begin{figure}[!htb]
 \center
- \includegraphics[width=100mm,scale=1]{IteratePositionDirxposneg_v1_kernel.pdf}
- \caption{\\ Geometria do Kernel para as funções iterate\_position\_dirxpos() e iterate\_position\_dirxneg()}
+ \includegraphics[width=50mm,height=100mm,scale=1]{IteratePositionDirxposneg_v1_kernel.pdf}
+ \caption{\\ Geometria do Kernel para as funções iterate\_direction\_dirxpos() e iterate\_direction\_dirxneg()}
  \label{fig:IteratePositionDirxposneg_v1_kernel}
 \end{figure}
 
-Como podemos ver na figura \ref{fig:IteratePositionDirxposneg_v1_kernel}, a grid é composta por ny blocos, 
+Como podemos ver na figura \ref{fig:IteratePositionDirxposneg_v1_kernel}, a grid é composta por ceil(ny/32) blocos, cada bloco composto por 32 threads, sendo cada uma responsável pela linha em x onde está inserida para cálculo dos respetivos paths.
+
+Esta operação tem de ser efetuada sequencialmente pois o pixel seguinte depende sempre do anterior, pelo que se recorreu à seguinte implementação para a função \textit{iterate\_direction\_dirxpos()} e para a função \textit{iterate\_direction\_dirxneg()}:
+
+\begin{lstlisting}[language=c++, basicstyle=\scriptsize]
+__global__ void iterate_direction_dirxpos_dev(const int dirx, const int *left_image,
+                        const int* costs, int *accumulated_costs,
+                        const int nx, const int ny, const int disp_range ){
+
+      int i = 0;
+      int j = blockIdx.y * blockDim.y + threadIdx.y;
+      if(j < ny){
+
+        for ( int d = 0; d < disp_range; d++ ) {
+          ACCUMULATED_COSTS(0,j,d) += COSTS(0,j,d);
+        }
+
+        for(i = 1; i<nx; i++){
+          evaluate_path_dev( &ACCUMULATED_COSTS(i-dirx,j,0),
+                           &COSTS(i,j,0),
+                           abs(LEFT_IMAGE(i,j)-LEFT_IMAGE(i-dirx,j)) ,
+                           &ACCUMULATED_COSTS(i,j,0), nx, ny, disp_range);
+        }
+      }
+}
+
+__global__ void iterate_direction_dirxneg_dev(const int dirx, const int *left_image,
+                        const int* costs, int *accumulated_costs,
+                        const int nx, const int ny, const int disp_range )
+{
+      int i = nx-1;
+      int j = blockIdx.y * blockDim.y + threadIdx.y;
+
+      if(j < ny){
+
+        for ( int d = 0; d < disp_range; d++ ) {
+            ACCUMULATED_COSTS(nx-1,j,d) += COSTS(nx-1,j,d);
+        }
+
+        for(i = nx-2; i >= 0; i--){
+            evaluate_path_dev( &ACCUMULATED_COSTS(i-dirx,j,0),
+                           &COSTS(i,j,0),
+                           abs(LEFT_IMAGE(i,j)-LEFT_IMAGE(i-dirx,j)),
+                           &ACCUMULATED_COSTS(i,j,0), nx, ny, disp_range );
+        }
+      }
+}
+\end{lstlisting} 
+\newpage
+No caso da direção ser em y, então seguiu-se o mesmo pensamento que em x, obtendo a seguinte geometria:
+
+\begin{figure}[!htb]
+\center
+ \includegraphics[width=100mm,scale=1]{IteratePositionDiryposneg_v1_kernel.pdf}
+ \caption{\\ Geometria do Kernel para as funções iterate\_direction\_dirypos() e iterate\_direction\_diryneg()}
+ \label{fig:IteratePositionDiryposneg_v1_kernel}
+\end{figure}
+
+Tal como apresentado na figura, neste caso a geometria é composta por uma grid de tamanho ceil(ny/32) blocos, cada um composto por 32 threads, onde cada uma volta a ser responsável pelo cálculo do respetivo caminho de todos os pixeis daquela coluna. 
+
+Esta geometria volta a aplicar-se às direções positivas e negativa da mesma maneira tal como em x.
+
+Foi então desenvolvido o seguinte código para as funções \textit{iterate\_direction\_dirypos()} e \textit{iterate\_direction\_diryneg()}:
+
+\begin{lstlisting}[language=c++, basicstyle=\scriptsize]
+__global__ void iterate_direction_dirypos_dev(const int diry, const int *left_image,
+                        const int* costs, int *accumulated_costs,
+                        const int nx, const int ny, const int disp_range )
+{
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    int j = 0;
+    if(i < nx){
+        for ( int d = 0; d < disp_range; d++ ) {
+            ACCUMULATED_COSTS(i,0,d) += COSTS(i,0,d);
+        }
+        for(j = 1; j<ny; j++){
+
+          evaluate_path_dev( &ACCUMULATED_COSTS(i,j-diry,0),
+                         &COSTS(i,j,0),
+                         abs(LEFT_IMAGE(i,j)-LEFT_IMAGE(i,j-diry)),
+                         &ACCUMULATED_COSTS(i,j,0), nx, ny, disp_range );
+      }
+    }
+}
+
+__global__ void iterate_direction_diryneg_dev(const int diry, const int *left_image,
+                        const int* costs, int *accumulated_costs,
+                        const int nx, const int ny, const int disp_range )
+{
+
+      int i = blockIdx.x * blockDim.x + threadIdx.x;
+      int j = ny-1;
+      if(i < nx){
+        for ( int d = 0; d < disp_range; d++ ) {
+            ACCUMULATED_COSTS(i,ny-1,d) += COSTS(i,ny-1,d);
+        }
+
+        for(j = ny-2; j >= 0; j--){
+
+            evaluate_path_dev( &ACCUMULATED_COSTS(i,j-diry,0),
+                       &COSTS(i,j,0),
+                       abs(LEFT_IMAGE(i,j)-LEFT_IMAGE(i,j-diry)),
+                       &ACCUMULATED_COSTS(i,j,0) , nx, ny, disp_range);
+         }
+      }
+}
+\end{lstlisting} 
+
+Nesta primeira versão, os resultados obtidos foram os seguintes:
+
 
 \newpage
 \section{Conclusão}
