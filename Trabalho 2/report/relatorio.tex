@@ -432,6 +432,8 @@ Com esta nova implementação, a melhoria no speedup foi brutal, melhorando bast
 
 Para melhorar ainda mais estes resultados passou-se a utilizar a \textit{shared memory} para o cálculo do path.
 
+Esta versão 2 será a utilizada nos exercicíos seguintes quando se utilizar apenas memória global.
+
 \newpage
 \subsubsection{Shared Memory}
 
@@ -495,6 +497,8 @@ Mais uma vez com esta nova implementação, os resultados voltaram a melhorar mu
  \label{fig:IteratePositionShared}
 \end{figure}
 
+TEXTURE
+
 \newpage
 \section{Exercício 3}
 
@@ -531,7 +535,7 @@ __global__ void inplace_sum_views_dev(int * im1, const int * im2,
 
 \end{lstlisting} 
 
-Posteriormente a esta implementação obtiveram-se os seguintes resultados com a utilização do exercício 2 em memória global e em memória partilhada:
+Posteriormente a esta implementação obtiveram-se os seguintes resultados com a utilização do exercício 2 em global memory, em shared memory  e texture memory :
 
 \begin{figure}[!htb]
 \center
@@ -568,15 +572,27 @@ Para este kernel pensou-se numa geometria idêntica à da determinação de cust
 
 Constituída por uma grid de ceil(nx/32) por ceil(ny/16) blocos, cada um constituído por 32x16 threads, onde cada uma corresponde a um pixel da imagem final e calcula o índice do array de custos daquele pixel, multiplicando-o por 4.
 
+Com a implementação deste exercício 4, todo o programa passou a ser corrido no device, não ficando nenhuma função a ser executada no host no que diz respeito à função \textit{sgmDevice()}. Nesta fase começa-se a obter os valores finais de toda a implementação, contudo, estes valores variam consoante o tipo de memórias utilizadas. Iremos então mostrar os resultados para os vários tipos de memória, sendo que o que possui a texture memory, será o que contém os três tipos de memória e será o mais otimizado.
+
+Utilizando global memory, obtiveram-se os seguintes resultados:
+
+\begin{figure}[!htb]
+\center
+ \includegraphics[width=100mm,scale=1]{CreateDisparityGlobal.png}
+ \caption{\\ Resultados obtidos utilizando global memory}
+ \label{fig:CreateDisparityGlobal}
+\end{figure}
 
 
+SHARED MEMORY
+
+TEXTURE MEMORY
 \newpage
 \section{Conclusão}
 
-Este trabalho foi útil para assentar todos os conhecimentos que se foi obtendo ao longo destes anos, tanto em Arquitectura de Computadores Avançada como em Arquitetura de Computadores I e II. Ambas as entregas foram primeiro planeadas em papel antes de se avançar para a implementação o que resultou em bons resultados a nível de tempo despendido, para ambos as entregas fez-se uso de dois dias de trabalho.
+Este trabalho foi útil para assentar conhecimentos que não foram muito abordados nas aulas teóricas e práticas, contudo é um tema bastante interessante, pelo que se deveria considerar a possibilidade de dedicar mais uma aula prática para adquirir os conhecimentos necessários para efetuar este trabalho com menos dificuldades.
 
-Na primeira entrega houve uma falha na implementação, esqueceu-se de realizar o shift left 2 do program counter para calcular o endereço para onde é suposto saltar a instrução jump.
+É também interessante ver a diferença dos tempos de execução do mesmo programa no device e no host, pois não se tinha a noção que seria um speedup tão elevado e que uma geometria, como foi o caso da versão 1 e 2 do exercicío 2, pudesse ter tanto impacto neste mesmo speedup.. 
 
-Já na segunda entrega teve-se os máximos cuidados para que tudo funcionasse perfeitamente.
-
+Foi um projeto que deu bastante gosto a realizar, devido ao desafio de conseguir reduzir sempre os tempos de execução e pela aprendizagem e conhecimentos adquiridos.
 \end{document}
