@@ -148,7 +148,7 @@ __global__ void iterate_direction_dirxpos_dev(const int dirx, const int *left_im
       extern __shared__ int shmem[];
 
       if(i < disp_range && j<ny){
-        //ACCUMULATED_COSTS(0,j,i) += COSTS(0,j,i);
+        ACCUMULATED_COSTS(0,j,i) += COSTS(0,j,i);
         shmem[i] = COSTS(0,j,i);
       __syncthreads();
 
@@ -160,7 +160,6 @@ __global__ void iterate_direction_dirxpos_dev(const int dirx, const int *left_im
                          &ACCUMULATED_COSTS(l,j,0), nx, ny, disp_range, i, shmem);
 
         __syncthreads();
-        shmem[i] = ACCUMULATED_COSTS(l,j,i);
 
       }
     }
@@ -203,7 +202,7 @@ __global__ void iterate_direction_dirypos_dev(const int diry, const int *left_im
 
     if(j < disp_range && i < nx){
         shmem[j] = COSTS(i,0,j);
-        //ACCUMULATED_COSTS(i,0,j) += COSTS(i,0,j);
+        ACCUMULATED_COSTS(i,0,j) += COSTS(i,0,j);
         __syncthreads();
 
         for(int l = 1; l<ny; l++){
@@ -213,7 +212,6 @@ __global__ void iterate_direction_dirypos_dev(const int diry, const int *left_im
                          abs(LEFT_IMAGE(i,l)-LEFT_IMAGE(i,l-diry)),
                          &ACCUMULATED_COSTS(i,l,0), nx, ny, disp_range, j,shmem);
           __syncthreads();
-          shmem[j] = ACCUMULATED_COSTS(i,l,j);
 
       }
     }
@@ -254,7 +252,7 @@ __global__ void iterate_direction_dirxneg_dev(const int dirx, const int *left_im
       if(i < disp_range && j < ny){
         shmem[i] = COSTS(nx-1,j,i);
 
-        //ACCUMULATED_COSTS(nx-1,j,i) += COSTS(nx-1,j,i);
+        ACCUMULATED_COSTS(nx-1,j,i) += COSTS(nx-1,j,i);
 
         __syncthreads();
 
@@ -265,7 +263,6 @@ __global__ void iterate_direction_dirxneg_dev(const int dirx, const int *left_im
                            abs(LEFT_IMAGE(l,j)-LEFT_IMAGE(l-dirx,j)),
                            &ACCUMULATED_COSTS(l,j,0), nx, ny, disp_range, i, shmem);
             __syncthreads();
-            shmem[i] = ACCUMULATED_COSTS(l,j,i);
 
 
         }
@@ -308,7 +305,7 @@ __global__ void iterate_direction_diryneg_dev(const int diry, const int *left_im
       if(j < disp_range && i < nx){
         shmem[j] = COSTS(i,ny-1,j);
 
-        //ACCUMULATED_COSTS(i,ny-1,j) += COSTS(i,ny-1,j);
+        ACCUMULATED_COSTS(i,ny-1,j) += COSTS(i,ny-1,j);
         __syncthreads();
 
 
@@ -319,7 +316,6 @@ __global__ void iterate_direction_diryneg_dev(const int diry, const int *left_im
                        abs(LEFT_IMAGE(i,l)-LEFT_IMAGE(i,l-diry)),
                        &ACCUMULATED_COSTS(i,l,0) , nx, ny, disp_range, j, shmem);
             __syncthreads();
-            shmem[j] = ACCUMULATED_COSTS(i,l,j);
 
          }
       }
@@ -540,9 +536,7 @@ __device__ void evaluate_path_dev(const int *prior, const int *local,
     }
     curr_cost[d]-=min;
 
-
-
-
+    shmem[d] = curr_cost[d];
 
 }
 
