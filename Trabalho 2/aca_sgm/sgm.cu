@@ -688,7 +688,7 @@ void sgmDevice( const int *h_leftIm, const int *h_rightIm,
       inplace_sum_views_dev<<<grid1, block>>>( devPtr_accumulatedCosts, devPtr_dirAccumulatedCosts, nx, ny, disp_range);
   }
 
-  create_disparity_view_dev<<<grid, block, nx*ny*disp_range*sizeof(int)>>> (devPtr_hDispImD, devPtr_accumulatedCosts, nx, ny, disp_range);
+  create_disparity_view_dev<<<grid, block>>> (devPtr_hDispImD, devPtr_accumulatedCosts, nx, ny, disp_range);
 
   cudaMemcpy(h_dispImD, devPtr_hDispImD, imageSize, cudaMemcpyDeviceToHost);
 
