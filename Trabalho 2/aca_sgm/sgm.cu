@@ -456,13 +456,13 @@ int find_min_index( const int *v, const int disp_range )
     return minind;
 }
 
-__device__ int find_min_index_device( const int *v, const int disp_range )
+__device__ int find_min_index_device( const int *v, const int disp_range, int shmem[] )
 {
     int min = NPP_MAX_16U;
     int minind = -1;
     for (int d=0; d < disp_range; d++) {
-         if(v[d]<min) {
-              min = v[d];
+         if(shmem[d]<min) {
+              min = shmem[d];
               minind = d;
          }
     }
@@ -534,7 +534,7 @@ __device__ void evaluate_path_dev(const int *prior, const int *local,
       for ( int d_s = 0; d_s < disp_range; d_s++ ) {
         if (shmem[d_s]<min) min=shmem[d_s];
       }
-    
+
     curr_cost[d]-=min;
     __syncthreads();
     shmem[d] = curr_cost[d];
@@ -556,9 +556,11 @@ __global__ void create_disparity_view_dev(int *disp_image, int *accumulated_cost
   int i = blockIdx.x * blockDim.x + threadIdx.x;
   int j = blockIdx.y * blockDim.y + threadIdx.y;
 
+  extern __shared__ int shmem[];
   if (i < nx && j < ny)
   {
-    DISP_IMAGE(i,j) = 4 * find_min_index_device(&ACCUMULATED_COSTS(i,j,0), disp_range);
+    shmem = ACCUMULATED_COSTS(i,j,0);
+    DISP_IMAGE(i,j) = 4 * find_min_index_device(&ACCUMULATED_COSTS(i,j,0), disp_range, shmem);
   }
 
 }
@@ -690,7 +692,7 @@ void sgmDevice( const int *h_leftIm, const int *h_rightIm,
       inplace_sum_views_dev<<<grid1, block>>>( devPtr_accumulatedCosts, devPtr_dirAccumulatedCosts, nx, ny, disp_range);
   }
 
-  create_disparity_view_dev<<<grid, block>>> (devPtr_hDispImD, devPtr_accumulatedCosts, nx, ny, disp_range);
+  create_disparity_view_dev<<<grid, block, nx*ny*disp_range*sizeof(int)>>> (devPtr_hDispImD, devPtr_accumulatedCosts, nx, ny, disp_range);
 
   cudaMemcpy(h_dispImD, devPtr_hDispImD, imageSize, cudaMemcpyDeviceToHost);
 
