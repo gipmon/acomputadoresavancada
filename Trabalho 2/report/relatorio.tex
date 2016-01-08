@@ -66,6 +66,9 @@ O relatório reflete todas as geometrias de kernel implementadas, formas de pens
 
 \subsection{Cuda Kernel da função "determine\_costs()"}
 Neste primeiro exercício, era pedido que se desenvolvesse um kernel em CUDA que substituísse a função \textit{determine\_costs()}.
+Este exercicío foi ainda realizado de duas maneira, uma utilizando a \textit{global memory}, e outra onde se coloca as imagens e o valor de COSTS na \textit{texture memory}. 
+
+\subsubsection{Global Memory}
 
 \begin{figure}[!htb]
 \center
@@ -75,9 +78,7 @@ Neste primeiro exercício, era pedido que se desenvolvesse um kernel em CUDA que
 \end{figure}
 
 Neste kernel optou-se por uma geometria (Figura \ref{fig:DetermineCosts_v1_kernel}  constituída por uma grid de tamanho (ceil(nx\/32) x ceil(ny\/16)) com blocos de 32 x 16 threads cada.
-Nesta função, cada thread corresponde a um pixel da imagem, e cada um calcula o valor de custo, sendo este a diferença entre as imagens num determinado pixel.
-
-Este exercicío foi ainda realizado de duas maneira, uma utilizando a \textit{global memory}, e outra onde se coloca as imagens e o valor de COSTS na \textit{texture memory}. 
+Neste kernel, cada thread corresponde a um pixel da imagem, e cada um calcula o valor de custo, sendo este a diferença entre as imagens num determinado pixel.
 
 Para a \textit{global memory} utilizou-se o seguinte algoritmo para desenvolver o kernel:
 
@@ -105,7 +106,7 @@ Com esta implementação obtiveram-se os seguintes resultados:
 \begin{figure}[!htb]
 \center
  \includegraphics[width=100mm,scale=1]{DetermineCostsv1globalresults.png}
- \caption{\\ Resultados obtidos utilizando global memory}
+ \caption{\\ Resultados obtidos utilizando global memory - versão 1}
  \label{fig:DetermineCostsv1globalresults}
 \end{figure}
 
