@@ -33,6 +33,11 @@
 #define MMAX(a,b) (((a)>(b))?(a):(b))
 #define MMIN(a,b) (((a)<(b))?(a):(b))
 
+texture<int, 1, cudaReadModeElementType> devTex_leftImage;
+texture<int, 1, cudaReadModeElementType> devTex_rightImage;
+texture<int, 1, cudaReadModeElementType> devTex_costs;
+
+
 /* function headers */
 
 void determine_costs(const int *left_image, const int *right_image, int *costs,
@@ -109,7 +114,7 @@ __global__ void determine_costs_device(const int *left_image, const int *right_i
   {
     for ( int d = 0; d < disp_range; d++ ) {
       if(i >= d){
-        COSTS(i,j,d) = abs( LEFT_IMAGE(i,j) - RIGHT_IMAGE(i-d,j));
+        COSTS(i,j,d) = abs( tex1Dfetch(devTex_leftImage, i + (j*nx)) - tex1Dfetch(devTex_leftImage, (i-d) + (j*nx)));
       }
     }
   }
@@ -556,10 +561,8 @@ __global__ void create_disparity_view_dev(int *disp_image, int *accumulated_cost
   int i = blockIdx.x * blockDim.x + threadIdx.x;
   int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-  extern __shared__ int shmem[];
   if (i < nx && j < ny)
   {
-    shmem = ACCUMULATED_COSTS(i,j,0);
     DISP_IMAGE(i,j) = 4 * find_min_index_device(&ACCUMULATED_COSTS(i,j,0), disp_range, shmem);
   }
 
@@ -667,9 +670,12 @@ void sgmDevice( const int *h_leftIm, const int *h_rightIm,
   cudaMemcpy(devPtr_leftImage, h_leftIm, imageSize, cudaMemcpyHostToDevice);
   cudaMemcpy(devPtr_rightImage, h_rightIm, imageSize, cudaMemcpyHostToDevice);
   cudaMemcpy(devPtr_costs, costs, nx*ny*disp_range*sizeof(int), cudaMemcpyHostToDevice);
+  cudaBindTexture(0, devTex_leftImage, devPtr_leftImage, imageSize);
+  cudaBindTexture(0, devTex_rightImage, devPtr_rightImage, imageSize);
 
   determine_costs_device<<<grid, block>>>(devPtr_leftImage, devPtr_rightImage, devPtr_costs, nx, ny, disp_range);
 
+  cudaBindTexture(0, devTex_costs, devPtr_costs, nx*ny*disp_range*sizeof(int));
   cudaMalloc((void**)&devPtr_dirAccumulatedCosts, nx*ny*disp_range*sizeof(int));
   cudaMalloc((void**)&devPtr_accumulatedCosts, nx*ny*disp_range*sizeof(int));
 
@@ -692,7 +698,7 @@ void sgmDevice( const int *h_leftIm, const int *h_rightIm,
       inplace_sum_views_dev<<<grid1, block>>>( devPtr_accumulatedCosts, devPtr_dirAccumulatedCosts, nx, ny, disp_range);
   }
 
-  create_disparity_view_dev<<<grid, block, nx*ny*disp_range*sizeof(int)>>> (devPtr_hDispImD, devPtr_accumulatedCosts, nx, ny, disp_range);
+  create_disparity_view_dev<<<grid, block>>> (devPtr_hDispImD, devPtr_accumulatedCosts, nx, ny, disp_range);
 
   cudaMemcpy(h_dispImD, devPtr_hDispImD, imageSize, cudaMemcpyDeviceToHost);
 
@@ -702,6 +708,11 @@ void sgmDevice( const int *h_leftIm, const int *h_rightIm,
   cudaFree(devPtr_costs);
   cudaFree(devPtr_dirAccumulatedCosts);
   cudaFree(devPtr_accumulatedCosts);
+  cudaUnbindTexture(devTex_leftImage);
+  cudaUnbindTexture(devTex_rightImage);
+  cudaUnbindTexture(devTex_costs);
+
+
 }
 
 // print command line format
