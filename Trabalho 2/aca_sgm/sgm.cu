@@ -102,7 +102,7 @@ __global__ void determine_costs_device(const int *left_image, const int *right_i
   int j = blockIdx.y;
   int d = threadIdx.x;
 
-  if (i < nx && j < ny)
+  if (i < nx && j < ny && d<disp_range)
   {
 
     COSTS(i,j,d) = abs( LEFT_IMAGE(i,j) - RIGHT_IMAGE(i-d,j));
