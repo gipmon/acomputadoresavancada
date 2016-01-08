@@ -471,7 +471,7 @@ void sgmDevice( const int *h_leftIm, const int *h_rightIm,
 // print command line format
 void usage(char *command)
 {
-    printf("Usage: %s [-h] [-d device] [-l leftimage] [-r rightimage] [-o dev_dispimage] [-t host_dispimage] [-p disprange] \n",command);
+    printf("Usage: %s [-h] [-d device] [-l leftimage] [-r rightimage] [-o dev_dispimage] [-t host_dispimage] [-p disprange] [-v version] \n",command);
 }
 
 // main
@@ -484,7 +484,7 @@ int main( int argc, char** argv)
     char *leftIn      =(char *)"lbull.pgm",
          *rightIn     =(char *)"rbull.pgm",
          *fileOut     =(char *)"d_dbull.pgm",
-         *referenceOut=(char *)"h_dbull.pgm";
+         *referenceOut=(char *)"h_dbull.pgm",
          *version     =(char *)"v1";
 
     // parse command line arguments
