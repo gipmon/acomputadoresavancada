@@ -104,8 +104,10 @@ __global__ void determine_costs_device(const int *left_image, const int *right_i
 
   if (i < nx && j < ny && d<disp_range)
   {
+    if(i >= d){
+      COSTS(i,j,d) = abs( LEFT_IMAGE(i,j) - RIGHT_IMAGE(i-d,j));
 
-    COSTS(i,j,d) = abs( LEFT_IMAGE(i,j) - RIGHT_IMAGE(i-d,j));
+    }
 
   }
 }
