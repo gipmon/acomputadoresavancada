@@ -548,7 +548,7 @@ int main( int argc, char** argv)
                 exit(0);
                 break;
             case 'v': //version
-                if(sscanf(optarg,"%d",&disp_range)==0)
+                if(sscanf(optarg,"%d",&version)==0)
                 {
                     usage(argv[0]);
                     exit(1);
