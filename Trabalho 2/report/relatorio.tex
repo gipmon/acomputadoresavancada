@@ -461,7 +461,7 @@ Esta versão 2 será a utilizada nos exercicíos seguintes quando se utilizar ap
 \newpage
 \subsubsection{Shared Memory}
 
-Visto que as threads na versão 2 eram executadas em paralelo, e que existiam valores que todas partilhavam e necessitavam umas das outras para o cálculo dos mínimos, então decidiu-se que seria mais produtivo que as pesquisas fossem feitas na \textit{shared memory}. Para isso, foi necessário criar um array de \textit{shared memory} com shared memory size igual a disparity\_range*sizeof(int), onde cada índice do array corresponde a um valor de disparidade.
+Visto que as threads na versão 2 eram executadas em paralelo, e que existiam valores que todas partilhavam e necessitavam umas das outras para o cálculo dos mínimos, então decidiu-se que seria mais produtivo que as pesquisas fossem feitas na \textit{shared memory}. Para isso, foi necessário criar um array de \textit{shared memory} com shared\_memory\_size igual a disparity\_range*sizeof(int), onde cada índice do array corresponde a um valor de disparidade. Agora em vez de a pesquisa ser efetuada no array prior, passou a ser efetuada no shmem, como mostrado no código seguinte.
 
 A maioria das alterações foi feita na função \textit{evaluate\_path()}, visto ser nesta que se efetuam todas as pesquisas necessárias para determinar o current cost e o minimo. Com isto a função ficou da seguinte forma:
 
