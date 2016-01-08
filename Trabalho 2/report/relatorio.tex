@@ -133,8 +133,7 @@ Os resultados desta nova implementação foram:
 
 Como os resultados das duas versões não diferem muito, e há casos em que um é melhor e outros em que é pior, então, nos próximos exercícios que utilizam este kernel em memória global, será utilizada a versão 1.
 
-
-TEXTURE MEMORY CODIGO E RESULTADOS
+\subsubsection{Texture Memory}
 
 \newpage
 \section{Exercício 2}
@@ -403,7 +402,7 @@ __global__ void iterate_direction_diryneg_dev(const int diry, const int *left_im
 
 \end{lstlisting} 
 
-Para que a implementação desta segunda versão funcionasse foi necessário recorrer ao comando \textit{\_\_syncthreads()}, de forma a que todas as threads esperassem umas pelas outras quando chegavam ao ponto onde este comando se encontra colocado, garantindo assim que tudo era feito sequencialmente, e posteriormente utilizado de maneira correta quando se recorresse à shared memory. Foi ainda necessário efetuar alterações no código da função \textit{evaluate\_path()} para que agora dentro deste apenas calculasse o valor necessário para aquele valor de disparidade, ficando assim:
+Para que a implementação desta segunda versão funcionasse foi necessário recorrer ao comando \textit{\_\_syncthreads()}, de forma a que todas as threads esperassem umas pelas outras quando chegavam ao ponto onde este comando se encontra colocado, garantindo assim que tudo era feito sequencialmente, e posteriormente utilizado de maneira correta quando se recorresse à \textit{shared memory}. Foi ainda necessário efetuar alterações no código da função \textit{evaluate\_path()} para que agora dentro deste apenas calculasse o valor necessário para aquele valor de disparidade, ficando assim:
 
   \begin{lstlisting}[language=c++, basicstyle=\scriptsize]
 __device__ void evaluate_path_dev(const int *prior, const int *local,
@@ -559,7 +558,7 @@ __global__ void inplace_sum_views_dev(int * im1, const int * im2,
 
 \end{lstlisting} 
 
-Posteriormente a esta implementação obtiveram-se os seguintes resultados com a utilização do exercício 2 em global memory, em shared memory  e texture memory :
+Posteriormente a esta implementação obtiveram-se os seguintes resultados com a utilização do exercício 2 em \textit{global memory}, em \textit{shared memory}  e \textit{texture memory} :
 
 \begin{figure}[!htb]
 \center
@@ -585,7 +584,6 @@ Mais uma vez, é possível verificar-se as melhorias nos resultados tanto a nív
 
 No 4º e último exercício era proposto a implementação de um kernel para a função \textit{create\_disparity\_view}, que tem como objectivo a criação da imagem de disparidade originada pelo programa.
 
-\subsubsection{Global Memory}
 Para este kernel pensou-se numa geometria idêntica à da determinação de custos:
 
 \begin{figure}[!htb]
@@ -597,9 +595,9 @@ Para este kernel pensou-se numa geometria idêntica à da determinação de cust
 
 Constituída por uma grid de ceil(nx/32) por ceil(ny/16) blocos, cada um constituído por 32x16 threads, onde cada uma corresponde a um pixel da imagem final e calcula o índice do array de custos daquele pixel, multiplicando-o por 4.
 
-Com a implementação deste exercício 4, todo o programa passou a ser corrido no device, não ficando nenhuma função a ser executada no host no que diz respeito à função \textit{sgmDevice()}. Nesta fase começa-se a obter os valores finais de toda a implementação, contudo, estes valores variam consoante o tipo de memórias utilizadas. Iremos então mostrar os resultados para os vários tipos de memória, sendo que o que possui a texture memory, será o que contém os três tipos de memória e será o mais otimizado.
+Com a implementação deste exercício 4, todo o programa passou a ser corrido no device, não ficando nenhuma função a ser executada no host no que diz respeito à função \textit{sgmDevice()}. Nesta fase começa-se a obter os valores finais de toda a implementação, contudo, estes valores variam consoante o tipo de memórias utilizadas. Iremos então mostrar os resultados para os vários tipos de memória, sendo que o que possui a \textit{texture memory}, será o que contém os três tipos de memória e será o mais otimizado.
 
-Utilizando global memory, obtiveram-se os seguintes resultados:
+Utilizando \textit{global memory}, \textit{shared memory} e \textit{texture memory}, obtiveram-se os seguintes resultados:
 
 \begin{figure}[!htb]
 \center
@@ -608,12 +606,21 @@ Utilizando global memory, obtiveram-se os seguintes resultados:
  \label{fig:CreateDisparityGlobal}
 \end{figure}
 
-\subsubsection{Shared Memory}
+\begin{figure}[!htb]
+\center
+ \includegraphics[width=100mm,scale=1]{CreateDisparityShared.png}
+ \caption{\\ Resultados obtidos utilizando shared memory}
+ \label{fig:CreateDisparityShared}
+\end{figure}
 
-Para a utilização de shared memory nesta função, foi feito um update à geometria do kernel, passando esta agora por uma grid composta por nx x ny blocos, sendo que cada bloco corresponde a um pixel, e um bloco é composto por disp\_range threads, de forma a que cada uma trabalhe com um valor de disparidade individualmente, e partilhem a sua informação umas para as outras.
-SHARED MEMORY
 
 TEXTURE MEMORY
+Todos os exemplos nos exercícios anteriores com \textit{texture memory}, possuem também \textit{shared memory}, sendo então estes exemplos os com melhores tempos e versões finais de cada exercício.
+
+\newpage
+\section{Intruções de execução}
+
+
 \newpage
 \section{Conclusão}
 
