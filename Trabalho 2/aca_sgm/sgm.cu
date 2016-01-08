@@ -530,8 +530,10 @@ __device__ void evaluate_path_dev(const int *prior, const int *local,
     curr_cost[d] += e_smooth;
 
     int min = NPP_MAX_16U;
-    for ( int d_s = 0; d_s < disp_range; d_s++ ) {
-      if (shmem[d_s]<min) min=shmem[d_s];
+
+      for ( int d_s = 0; d_s < disp_range; d_s++ ) {
+        if (shmem[d_s]<min) min=shmem[d_s];
+      }
     }
     curr_cost[d]-=min;
     __syncthreads();
