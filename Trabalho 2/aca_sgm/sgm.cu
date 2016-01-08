@@ -478,7 +478,7 @@ __device__ void evaluate_path_dev(const int *prior, const int *local,
                      int path_intensity_gradient, int *curr_cost ,
                      const int nx, const int ny, const int disp_range, const int d, int shmem[])
   {
-    memcpy(curr_cost, local, sizeof(int)*disp_range);
+    memcpy(&curr_cost[d], &local[d], sizeof(int));
     int e_smooth = NPP_MAX_16U;
 
     for ( int d_p = 0; d_p < disp_range; d_p++ ) {
