@@ -102,17 +102,16 @@ void determine_costs(const int *left_image, const int *right_image, int *costs,
 __global__ void determine_costs_device(const int *left_image, const int *right_image, int *costs,
                                         const int nx, const int ny, const int disp_range)
 {
-  int i = blockIdx.x;
-  int j = blockIdx.y;
-  int d = threadIdx.x;
+  int i = blockIdx.x * blockDim.x + threadIdx.x;
+  int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-  if (i < nx && j < ny && d<disp_range)
+  if (i < nx && j < ny)
   {
-    if(i >= d){
-      COSTS(i,j,d) = abs( LEFT_IMAGE(i,j) - RIGHT_IMAGE(i-d,j));
-
+    for ( int d = 0; d < disp_range; d++ ) {
+      if(i >= d){
+        COSTS(i,j,d) = abs( LEFT_IMAGE(i,j) - RIGHT_IMAGE(i-d,j));
+      }
     }
-
   }
 }
 
@@ -590,8 +589,6 @@ void sgmDevice( const int *h_leftIm, const int *h_rightIm,
 
   dim3 block(block_x, block_y);
   dim3 grid(grid_x, grid_y);
-  dim3 block1(disp_range, 1);
-  dim3 grid1(nx, ny);
 
   // Processing all costs. W*H*D. D= disp_range
   int *costs = (int *) calloc(nx*ny*disp_range,sizeof(int));
@@ -616,7 +613,7 @@ void sgmDevice( const int *h_leftIm, const int *h_rightIm,
   cudaMemcpy(devPtr_rightImage, h_rightIm, imageSize, cudaMemcpyHostToDevice);
   cudaMemcpy(devPtr_costs, costs, nx*ny*disp_range*sizeof(int), cudaMemcpyHostToDevice);
 
-  determine_costs_device<<<grid1, block1>>>(devPtr_leftImage, devPtr_rightImage, devPtr_costs, nx, ny, disp_range);
+  determine_costs_device<<<grid, block>>>(devPtr_leftImage, devPtr_rightImage, devPtr_costs, nx, ny, disp_range);
   //determine_costs(h_leftIm, h_rightIm, costs, nx, ny, disp_range);
   cudaMemcpy(costs, devPtr_costs, nx*ny*disp_range*sizeof(int), cudaMemcpyDeviceToHost);
 
