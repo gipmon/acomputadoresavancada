@@ -111,23 +111,6 @@ __global__ void determine_costs_device(const int *left_image, const int *right_i
   }
 }
 
-__global__ void determine_costs_devicev2(const int *left_image, const int *right_image, int *costs,
-                                        const int nx, const int ny, const int disp_range)
-{
-  int i = blockIdx.x;
-  int j = blockIdx.y;
-  int d = threadIdx.x;
-
-  if (i < nx && j < ny && d<disp_range)
-  {
-    if(i >= d){
-      COSTS(i,j,d) = abs( LEFT_IMAGE(i,j) - RIGHT_IMAGE(i-d,j));
-
-    }
-
-  }
-}
-
 void iterate_direction_dirxpos(const int dirx, const int *left_image,
                         const int* costs, int *accumulated_costs,
                         const int nx, const int ny, const int disp_range )
@@ -387,7 +370,7 @@ void sgmHost(   const int *h_leftIm, const int *h_rightIm,
 // sgm code to run on the GPU
 void sgmDevice( const int *h_leftIm, const int *h_rightIm,
                 int *h_dispImD,
-                const int w, const int h, const int disp_range, const int version )
+                const int w, const int h, const int disp_range )
 {
   const int nx = w;
   const int ny = h;
@@ -401,8 +384,6 @@ void sgmDevice( const int *h_leftIm, const int *h_rightIm,
 
   dim3 block(block_x, block_y);
   dim3 grid(grid_x, grid_y);
-  dim3 block1(disp_range, 1);
-  dim3 grid1(nx, ny);
 
   // Processing all costs. W*H*D. D= disp_range
   int *costs = (int *) calloc(nx*ny*disp_range,sizeof(int));
@@ -425,11 +406,8 @@ void sgmDevice( const int *h_leftIm, const int *h_rightIm,
   cudaMemcpy(devPtr_leftImage, h_leftIm, imageSize, cudaMemcpyHostToDevice);
   cudaMemcpy(devPtr_rightImage, h_rightIm, imageSize, cudaMemcpyHostToDevice);
   cudaMemcpy(devPtr_costs, costs, nx*ny*disp_range*sizeof(int), cudaMemcpyHostToDevice);
-  if(version != 1){
-    determine_costs_devicev2<<<grid1, block1>>>(devPtr_leftImage, devPtr_rightImage, devPtr_costs, nx, ny, disp_range);
-  }else{
-    determine_costs_device<<<grid, block>>>(devPtr_leftImage, devPtr_rightImage, devPtr_costs, nx, ny, disp_range);
-  }
+
+  determine_costs_device<<<grid, block>>>(devPtr_leftImage, devPtr_rightImage, devPtr_costs, nx, ny, disp_range);
 
   cudaMemcpy(costs, devPtr_costs, nx*ny*disp_range*sizeof(int), cudaMemcpyDeviceToHost);
 
@@ -471,7 +449,7 @@ void sgmDevice( const int *h_leftIm, const int *h_rightIm,
 // print command line format
 void usage(char *command)
 {
-    printf("Usage: %s [-h] [-d device] [-l leftimage] [-r rightimage] [-o dev_dispimage] [-t host_dispimage] [-p disprange] [-v version] \n",command);
+    printf("Usage: %s [-h] [-d device] [-l leftimage] [-r rightimage] [-o dev_dispimage] [-t host_dispimage] [-p disprange] \n",command);
 }
 
 // main
@@ -481,7 +459,6 @@ int main( int argc, char** argv)
     // default command line options
     int deviceId = 0;
     int disp_range = 32;
-    int version = 1;
     char *leftIn      =(char *)"lbull.pgm",
          *rightIn     =(char *)"rbull.pgm",
          *fileOut     =(char *)"d_dbull.pgm",
@@ -489,7 +466,7 @@ int main( int argc, char** argv)
 
     // parse command line arguments
     int opt;
-    while( (opt = getopt(argc,argv,"d:l:o:r:t:p:h:v")) !=-1)
+    while( (opt = getopt(argc,argv,"d:l:o:r:t:p:h:")) !=-1)
     {
         switch(opt)
         {
@@ -547,14 +524,6 @@ int main( int argc, char** argv)
                 usage(argv[0]);
                 exit(0);
                 break;
-            case 'v': //version
-                if(sscanf(optarg,"%d",&version)==0)
-                {
-                    usage(argv[0]);
-                    exit(1);
-                }
-                break;
-
 
         }
     }
@@ -603,7 +572,7 @@ int main( int argc, char** argv)
 
     // sgm at GPU
     cudaEventRecord( startD, 0 );
-    sgmDevice(h_ldata, h_rdata, h_odata, w, h, disp_range, version);
+    sgmDevice(h_ldata, h_rdata, h_odata, w, h, disp_range);
     cudaEventRecord( stopD, 0 );
     cudaEventSynchronize( stopD );
 
