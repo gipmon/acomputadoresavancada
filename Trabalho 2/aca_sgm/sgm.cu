@@ -461,13 +461,13 @@ int find_min_index( const int *v, const int disp_range )
     return minind;
 }
 
-__device__ int find_min_index_device( const int *v, const int disp_range, int shmem[] )
+__device__ int find_min_index_device( const int *v, const int disp_range)
 {
     int min = NPP_MAX_16U;
     int minind = -1;
     for (int d=0; d < disp_range; d++) {
-         if(shmem[d]<min) {
-              min = shmem[d];
+         if(v[d]<min) {
+              min = v[d];
               minind = d;
          }
     }
@@ -563,7 +563,7 @@ __global__ void create_disparity_view_dev(int *disp_image, int *accumulated_cost
 
   if (i < nx && j < ny)
   {
-    DISP_IMAGE(i,j) = 4 * find_min_index_device(&ACCUMULATED_COSTS(i,j,0), disp_range, shmem);
+    DISP_IMAGE(i,j) = 4 * find_min_index_device(&ACCUMULATED_COSTS(i,j,0), disp_range);
   }
 
 }
