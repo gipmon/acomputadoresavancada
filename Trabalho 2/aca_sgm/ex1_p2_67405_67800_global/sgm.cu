@@ -387,7 +387,7 @@ void sgmHost(   const int *h_leftIm, const int *h_rightIm,
 // sgm code to run on the GPU
 void sgmDevice( const int *h_leftIm, const int *h_rightIm,
                 int *h_dispImD,
-                const int w, const int h, const int disp_range, int version )
+                const int w, const int h, const int disp_range )
 {
   const int nx = w;
   const int ny = h;
