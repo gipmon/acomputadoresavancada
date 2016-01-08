@@ -33,8 +33,8 @@
 #define MMAX(a,b) (((a)>(b))?(a):(b))
 #define MMIN(a,b) (((a)<(b))?(a):(b))
 
-texture<int, 1, cudaReadModeElementType> devTex_leftImage;
-texture<int, 1, cudaReadModeElementType> devTex_rightImage;
+texture<int, 2, cudaReadModeElementType> devTex_leftImage;
+texture<int, 2, cudaReadModeElementType> devTex_rightImage;
 texture<int, 1, cudaReadModeElementType> devTex_costs;
 
 
@@ -114,7 +114,7 @@ __global__ void determine_costs_device(const int *left_image, const int *right_i
   {
     for ( int d = 0; d < disp_range; d++ ) {
       if(i >= d){
-        COSTS(i,j,d) = abs( tex1Dfetch(devTex_leftImage, i + (j*nx)) - tex1Dfetch(devTex_leftImage, (i-d) + (j*nx)));
+        COSTS(i,j,d) = abs( tex2Dfetch(devTex_leftImage, i + (j*nx)) - tex2Dfetch(devTex_leftImage, (i-d) + (j*nx)));
       }
     }
   }
