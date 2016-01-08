@@ -387,7 +387,7 @@ void sgmHost(   const int *h_leftIm, const int *h_rightIm,
 // sgm code to run on the GPU
 void sgmDevice( const int *h_leftIm, const int *h_rightIm,
                 int *h_dispImD,
-                const int w, const int h, const int disp_range, const char *version )
+                const int w, const int h, const int disp_range, const int version )
 {
   const int nx = w;
   const int ny = h;
@@ -425,7 +425,7 @@ void sgmDevice( const int *h_leftIm, const int *h_rightIm,
   cudaMemcpy(devPtr_leftImage, h_leftIm, imageSize, cudaMemcpyHostToDevice);
   cudaMemcpy(devPtr_rightImage, h_rightIm, imageSize, cudaMemcpyHostToDevice);
   cudaMemcpy(devPtr_costs, costs, nx*ny*disp_range*sizeof(int), cudaMemcpyHostToDevice);
-  if(strcmp(version, "v1") != 0){
+  if(version != 1){
     determine_costs_devicev2<<<grid1, block1>>>(devPtr_leftImage, devPtr_rightImage, devPtr_costs, nx, ny, disp_range);
   }else{
     determine_costs_device<<<grid, block>>>(devPtr_leftImage, devPtr_rightImage, devPtr_costs, nx, ny, disp_range);
@@ -481,11 +481,11 @@ int main( int argc, char** argv)
     // default command line options
     int deviceId = 0;
     int disp_range = 32;
+    int version = 1;
     char *leftIn      =(char *)"lbull.pgm",
          *rightIn     =(char *)"rbull.pgm",
          *fileOut     =(char *)"d_dbull.pgm",
-         *referenceOut=(char *)"h_dbull.pgm",
-         *version     =(char *)"v1";
+         *referenceOut=(char *)"h_dbull.pgm";
 
     // parse command line arguments
     int opt;
@@ -548,12 +548,13 @@ int main( int argc, char** argv)
                 exit(0);
                 break;
             case 'v': //version
-              if(strlen(optarg)==0)
-              {
-                  usage(argv[0]);
-                  exit(1);
-              }
-              version = strdup(optarg);
+                if(sscanf(optarg,"%d",&disp_range)==0)
+                {
+                    usage(argv[0]);
+                    exit(1);
+                }
+                break;
+
 
         }
     }
