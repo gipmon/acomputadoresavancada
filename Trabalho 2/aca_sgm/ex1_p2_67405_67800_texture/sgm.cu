@@ -32,6 +32,9 @@
 #define MMAX(a,b) (((a)>(b))?(a):(b))
 #define MMIN(a,b) (((a)<(b))?(a):(b))
 
+texture<int, cudaTextureType2D, cudaReadModeElementType> devTex_leftImage;
+texture<int, cudaTextureType2D, cudaReadModeElementType> devTex_rightImage;
+
 /* function headers */
 
 void determine_costs(const int *left_image, const int *right_image, int *costs,
@@ -105,7 +108,7 @@ __global__ void determine_costs_device(const int *left_image, const int *right_i
   {
     for ( int d = 0; d < disp_range; d++ ) {
       if(i >= d){
-        COSTS(i,j,d) = abs( LEFT_IMAGE(i,j) - RIGHT_IMAGE(i-d,j));
+        COSTS(i,j,d) = abs( tex2D(devTex_leftImage, i, j) - tex2D(devTex_leftImage, i-d, j));
       }
     }
   }
@@ -407,6 +410,8 @@ void sgmDevice( const int *h_leftIm, const int *h_rightIm,
   cudaMemcpy(devPtr_rightImage, h_rightIm, imageSize, cudaMemcpyHostToDevice);
   cudaMemcpy(devPtr_costs, costs, nx*ny*disp_range*sizeof(int), cudaMemcpyHostToDevice);
 
+  cudaBindTexture2D(0, devTex_leftImage, devPtr_leftImage, imageSize);
+  cudaBindTexture2D(0, devTex_rightImage, devPtr_rightImage, imageSize);
   determine_costs_device<<<grid, block>>>(devPtr_leftImage, devPtr_rightImage, devPtr_costs, nx, ny, disp_range);
 
   cudaMemcpy(costs, devPtr_costs, nx*ny*disp_range*sizeof(int), cudaMemcpyDeviceToHost);
@@ -444,6 +449,8 @@ void sgmDevice( const int *h_leftIm, const int *h_rightIm,
   cudaFree(devPtr_leftImage);
   cudaFree(devPtr_rightImage);
   cudaFree(devPtr_costs);
+  cudaUnbindTexture();
+  cudaUnbindTexture();
 }
 
 // print command line format
