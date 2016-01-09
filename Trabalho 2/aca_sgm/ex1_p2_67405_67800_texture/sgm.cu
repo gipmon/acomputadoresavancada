@@ -410,8 +410,8 @@ void sgmDevice( const int *h_leftIm, const int *h_rightIm,
   cudaMemcpy(devPtr_rightImage, h_rightIm, imageSize, cudaMemcpyHostToDevice);
   cudaMemcpy(devPtr_costs, costs, nx*ny*disp_range*sizeof(int), cudaMemcpyHostToDevice);
 
-  cudaBindTexture(0, devTex_leftImage, devPtr_leftImage, imageSize);
-  cudaBindTexture(0, devTex_rightImage, devPtr_rightImage, imageSize);
+  cudaBindTextureToArray(devTex_leftImage, devPtr_leftImage);
+  cudaBindTextureToArray(devTex_rightImage, devPtr_rightImage);
   determine_costs_device<<<grid, block>>>(devPtr_leftImage, devPtr_rightImage, devPtr_costs, nx, ny, disp_range);
 
   cudaMemcpy(costs, devPtr_costs, nx*ny*disp_range*sizeof(int), cudaMemcpyDeviceToHost);
