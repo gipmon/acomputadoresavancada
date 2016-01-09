@@ -410,8 +410,8 @@ void sgmDevice( const int *h_leftIm, const int *h_rightIm,
   cudaMemcpy(devPtr_rightImage, h_rightIm, imageSize, cudaMemcpyHostToDevice);
   cudaMemcpy(devPtr_costs, costs, nx*ny*disp_range*sizeof(int), cudaMemcpyHostToDevice);
 
-  cudaBindTexture2D(0, devTex_leftImage, devPtr_leftImage, imageSize);
-  cudaBindTexture2D(0, devTex_rightImage, devPtr_rightImage, imageSize);
+  cudaBindTexture(0, devTex_leftImage, devPtr_leftImage, imageSize);
+  cudaBindTexture(0, devTex_rightImage, devPtr_rightImage, imageSize);
   determine_costs_device<<<grid, block>>>(devPtr_leftImage, devPtr_rightImage, devPtr_costs, nx, ny, disp_range);
 
   cudaMemcpy(costs, devPtr_costs, nx*ny*disp_range*sizeof(int), cudaMemcpyDeviceToHost);
@@ -449,8 +449,8 @@ void sgmDevice( const int *h_leftIm, const int *h_rightIm,
   cudaFree(devPtr_leftImage);
   cudaFree(devPtr_rightImage);
   cudaFree(devPtr_costs);
-  cudaUnbindTexture();
-  cudaUnbindTexture();
+  cudaUnbindTexture(devTex_leftImage);
+  cudaUnbindTexture(devTex_rightImage);
 }
 
 // print command line format
