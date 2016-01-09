@@ -410,8 +410,24 @@ void sgmDevice( const int *h_leftIm, const int *h_rightIm,
   cudaMemcpy(devPtr_rightImage, h_rightIm, imageSize, cudaMemcpyHostToDevice);
   cudaMemcpy(devPtr_costs, costs, nx*ny*disp_range*sizeof(int), cudaMemcpyHostToDevice);
 
-  cudaBindTexture(devTex_leftImage, devPtr_leftImage);
-  cudaBindTexture(devTex_rightImage, devPtr_rightImage);
+  cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc(32, 0, 0, 0, cudaChannelFormatKindSigned);
+  cudaArray* cuArray;
+  cudaArray* cuArray1;
+  cudaMallocArray(&cuArray, &channelDesc, nx, ny);
+  cudaMallocArray(&cuArray1, &channelDesc, nx, ny);
+  cudaMemcpyToArray(cuArray, 0, 0, h_leftIm, imageSize, cudaMemcpyHostToDevice);
+  cudaMemcpyToArray(cuArray1, 0, 0, h_rightIm, imageSize, cudaMemcpyHostToDevice);
+
+  devTex_leftImage.addressMode[0] = cudaAddressModeWrap;
+  devTex_leftImage.addressMode[1] = cudaAddressModeWrap;
+  devTex_leftImage.filterMode = cudaFilterModeLinear;
+  devTex_leftImage.normalized = true;
+  devTex_rightImage.addressMode[0] = cudaAddressModeWrap;
+  devTex_rightImage.addressMode[1] = cudaAddressModeWrap;
+  devTex_rightImage.filterMode = cudaFilterModeLinear;
+  devTex_rightImage.normalized = true;
+  cudaBindTextureToArray(devTex_leftImage, cuArray, channelDesc);
+  cudaBindTextureToArray(devTex_rightImage, cuArray, channelDesc);
   determine_costs_device<<<grid, block>>>(devPtr_leftImage, devPtr_rightImage, devPtr_costs, nx, ny, disp_range);
 
   cudaMemcpy(costs, devPtr_costs, nx*ny*disp_range*sizeof(int), cudaMemcpyDeviceToHost);
@@ -449,8 +465,8 @@ void sgmDevice( const int *h_leftIm, const int *h_rightIm,
   cudaFree(devPtr_leftImage);
   cudaFree(devPtr_rightImage);
   cudaFree(devPtr_costs);
-  cudaUnbindTexture(devTex_leftImage);
-  cudaUnbindTexture(devTex_rightImage);
+  cudaFreeArray(cuArray);
+  cudaFreeArray(cuArray1);
 }
 
 // print command line format
