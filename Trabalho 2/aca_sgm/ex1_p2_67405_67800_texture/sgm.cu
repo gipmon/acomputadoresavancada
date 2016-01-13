@@ -420,11 +420,11 @@ void sgmDevice( const int *h_leftIm, const int *h_rightIm,
 
   devTex_leftImage.addressMode[0] = cudaAddressModeWrap;
   devTex_leftImage.addressMode[1] = cudaAddressModeWrap;
-  devTex_leftImage.filterMode = cudaFilterModeLinear;
+  devTex_leftImage.filterMode = cudaFilterModePoint;
   devTex_leftImage.normalized = true;
   devTex_rightImage.addressMode[0] = cudaAddressModeWrap;
   devTex_rightImage.addressMode[1] = cudaAddressModeWrap;
-  devTex_rightImage.filterMode = cudaFilterModeLinear;
+  devTex_rightImage.filterMode = cudaFilterModePoint;
   devTex_rightImage.normalized = true;
   cudaBindTextureToArray(devTex_leftImage, cuArrayLeftImage, channelDesc);
   cudaBindTextureToArray(devTex_rightImage, cuArrayRightImage, channelDesc);
