@@ -142,7 +142,7 @@ void iterate_direction_dirxpos(const int dirx, const int *left_image,
       }
 }
 
-__global__ void iterate_direction_dirxpos_dev(const int dirx, const int *left_image,
+__global__ void iterate_direction_dirxpos_dev(const int dirx,
                         const int* costs, int *accumulated_costs,
                         const int nx, const int ny, const int disp_range ){
 
@@ -192,7 +192,7 @@ void iterate_direction_dirypos(const int diry, const int *left_image,
       }
 }
 
-__global__ void iterate_direction_dirypos_dev(const int diry, const int *left_image,
+__global__ void iterate_direction_dirypos_dev(const int diry,
                         const int* costs, int *accumulated_costs,
                         const int nx, const int ny, const int disp_range )
 {
@@ -241,7 +241,7 @@ void iterate_direction_dirxneg(const int dirx, const int *left_image,
       }
 }
 
-__global__ void iterate_direction_dirxneg_dev(const int dirx, const int *left_image,
+__global__ void iterate_direction_dirxneg_dev(const int dirx,
                         const int* costs, int *accumulated_costs,
                         const int nx, const int ny, const int disp_range )
 {
@@ -293,7 +293,7 @@ void iterate_direction_diryneg(const int diry, const int *left_image,
       }
 }
 
-__global__ void iterate_direction_diryneg_dev(const int diry, const int *left_image,
+__global__ void iterate_direction_diryneg_dev(const int diry,
                         const int* costs, int *accumulated_costs,
                         const int nx, const int ny, const int disp_range )
 {
