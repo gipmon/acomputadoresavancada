@@ -457,8 +457,7 @@ void sgmDevice( const int *h_leftIm, const int *h_rightIm,
   create_disparity_view( accumulated_costs, h_dispImD, nx, ny, disp_range ); // facil +
 
   free(accumulated_costs);
-  cudaFree(devPtr_leftImage);
-  cudaFree(devPtr_rightImage);
+
   cudaFree(devPtr_costs);
   cudaFreeArray(cuArrayLeftImage);
   cudaFreeArray(cuArrayRightImage);
