@@ -98,7 +98,7 @@ void determine_costs(const int *left_image, const int *right_image, int *costs,
   }
 }
 
-__global__ void determine_costs_device(const int *left_image, const int *right_image, int *costs,
+__global__ void determine_costs_device(int *costs,
                                         const int nx, const int ny, const int disp_range)
 {
   int i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -422,14 +422,14 @@ void sgmDevice( const int *h_leftIm, const int *h_rightIm,
   devTex_leftImage.addressMode[1] = cudaAddressModeClamp;
   devTex_leftImage.filterMode     = cudaFilterModePoint;
   devTex_leftImage.normalized     = false;
-  devTex_rightImage.addressMode[0] = cudaAddressModeClamp;     
+  devTex_rightImage.addressMode[0] = cudaAddressModeClamp;
   devTex_rightImage.addressMode[1] = cudaAddressModeClamp;
   devTex_rightImage.filterMode     = cudaFilterModePoint;
   devTex_rightImage.normalized     = false;
 
   cudaBindTextureToArray(devTex_leftImage, cuArrayLeftImage, channelDesc);
   cudaBindTextureToArray(devTex_rightImage, cuArrayRightImage, channelDesc);
-  determine_costs_device<<<grid, block>>>(devPtr_leftImage, devPtr_rightImage, devPtr_costs, nx, ny, disp_range);
+  determine_costs_device<<<grid, block>>>(devPtr_costs, nx, ny, disp_range);
 
   cudaMemcpy(costs, devPtr_costs, nx*ny*disp_range*sizeof(int), cudaMemcpyDeviceToHost);
 
