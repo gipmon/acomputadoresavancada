@@ -108,7 +108,7 @@ __global__ void determine_costs_device(const int *left_image, const int *right_i
   {
     for ( int d = 0; d < disp_range; d++ ) {
       if(i >= d){
-        COSTS(i,j,d) = abs( tex2D(devTex_leftImage, i, j) - tex2D(devTex_leftImage, i-d, j));
+        COSTS(i,j,d) = abs( tex2D(devTex_leftImage, i, j) - tex2D(devTex_rightImage, i-d, j));
       }
     }
   }
@@ -411,12 +411,12 @@ void sgmDevice( const int *h_leftIm, const int *h_rightIm,
   cudaMemcpy(devPtr_costs, costs, nx*ny*disp_range*sizeof(int), cudaMemcpyHostToDevice);
 
   cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc(32, 0, 0, 0, cudaChannelFormatKindSigned);
-  cudaArray* cuArray;
-  cudaArray* cuArray1;
-  cudaMallocArray(&cuArray, &channelDesc, nx, ny);
-  cudaMallocArray(&cuArray1, &channelDesc, nx, ny);
-  cudaMemcpyToArray(cuArray, 0, 0, h_leftIm, imageSize, cudaMemcpyHostToDevice);
-  cudaMemcpyToArray(cuArray1, 0, 0, h_rightIm, imageSize, cudaMemcpyHostToDevice);
+  cudaArray* cuArrayLeftImage;
+  cudaArray* cuArrayRightImage;
+  cudaMallocArray(&cuArrayLeftImage, &channelDesc, nx, ny);
+  cudaMallocArray(&cuArrayRightImage, &channelDesc, nx, ny);
+  cudaMemcpyToArray(cuArrayLeftImage, 0, 0, h_leftIm, imageSize, cudaMemcpyHostToDevice);
+  cudaMemcpyToArray(cuArrayRightImage, 0, 0, h_rightIm, imageSize, cudaMemcpyHostToDevice);
 
   devTex_leftImage.addressMode[0] = cudaAddressModeWrap;
   devTex_leftImage.addressMode[1] = cudaAddressModeWrap;
@@ -426,8 +426,8 @@ void sgmDevice( const int *h_leftIm, const int *h_rightIm,
   devTex_rightImage.addressMode[1] = cudaAddressModeWrap;
   devTex_rightImage.filterMode = cudaFilterModeLinear;
   devTex_rightImage.normalized = true;
-  cudaBindTextureToArray(devTex_leftImage, cuArray, channelDesc);
-  cudaBindTextureToArray(devTex_rightImage, cuArray, channelDesc);
+  cudaBindTextureToArray(devTex_leftImage, cuArrayLeftImage, channelDesc);
+  cudaBindTextureToArray(devTex_rightImage, cuArrayRightImage, channelDesc);
   determine_costs_device<<<grid, block>>>(devPtr_leftImage, devPtr_rightImage, devPtr_costs, nx, ny, disp_range);
 
   cudaMemcpy(costs, devPtr_costs, nx*ny*disp_range*sizeof(int), cudaMemcpyDeviceToHost);
