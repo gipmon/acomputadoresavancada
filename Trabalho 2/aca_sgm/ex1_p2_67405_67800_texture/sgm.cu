@@ -32,8 +32,8 @@
 #define MMAX(a,b) (((a)>(b))?(a):(b))
 #define MMIN(a,b) (((a)<(b))?(a):(b))
 
-texture<float, cudaTextureType2D, cudaReadModeElementType> devTex_leftImage;
-texture<float, cudaTextureType2D, cudaReadModeElementType> devTex_rightImage;
+texture<int, cudaTextureType2D, cudaReadModeElementType> devTex_leftImage;
+texture<int, cudaTextureType2D, cudaReadModeElementType> devTex_rightImage;
 
 /* function headers */
 
@@ -410,7 +410,7 @@ void sgmDevice( const int *h_leftIm, const int *h_rightIm,
   cudaMemcpy(devPtr_rightImage, (float)h_rightIm, imageSize, cudaMemcpyHostToDevice);
   cudaMemcpy(devPtr_costs, costs, nx*ny*disp_range*sizeof(int), cudaMemcpyHostToDevice);
 
-  cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc(32, 0, 0, 0, cudaChannelFormatKindSigned);
+  cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc<int>();
   cudaArray* cuArrayLeftImage;
   cudaArray* cuArrayRightImage;
   cudaMallocArray(&cuArrayLeftImage, &channelDesc, nx, ny);
