@@ -350,7 +350,7 @@ void iterate_direction( const int dirx, const int diry, const int *left_image,
       iterate_direction_diryneg(diry,left_image,costs,accumulated_costs, nx, ny, disp_range);
     }
 }
-void iterate_direction_dev( const int dirx, const int diry, const int *left_image,
+void iterate_direction_dev( const int dirx, const int diry,
                         const int* costs, int *accumulated_costs,
                         const int nx, const int ny, const int disp_range )
 {
