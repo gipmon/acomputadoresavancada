@@ -613,8 +613,6 @@ void sgmDevice( const int *h_leftIm, const int *h_rightIm,
 
   std::fill(costs, costs+nx*ny*disp_range, 255u);
 
-  cudaMalloc((void**)&devPtr_leftImage, imageSize);
-  cudaMalloc((void**)&devPtr_rightImage, imageSize);
   cudaMalloc((void**)&devPtr_costs, nx*ny*disp_range*sizeof(int));
 
   cudaMemcpy(devPtr_costs, costs, nx*ny*disp_range*sizeof(int), cudaMemcpyHostToDevice);
