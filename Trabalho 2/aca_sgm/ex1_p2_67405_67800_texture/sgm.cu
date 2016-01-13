@@ -418,14 +418,15 @@ void sgmDevice( const int *h_leftIm, const int *h_rightIm,
   cudaMemcpyToArray(cuArrayLeftImage, 0, 0, h_leftIm, imageSize, cudaMemcpyHostToDevice);
   cudaMemcpyToArray(cuArrayRightImage, 0, 0, h_rightIm, imageSize, cudaMemcpyHostToDevice);
 
-  devTex_leftImage.addressMode[0] = cudaAddressModeWrap;
-  devTex_leftImage.addressMode[1] = cudaAddressModeWrap;
-  devTex_leftImage.filterMode = cudaFilterModePoint;
-  devTex_leftImage.normalized = true;
-  devTex_rightImage.addressMode[0] = cudaAddressModeWrap;
-  devTex_rightImage.addressMode[1] = cudaAddressModeWrap;
-  devTex_rightImage.filterMode = cudaFilterModePoint;
-  devTex_rightImage.normalized = true;
+  devTex_leftImage.addressMode[0] = cudaAddressModeClamp;
+  devTex_leftImage.addressMode[1] = cudaAddressModeClamp;
+  devTex_leftImage.filterMode     = cudaFilterModePoint;
+  devTex_leftImage.normalized     = false;
+  devTex_rightImage.addressMode[0] = cudaAddressModeClamp;     
+  devTex_rightImage.addressMode[1] = cudaAddressModeClamp;
+  devTex_rightImage.filterMode     = cudaFilterModePoint;
+  devTex_rightImage.normalized     = false;
+
   cudaBindTextureToArray(devTex_leftImage, cuArrayLeftImage, channelDesc);
   cudaBindTextureToArray(devTex_rightImage, cuArrayRightImage, channelDesc);
   determine_costs_device<<<grid, block>>>(devPtr_leftImage, devPtr_rightImage, devPtr_costs, nx, ny, disp_range);
