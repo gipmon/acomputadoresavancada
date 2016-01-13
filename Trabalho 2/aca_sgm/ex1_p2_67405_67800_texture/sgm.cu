@@ -465,8 +465,8 @@ void sgmDevice( const int *h_leftIm, const int *h_rightIm,
   cudaFree(devPtr_leftImage);
   cudaFree(devPtr_rightImage);
   cudaFree(devPtr_costs);
-  cudaFreeArray(cuArray);
-  cudaFreeArray(cuArray1);
+  cudaFreeArray(cuArrayLeftImage);
+  cudaFreeArray(cuArrayRightImage);
 }
 
 // print command line format
