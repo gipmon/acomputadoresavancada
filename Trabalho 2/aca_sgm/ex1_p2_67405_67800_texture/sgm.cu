@@ -396,18 +396,12 @@ void sgmDevice( const int *h_leftIm, const int *h_rightIm,
         exit(1);
   }
 
-  int *devPtr_leftImage;
-  int *devPtr_rightImage;
   int *devPtr_costs;
 
   std::fill(costs, costs+nx*ny*disp_range, 255u);
 
-  cudaMalloc((void**)&devPtr_leftImage, imageSize);
-  cudaMalloc((void**)&devPtr_rightImage, imageSize);
   cudaMalloc((void**)&devPtr_costs, nx*ny*disp_range*sizeof(int));
 
-  cudaMemcpy(devPtr_leftImage, h_leftIm, imageSize, cudaMemcpyHostToDevice);
-  cudaMemcpy(devPtr_rightImage, h_rightIm, imageSize, cudaMemcpyHostToDevice);
   cudaMemcpy(devPtr_costs, costs, nx*ny*disp_range*sizeof(int), cudaMemcpyHostToDevice);
 
   cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc<int>();
