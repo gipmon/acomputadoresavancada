@@ -219,7 +219,7 @@ Nesta versão, foram criadas duas geometrias apenas, sendo que uma diz respeito 
  \label{fig:IteratePositionDirxposneg_v1_kernel}
 \end{figure}
 
-Como podemos ver na figura \ref{fig:IteratePositionDirxposneg_v1_kernel}, a grid é composta por ceil(ny/32) blocos, cada bloco composto por 32 threads, sendo cada uma responsável pela linha em x onde está inserida para cálculo dos respetivos paths.
+Como se pode ver na figura \ref{fig:IteratePositionDirxposneg_v1_kernel}, a grid é composta por ceil(ny/32) blocos, cada bloco composto por 32 threads, sendo cada uma responsável pela linha em x onde está inserida para cálculo dos respetivos paths.
 
 Esta operação tem de ser efetuada sequencialmente pois o pixel seguinte depende sempre do anterior, pelo que se recorreu à seguinte implementação para o kernel \textit{iterate\_direction\_dirxpos()} e para o kernel \textit{iterate\_direction\_dirxneg()}:
 
@@ -705,7 +705,7 @@ __global__ void iterate_direction_diryneg_dev(const int diry,
 \end{lstlisting} 
 
 	
-Os resultados obtidos foram os seguintes, que como podemos ver, não houve melhorias extraordinárias:
+Os resultados obtidos foram os seguintes, que como se pode ver, não houve melhorias extraordinárias:
 
 \begin{figure}[!htb]
 \center
@@ -794,7 +794,7 @@ Para este kernel pensou-se numa geometria idêntica à da determinação de cust
 
 Constituída por uma grid de ceil(nx/32) por ceil(ny/16) blocos, cada um constituído por 32x16 threads, onde cada uma corresponde a um pixel da imagem final e calcula o índice do array de custos daquele pixel, multiplicando-o por 4.
 
-Com a implementação deste exercício 4, todo o programa passou a ser corrido no device, não ficando nenhuma função a ser executada no host no que diz respeito à função \textit{sgmDevice()}. Nesta fase começa-se a obter os valores finais de toda a implementação, contudo, estes valores variam consoante o tipo de memórias utilizadas. Iremos então mostrar os resultados para os vários tipos de memória, sendo que o que possui a \textit{texture memory}, será o que contém os três tipos de memória e será o mais otimizado.
+Com a implementação deste exercício 4, todo o programa passou a ser corrido no device, não ficando nenhuma função a ser executada no host no que diz respeito à função \textit{sgmDevice()}. Nesta fase começa-se a obter os valores finais de toda a implementação, contudo, estes valores variam consoante o tipo de memórias utilizadas. Ir-se-á então mostrar os resultados para os vários tipos de memória, sendo que o que possui a \textit{texture memory}, será o que contém os três tipos de memória e será o mais otimizado.
 
 Utilizando \textit{global memory}, \textit{shared memory} e \textit{texture memory}, obtiveram-se os seguintes resultados:
 
