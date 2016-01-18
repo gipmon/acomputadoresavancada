@@ -135,6 +135,70 @@ Como os resultados das duas versões não diferem muito, e há casos em que um �
 
 \subsubsection{Texture Memory}
 
+Neste exercício foi ainda possível a utilização de \textit{texture memory}, pois seria interessante colocar as imagens em cache, de forma a que o acesso a elas fosse mais rápido, notaram-se algumas melhorias, mas não como se estava à espera.
+
+Para que isto fosse possível foi necessário introduzir algumas configurações novas:
+
+\begin{lstlisting}[language=c++, basicstyle=\scriptsize]
+
+texture<int, cudaTextureType2D, cudaReadModeElementType> devTex_leftImage;
+texture<int, cudaTextureType2D, cudaReadModeElementType> devTex_rightImage;
+
+
+__global__ void determine_costs_device(int *costs,
+                                        const int nx, const int ny, const int disp_range)
+{
+  int i = blockIdx.x * blockDim.x + threadIdx.x;
+  int j = blockIdx.y * blockDim.y + threadIdx.y;
+
+  if (i < nx && j < ny)
+  {
+    for ( int d = 0; d < disp_range; d++ ) {
+      if(i >= d){
+        COSTS(i,j,d) = abs( tex2D(devTex_leftImage, i, j) - tex2D(devTex_rightImage, i-d, j));
+      }
+    }
+  }
+}
+
+void sgmDevice( const int *h_leftIm, const int *h_rightIm,
+                int *h_dispImD,
+                const int w, const int h, const int disp_range )
+{
+...
+  cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc<int>();
+  cudaArray* cuArrayLeftImage;
+  cudaArray* cuArrayRightImage;
+  cudaMallocArray(&cuArrayLeftImage, &channelDesc, nx, ny);
+  cudaMallocArray(&cuArrayRightImage, &channelDesc, nx, ny);
+  cudaMemcpyToArray(cuArrayLeftImage, 0, 0, h_leftIm, imageSize, cudaMemcpyHostToDevice);
+  cudaMemcpyToArray(cuArrayRightImage, 0, 0, h_rightIm, imageSize, cudaMemcpyHostToDevice);
+
+  devTex_leftImage.addressMode[0] = cudaAddressModeClamp;
+  devTex_leftImage.addressMode[1] = cudaAddressModeClamp;
+  devTex_leftImage.filterMode     = cudaFilterModePoint;
+  devTex_leftImage.normalized     = false;
+  devTex_rightImage.addressMode[0] = cudaAddressModeClamp;
+  devTex_rightImage.addressMode[1] = cudaAddressModeClamp;
+  devTex_rightImage.filterMode     = cudaFilterModePoint;
+  devTex_rightImage.normalized     = false;
+
+  cudaBindTextureToArray(devTex_leftImage, cuArrayLeftImage, channelDesc);
+  cudaBindTextureToArray(devTex_rightImage, cuArrayRightImage, channelDesc);
+...
+}
+\end{lstlisting} 
+
+
+Os resultados que se obtiveram foram os seguintes:
+
+\begin{figure}[!htb]
+\center
+ \includegraphics[width=100mm,scale=1]{DetermineCostsTexture.png}
+ \caption{\\ Resultados obtidos utilizando texture memory}
+ \label{fig:DetermineCostsTexture}
+\end{figure}
+
 \newpage
 \section{Exercício 2}
 
