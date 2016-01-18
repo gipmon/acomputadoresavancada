@@ -137,6 +137,8 @@ Como os resultados das duas versões não diferem muito, e há casos em que um �
 
 Neste exercício foi ainda possível a utilização de \textit{texture memory}, pois seria interessante colocar as imagens em cache, de forma a que o acesso a elas fosse mais rápido, notaram-se algumas melhorias, mas não como se estava à espera.
 
+Pensou-se então numa implementação de \textit{texture memory} a duas dimensões, pelo que assim seria mais simples o acesso a cada pixel desejado, visto que cada thread corresponde a um pixel.
+
 Para que isto fosse possível foi necessário introduzir algumas configurações novas:
 
 \begin{lstlisting}[language=c++, basicstyle=\scriptsize]
