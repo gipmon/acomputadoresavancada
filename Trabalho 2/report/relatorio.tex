@@ -584,7 +584,133 @@ Mais uma vez com esta nova implementação, os resultados voltaram a melhorar mu
  \label{fig:IteratePositionShared}
 \end{figure}
 
-TEXTURE
+\newpage
+\subsubsection{Texture Memory}
+
+Neste segundo exercício foi também possível recorrer às imagens que se encontravam em cache, pois em todas as funções das várias direções recorre-se às imagens, pelo que decidiu-se optar por recorrer às mesmas, através deste tipo de memória.
+
+As alterações efetuadas foram as seguintes, sendo que as alterações efetuadas no exercício 1 se mantêm:
+
+
+  \begin{lstlisting}[language=c++, basicstyle=\scriptsize]
+__global__ void iterate_direction_dirxpos_dev(const int dirx,
+                        const int* costs, int *accumulated_costs,
+                        const int nx, const int ny, const int disp_range ){
+
+      int i = threadIdx.x;
+      int j = blockIdx.y * blockDim.y + threadIdx.y;
+      extern __shared__ int shmem[];
+
+      if(i < disp_range && j<ny){
+        ACCUMULATED_COSTS(0,j,i) += COSTS(0,j,i);
+        shmem[i] = COSTS(0,j,i);
+      __syncthreads();
+
+
+      for(int l = 1; l<nx;l++){
+        evaluate_path_dev( &ACCUMULATED_COSTS(l-dirx,j,0),
+                         &COSTS(l,j,0),
+                         abs(tex2D(devTex_leftImage, l, j)-tex2D(devTex_leftImage,l-dirx,j)) ,
+                         &ACCUMULATED_COSTS(l,j,0), nx, ny, disp_range, i, shmem);
+
+        __syncthreads();
+
+      }
+    }
+}
+
+__global__ void iterate_direction_dirypos_dev(const int diry,
+                        const int* costs, int *accumulated_costs,
+                        const int nx, const int ny, const int disp_range )
+{
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    int j = threadIdx.y;
+    extern __shared__ int shmem[];
+
+    if(j < disp_range && i < nx){
+        shmem[j] = COSTS(i,0,j);
+        ACCUMULATED_COSTS(i,0,j) += COSTS(i,0,j);
+        __syncthreads();
+
+        for(int l = 1; l<ny; l++){
+
+          evaluate_path_dev( &ACCUMULATED_COSTS(i,l-diry,0),
+                         &COSTS(i,l,0),
+                         abs(tex2D(devTex_leftImage, i, l)-tex2D(devTex_leftImage,i,l-diry)) ,
+                         &ACCUMULATED_COSTS(i,l,0), nx, ny, disp_range, j,shmem);
+          __syncthreads();
+
+      }
+    }
+}
+
+__global__ void iterate_direction_dirxneg_dev(const int dirx,
+                        const int* costs, int *accumulated_costs,
+                        const int nx, const int ny, const int disp_range )
+{
+      int i = threadIdx.x;
+      int j = blockIdx.y * blockDim.y + threadIdx.y;
+      extern __shared__ int shmem[];
+
+      if(i < disp_range && j < ny){
+        shmem[i] = COSTS(nx-1,j,i);
+
+        ACCUMULATED_COSTS(nx-1,j,i) += COSTS(nx-1,j,i);
+
+        __syncthreads();
+
+
+        for(int l = nx-2; l >= 0; l--){
+            evaluate_path_dev( &ACCUMULATED_COSTS(l-dirx,j,0),
+                           &COSTS(l,j,0),
+                           abs(tex2D(devTex_leftImage, l, j)-tex2D(devTex_leftImage,l-dirx,j)) ,
+                           &ACCUMULATED_COSTS(l,j,0), nx, ny, disp_range, i, shmem);
+            __syncthreads();
+
+
+        }
+      }
+}
+
+__global__ void iterate_direction_diryneg_dev(const int diry,
+                        const int* costs, int *accumulated_costs,
+                        const int nx, const int ny, const int disp_range )
+{
+
+      int i = blockIdx.x * blockDim.x + threadIdx.x;
+      int j = threadIdx.y;
+      extern __shared__ int shmem[];
+
+      if(j < disp_range && i < nx){
+        shmem[j] = COSTS(i,ny-1,j);
+
+        ACCUMULATED_COSTS(i,ny-1,j) += COSTS(i,ny-1,j);
+        __syncthreads();
+
+
+        for(int l = ny-2; l >= 0; l--){
+
+            evaluate_path_dev( &ACCUMULATED_COSTS(i,l-diry,0),
+                       &COSTS(i,l,0),
+                       abs(tex2D(devTex_leftImage, i, l)-tex2D(devTex_leftImage,i,l-diry)) ,
+                       &ACCUMULATED_COSTS(i,l,0) , nx, ny, disp_range, j, shmem);
+            __syncthreads();
+
+         }
+      }
+}
+
+\end{lstlisting} 
+
+	
+Os resultados obtidos foram os seguintes, que como podemos ver, não houve melhorias extraordinárias:
+
+\begin{figure}[!htb]
+\center
+ \includegraphics[width=100mm,scale=1]{IteratePositionTexture.png}
+ \caption{\\ Resultados obtidos utilizando texture memory}
+ \label{fig:IteratePositionTexture}
+\end{figure}
 
 \newpage
 \section{Exercício 3}
@@ -637,7 +763,13 @@ Posteriormente a esta implementação obtiveram-se os seguintes resultados com a
  \caption{\\ Resultados obtidos utilizando shared memory}
  \label{fig:inplaceshared}
 \end{figure}
- 
+
+\begin{figure}[!htb]
+\center
+ \includegraphics[width=100mm,scale=1]{InplaceSumTexture.png}
+ \caption{\\ Resultados obtidos utilizando texture memory}
+ \label{fig:InplaceSumTexture}
+\end{figure}
  
 Mais uma vez, é possível verificar-se as melhorias nos resultados tanto a nível de memória global como de memória partilhada.
 
@@ -676,14 +808,28 @@ Utilizando \textit{global memory}, \textit{shared memory} e \textit{texture memo
  \caption{\\ Resultados obtidos utilizando shared memory}
  \label{fig:CreateDisparityShared}
 \end{figure}
+\newpage
+\begin{figure}[!htb]
+\center
+ \includegraphics[width=100mm,scale=1]{CreateDisparityTexture.png}
+ \caption{\\ Resultados obtidos utilizando texture memory}
+ \label{fig:CreateDisparityTexture}
+\end{figure}
 
-
-TEXTURE MEMORY
 Todos os exemplos nos exercícios anteriores com \textit{texture memory}, possuem também \textit{shared memory}, sendo então estes exemplos os com melhores tempos e versões finais de cada exercício.
 
 \newpage
 \section{Intruções de execução}
 
+Apenas nos exercícios 1 e 2 existem duas versões na memória global.
+
+No exercício 1, a versão 2 é possível de ser utilizada pelo que é necessário descomentar a linha 429 e comentar a linha 430, correspondente à versão 1 do exercício.
+
+No exercício 2, para utilizar a versão 2 é necessário descomentar as linhas 819 e 828 e comentar as linhas 818 e 827, correspondentes à versão 1.
+
+Nos exercícios seguintes e nos diferentes tipos de memória foram utilizadas as versões 1 do exercício 1 e a versão 2 do exercício 2. 
+
+Para utilização dos exercícios, basta apenas fazer \textit{make}, para que tudo compile, o resto é como os professores ensinaram, pelo que não foi alterado nada na maneira de executar os programas.
 
 \newpage
 \section{Conclusão}
